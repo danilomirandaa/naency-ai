@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      update_visual_baselines:
+        description: Regenerar e commitar os baselines visuais (Linux)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Todos os jobs usam a imagem oficial do Playwright na MESMA versão do
+# @playwright/test do package-lock (1.63.0), para os screenshots serem idênticos
+# entre execuções. Ao atualizar o Playwright, atualize as tags `image` abaixo.
+jobs:
+  quality:
+    name: Tipos, lint, testes e build
+    if: ${{ !inputs.update_visual_baselines }}
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run test:storybook
+      - run: npm run build
+
+  visual:
+    name: Regressão visual
+    if: ${{ !inputs.update_visual_baselines }}
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build-storybook -- --quiet
+      - run: npm run test:visual
+      - name: Relatório com as diferenças
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  update-visual-baselines:
+    name: Atualizar baselines visuais
+    if: ${{ inputs.update_visual_baselines }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build-storybook -- --quiet
+      - run: npm run test:visual:update
+      - name: Commitar baselines
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add tests/visual/__screenshots__/linux
+          git diff --cached --quiet && echo "Nenhum baseline mudou." && exit 0
+          git commit -m "test(visual): atualiza baselines Linux"
+          git push
