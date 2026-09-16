@@ -140,6 +140,8 @@ Regras:
 - Mudou o schema: `npm run db:generate` gera a migration em `server/db/migrations/`,
   que é commitada. A CI falha se o schema mudar sem migration.
 - `npm run db:migrate` aplica as migrations pendentes (usa `DATABASE_MIGRATION_URL`).
+- Senha com caractere especial (`#`, `@`, `/`, `?`, `:`) precisa estar codificada na
+  URL (ex.: `#` → `%23`), senão a conexão falha com "Invalid URL".
 - Cliente em `server/db/client.ts` (`getDb()`), só no servidor.
 
 ## Espaço ativo

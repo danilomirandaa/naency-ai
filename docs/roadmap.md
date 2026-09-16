@@ -25,8 +25,8 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Drizzle configurado, cliente do banco e migrations versionadas (checagem na CI)
 - [x] Schema de `profiles`, `workspaces`, `workspace_members`, `workspace_invitations`, com RLS
 - [x] Matriz de permissões por papel (`lib/permissions.ts`) com testes
-- [ ] Senha do banco em `DATABASE_URL`/`DATABASE_MIGRATION_URL` no `.env.local` **— precisa do usuário**
-- [ ] Aplicar a migration no Supabase (`npm run db:migrate`)
+- [x] Conexões `DATABASE_URL`/`DATABASE_MIGRATION_URL` configuradas
+- [x] Migration `0000` aplicada no Supabase; RLS confirmado (escrita anônima negada pela API)
 - [ ] Docker instalado para o Supabase local **— precisa do usuário**
 - [ ] Drizzle + migrations; Supabase local para testes de integração
 - [ ] Auth: Google e link mágico; `proxy` protegendo `app/(app)`
