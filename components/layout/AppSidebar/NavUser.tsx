@@ -1,0 +1,98 @@
+'use client';
+
+import { Avatar } from '@/components/ui/Avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu';
+import { Icon } from '@/components/ui/Icon';
+import { Sidebar, useSidebar } from '@/components/ui/Sidebar';
+
+export type NavUserData = {
+  name: string;
+  description: string;
+  avatarUrl?: string;
+};
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
+
+function UserSummary({ user }: { user: NavUserData }) {
+  return (
+    <>
+      <Avatar.Root className="rounded-control-sm">
+        {user.avatarUrl && <Avatar.Image src={user.avatarUrl} alt={user.name} />}
+        <Avatar.Fallback className="rounded-control-sm">
+          {getInitials(user.name)}
+        </Avatar.Fallback>
+      </Avatar.Root>
+      <div className="grid flex-1 text-left text-sm leading-tight">
+        <span className="truncate font-medium">{user.name}</span>
+        <span className="truncate text-typography-neutral-secondary text-xs">
+          {user.description}
+        </span>
+      </div>
+    </>
+  );
+}
+
+export function NavUser({ user }: { user: NavUserData }) {
+  const { isMobile } = useSidebar();
+
+  return (
+    <Sidebar.Menu>
+      <Sidebar.MenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Sidebar.MenuButton
+              size="lg"
+              className="data-[state=open]:bg-background-neutral-200"
+            >
+              <UserSummary user={user} />
+              <Icon icon="selector" className="ml-auto" />
+            </Sidebar.MenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
+            side={isMobile ? 'bottom' : 'right'}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5">
+                <UserSummary user={user} />
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <Icon icon="user" className="text-icon-neutral-rest" />
+                Minha conta
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Icon icon="bell" className="text-icon-neutral-rest" />
+                Notificações
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Icon icon="logout" className="text-icon-neutral-rest" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Sidebar.MenuItem>
+    </Sidebar.Menu>
+  );
+}
