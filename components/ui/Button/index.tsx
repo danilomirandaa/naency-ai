@@ -56,15 +56,10 @@ export const buttonVariants = cva(
         none: 'none',
         trigger: '[&:active:not([aria-haspopup])]:translate-y-px',
       },
-      iconPosition: {
-        left: 'flex-row-reverse',
-        right: 'flex-row',
-      },
     },
     defaultVariants: {
       variant: 'filled',
       size: 'default',
-      iconPosition: 'left',
       activation: 'none',
     },
     compoundVariants: [
@@ -134,7 +129,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isChild = false,
       as: asProp,
       icon,
-      iconPosition = 'right',
+      // A ordem no DOM define o lado do ícone (sem flex-row-reverse, que invertia de novo).
+      iconPosition = 'left',
       iconClassName,
       children,
       href,
