@@ -1,0 +1,159 @@
+# Arquitetura
+
+Decisões que valem para o sistema inteiro. Mudar qualquer uma delas é uma
+decisão explícita: atualize este arquivo no mesmo PR.
+
+Leia junto: [domínio](./domain.md) · [componentes](./components.md) ·
+[testes](./testing.md) · [importação](./import-and-onboarding.md) ·
+[roadmap](./roadmap.md).
+
+## Decisões
+
+| Tema | Decisão | Por quê | Revisitar quando |
+| --- | --- | --- | --- |
+| Framework | Next.js 16 (App Router) | Server Components, Server Actions e Route Handlers no mesmo projeto | — |
+| Banco, login e arquivos | **Supabase** (Postgres + Auth + Storage) | Um serviço cobre as três necessidades, com plano gratuito | Custo ou limite do plano |
+| Acesso ao banco | **Drizzle ORM**, só no servidor | Schema e migrations tipados em TypeScript, SQL previsível | — |
+| Dados no cliente | **TanStack Query** | Cache, refetch, mutations otimistas e polling de jobs com uma API só | — |
+| Contrato de dados | **Zod** em `features/<feature>/schemas.ts` | Uma definição valida form, Server Action e Route Handler, e gera os tipos | — |
+| RPC (tRPC, GraphQL) | **Não usar** | Os schemas Zod compartilhados já dão tipagem de ponta a ponta | App mobile ou API pública |
+| Formulários | React Hook Form + resolver Zod | Reaproveita os mesmos `schemas.ts` | — |
+| Compartilhamento | **Espaço com papéis** (ver [domínio](./domain.md#identidade-e-compartilhamento)) | Os dados pertencem ao espaço, não à pessoa; cada membro entra com a própria conta | — |
+| AI | **Claude API**, modelo configurável por tarefa | Lê PDF nativamente e tem saída estruturada validada por Zod | Resultado do eval de importação |
+| Hospedagem | **Vercel** | Integração nativa com Next | Limite de duração de função na importação |
+| Componentização | **Obrigatória** ([componentes](./components.md)) | Consistência e reuso desde o início | — |
+| Testes | **Obrigatórios** ([testes](./testing.md)) | Toda feature sobe provando que nada existente mudou | — |
+
+## Estrutura de pastas
+
+```
+app/
+  (auth)/                         login, aceite de convite
+  (onboarding)/                   primeira configuração do espaço
+  (app)/                          páginas com sidebar
+    layout.tsx                    Sidebar.Provider + AppSidebar + providers
+    providers.tsx                 QueryClientProvider
+  api/workspaces/[workspaceId]/   Route Handlers de leitura (GET) para o TanStack Query
+components/
+  ui/                             design system genérico
+  finance/                        peças de domínio reutilizáveis entre features
+  layout/                         casca do app (sidebar, header, tema)
+features/<feature>/               accounts, transactions, cards, categories, imports, dashboard, workspaces
+  api/<feature>.queries.ts        contratos de query (key + options + tag)
+  actions.ts                      Server Actions ('use server'), finas, delegam ao DAL
+  schemas.ts                      Zod: entrada e saída da feature
+  components/                     composições da feature
+server/                           tudo aqui importa 'server-only'
+  db/client.ts                    conexão Drizzle
+  db/schema/*.ts                  tabelas
+  dal/*.ts                        Data Access Layer: autenticação, autorização, DTOs
+  auth.ts                         sessão Supabase, getCurrentUser()
+  ai/                             cliente Claude, tarefas, modelo por tarefa
+  import/                         parsers OFX/CSV, extração de PDF, pipeline
+  storage.ts                      Supabase Storage
+lib/
+  money.ts                        centavos ↔ exibição em BRL
+  dates.ts                        datas no fuso America/Sao_Paulo
+hooks/                            hooks genéricos de UI
+tests/                            e2e/ e visual/ (ver testes)
+```
+
+`features/` nunca importa de outra feature. O que for compartilhado sobe para
+`components/finance/`, `lib/` ou `server/`.
+
+## Fluxo de dados
+
+Segue os guias oficiais da versão instalada:
+`node_modules/next/dist/docs/01-app/02-guides/client-side-data-fetching/tanstack-query.md`
+e `node_modules/next/dist/docs/01-app/02-guides/data-security.md`.
+
+```
+LEITURA INICIAL   page.tsx (Server Component) ──► DAL ──► prefetchQuery ──► HydrationBoundary
+LEITURA CLIENTE   componente ──► useQuery(contrato) ──► Route Handler GET ──► DAL ──► Postgres
+ESCRITA           componente ──► useMutation ──► Server Action ──► DAL ──► Postgres
+                                        └─► invalidateQueries(keys afetadas)
+```
+
+### Contrato de query
+
+Cada feature declara key, options e tag em um lugar só. O servidor (prefetch) e o
+cliente (hook) importam o mesmo contrato, então a key nunca diverge.
+
+```ts
+// features/transactions/api/transactions.queries.ts
+export const transactionsQuery = {
+  key: (workspaceId: string, filters: TransactionFilters) =>
+    ['workspace', workspaceId, 'transactions', filters] as const,
+  options: (workspaceId: string, filters: TransactionFilters) =>
+    queryOptions({
+      queryKey: transactionsQuery.key(workspaceId, filters),
+      queryFn: () => fetchJson(`/api/workspaces/${workspaceId}/transactions`, filters),
+    }),
+};
+```
+
+Regras:
+
+- Toda key começa com `['workspace', workspaceId, …]`. Trocar de espaço nunca
+  mostra dado de outro espaço, e invalidar um espaço inteiro é uma linha só.
+- Defaults do `QueryClient`: `staleTime` de 30s e `refetchOnWindowFocus` ligado.
+  Quem só acompanha vê o que o outro membro lançou ao voltar para a aba.
+- Mutation invalida as keys que afetou. Atualização otimista só em ações simples
+  e reversíveis (ex.: marcar como pago).
+- Polling (`refetchInterval`) só enquanto houver um job em andamento, como a importação.
+- Componentes não chamam `fetch` direto; usam hooks da feature.
+
+### Server Actions e Route Handlers
+
+- **Leitura** pelo cliente: Route Handler `GET` que valida os parâmetros com Zod e chama o DAL.
+- **Escrita**: Server Action que valida a entrada com Zod e chama o DAL. A action
+  não contém regra de negócio nem SQL.
+- Retornam só DTOs (o necessário para a tela), nunca a linha crua do banco.
+
+## Segurança
+
+- **Autorização acontece no DAL e só nele.** Toda função do DAL recebe o
+  `workspaceId` e chama `requireMembership(workspaceId, papelMínimo)` antes de ler
+  ou escrever. Server Action e Route Handler não decidem permissão.
+- `process.env`, o cliente do banco e a chave da AI só existem dentro de `server/`,
+  e todo arquivo lá importa `'server-only'`.
+- **RLS ligado em todas as tabelas** do Supabase com política *deny-all* para os
+  papéis `anon` e `authenticated`. O navegador usa o Supabase só para login; os
+  dados passam pelo servidor. Mesmo que a chave pública vaze, ela não lê nada.
+- Arquivos de extrato ficam em bucket **privado**, com upload por URL assinada.
+- **Rotas protegidas**: o arquivo `proxy` do Next 16 redireciona para o login
+  quem não tem sessão (ver `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
+  O proxy não substitui a checagem no DAL.
+
+## Espaço ativo
+
+O usuário pode participar de mais de um espaço. O espaço ativo fica em cookie e é
+trocado por um seletor no topo da sidebar (evolução do cabeçalho em
+`components/layout/AppSidebar/index.tsx`). A cada requisição, o DAL confere se o
+usuário é membro do espaço do cookie.
+
+## Convenções de dados
+
+| Assunto | Regra |
+| --- | --- |
+| Dinheiro | **Centavos inteiros** (`bigint`), com sinal: saída negativa, entrada positiva. Nunca `float`. Conversão e exibição só via `lib/money.ts` |
+| Moeda | Coluna `currency` existe (padrão `BRL`); por enquanto só BRL |
+| Data do lançamento | Tipo `date` (sem hora) |
+| Momento de sistema | `timestamptz` |
+| Fuso de negócio | `America/Sao_Paulo`, via `lib/dates.ts` (define "este mês" e o fechamento de fatura) |
+| Exclusão | Soft delete (`deleted_at`) em dados financeiros |
+| Autoria | `created_by` e `updated_by` em toda entidade editável |
+| IDs | UUID |
+| Idioma | Código e banco em inglês; interface em pt-BR |
+
+## Variáveis de ambiente
+
+Lidas só em `server/`. Nomes previstos:
+
+| Variável | Uso |
+| --- | --- |
+| `DATABASE_URL` | Conexão Drizzle com o Postgres do Supabase |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Login no navegador (RLS impede leitura de dados) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Storage e administração, só no servidor |
+| `ANTHROPIC_API_KEY` | Claude API |
+| `AI_MODEL_EXTRACT`, `AI_MODEL_ENRICH` | Modelo por tarefa (padrão `claude-opus-5`) |
