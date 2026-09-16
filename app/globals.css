@@ -1,26 +1,423 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Tema do Naency.
+ *
+ * Os NOMES dos tokens seguem o design system dos componentes
+ * (background-*, typography-*, border-*, icon-*, button-*), os VALORES vêm da
+ * paleta original do projeto (docs/design/legacy-theme.css).
+ * Regras de uso: docs/design/tokens.md.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --breakpoint-xs: 480px;
+  --breakpoint-3xl: 1600px;
+  --breakpoint-4xl: 1920px;
+
+  --radius-control-xs: 0.375rem;
+  --radius-control-sm: 0.5rem;
+  --radius-control: 0.625rem;
+  --radius-control-lg: 0.875rem;
+  --radius-control-xl: 1.125rem;
+  --radius-control-2xl: 1.375rem;
+  --radius-control-3xl: 1.625rem;
+
+  --shadow-input: 0px 1px 2px 0px rgba(18, 18, 23, 0.05);
+  --shadow-panel-body: 0 1px 2px 0 rgba(25, 28, 33, 0.06), 0 0 2px 0 rgba(0, 0, 0, 0.08);
+  --shadow-panel-body-dark: inset 0 0 1px 1px rgba(255, 255, 255, 0.01), 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 3px 0 rgba(0, 0, 0, 0.2);
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--letter-spacing: -0.3px;
+  --text-body-xs: 12px;
+  --text-body-xs--line-height: 16px;
+  --text-body-xs--letter-spacing: -0.6px;
+  --text-caption-md: 12px;
+  --text-caption-md--line-height: 16px;
+  --text-caption-md--letter-spacing: -0.3px;
+
+  --animate-collapsible-down: collapsible-down 0.2s ease-out;
+  --animate-collapsible-up: collapsible-up 0.2s ease-out;
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+  --animate-overlay-noise: overlay-noise 6s linear infinite;
+  --animate-switch-shake: switch-shake 0.32s ease-in-out;
+
+  @keyframes collapsible-down {
+    from { height: 0; }
+    to { height: var(--radix-collapsible-content-height); }
+  }
+  @keyframes collapsible-up {
+    from { height: var(--radix-collapsible-content-height); }
+    to { height: 0; }
+  }
+  @keyframes caret-blink {
+    0%, 70%, 100% { opacity: 1; }
+    20%, 50% { opacity: 0; }
+  }
+  @keyframes overlay-noise {
+    0%, 100% { opacity: 1; }
+    33.33%, 66.66% { opacity: 0; }
+  }
+  @keyframes switch-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-3px); }
+    40%, 80% { transform: translateX(3px); }
+  }
+
+  /* Escalas para gráficos: iguais no light e no dark. */
+  --color-chart-indigo-50: #f1f0fe;
+  --color-chart-indigo-100: #ddd9fd;
+  --color-chart-indigo-200: #c0bbfb;
+  --color-chart-indigo-300: #9d95f3;
+  --color-chart-indigo-400: #756be6;
+  --color-chart-indigo-500: #5347ce;
+  --color-chart-indigo-600: #463bb3;
+  --color-chart-indigo-700: #372f8f;
+  --color-chart-indigo-800: #28236a;
+  --color-chart-indigo-900: #1a1845;
+  --color-chart-violet-50: #f4f2ff;
+  --color-chart-violet-100: #e5e1ff;
+  --color-chart-violet-200: #cdc6ff;
+  --color-chart-violet-300: #b2a7ff;
+  --color-chart-violet-400: #9a8bfe;
+  --color-chart-violet-500: #887cfd;
+  --color-chart-violet-600: #6f63e6;
+  --color-chart-violet-700: #584fc2;
+  --color-chart-violet-800: #403a93;
+  --color-chart-violet-900: #2a2664;
+  --color-chart-blue-50: #eef5ff;
+  --color-chart-blue-100: #d9e9ff;
+  --color-chart-blue-200: #bcd9ff;
+  --color-chart-blue-300: #95c1ff;
+  --color-chart-blue-400: #6faaff;
+  --color-chart-blue-500: #4996fe;
+  --color-chart-blue-600: #347de0;
+  --color-chart-blue-700: #2a64b5;
+  --color-chart-blue-800: #1f4a87;
+  --color-chart-blue-900: #16325a;
+  --color-chart-teal-50: #e9fbfb;
+  --color-chart-teal-100: #ccf4f4;
+  --color-chart-teal-200: #9eeaea;
+  --color-chart-teal-300: #6bdddd;
+  --color-chart-teal-400: #3fd2d1;
+  --color-chart-teal-500: #16c8c7;
+  --color-chart-teal-600: #12acab;
+  --color-chart-teal-700: #0e8887;
+  --color-chart-teal-800: #0a6362;
+  --color-chart-teal-900: #06403f;
+  --color-chart-mint-50: #ecfefd;
+  --color-chart-mint-100: #d3fbf9;
+  --color-chart-mint-200: #adf5f1;
+  --color-chart-mint-300: #87eee9;
+  --color-chart-mint-400: #72e9e3;
+  --color-chart-mint-500: #65eae4;
+  --color-chart-mint-600: #4dcfc9;
+  --color-chart-mint-700: #3aa6a1;
+  --color-chart-mint-800: #2a7d79;
+  --color-chart-mint-900: #1b5451;
 }
 
 @theme inline {
+  --font-inter: var(--font-inter-sans), "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-inter-sans), "Inter", system-ui, sans-serif;
+
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-text-link: var(--text-link);
+
+  --color-background-neutral-000: var(--background-neutral-000);
+  --color-background-neutral-100: var(--background-neutral-100);
+  --color-background-neutral-200: var(--background-neutral-200);
+  --color-background-neutral-300: var(--background-neutral-300);
+  --color-background-neutral-disabled: var(--background-neutral-disabled);
+  --color-background-neutral-inverse: var(--background-neutral-inverse);
+  --color-background-surface-sunken: var(--background-surface-sunken);
+  --color-background-brand-primary-rest: var(--background-brand-primary-rest);
+  --color-background-brand-primary-hover: var(--background-brand-primary-hover);
+  --color-background-status-critical-rest: var(--background-status-critical-rest);
+  --color-background-status-success-rest: var(--background-status-success-rest);
+  --color-background-status-warning-rest: var(--background-status-warning-rest);
+
+  --color-typography-neutral-primary: var(--typography-neutral-primary);
+  --color-typography-neutral-secondary: var(--typography-neutral-secondary);
+  --color-typography-neutral-tertiary: var(--typography-neutral-tertiary);
+  --color-typography-neutral-disabled: var(--typography-neutral-disabled);
+  --color-typography-neutral-on-color: var(--typography-neutral-on-color);
+  --color-typography-neutral-on-color-inverse: var(--typography-neutral-on-color-inverse);
+  --color-typography-neutral-inverse: var(--typography-neutral-inverse);
+  --color-typography-brand-on-primary: var(--typography-brand-on-primary);
+  --color-typography-brand-primary-rest: var(--typography-brand-primary-rest);
+  --color-typography-brand-primary-hover: var(--typography-brand-primary-hover);
+  --color-typography-brand-primary-pressed: var(--typography-brand-primary-pressed);
+  --color-typography-status-critical-rest: var(--typography-status-critical-rest);
+  --color-typography-status-critical-hover: var(--typography-status-critical-hover);
+  --color-typography-status-critical-pressed: var(--typography-status-critical-pressed);
+  --color-typography-status-success-rest: var(--typography-status-success-rest);
+  --color-typography-status-success-pressed: var(--typography-status-success-pressed);
+  --color-typography-status-warning-rest: var(--typography-status-warning-rest);
+
+  --color-border-neutral-subtle: var(--border-neutral-subtle);
+  --color-border-neutral-rest: var(--border-neutral-rest);
+  --color-border-neutral-hover: var(--border-neutral-hover);
+  --color-border-neutral-disabled: var(--border-neutral-disabled);
+  --color-border-status-critical-rest: var(--border-status-critical-rest);
+  --color-border-status-critical-hover: var(--border-status-critical-hover);
+
+  --color-icon-neutral-subtle: var(--icon-neutral-subtle);
+  --color-icon-neutral-rest: var(--icon-neutral-rest);
+  --color-icon-neutral-hover: var(--icon-neutral-hover);
+  --color-icon-neutral-pressed: var(--icon-neutral-pressed);
+  --color-icon-neutral-on-color-inverse: var(--icon-neutral-on-color-inverse);
+  --color-icon-brand-primary-rest: var(--icon-brand-primary-rest);
+  --color-icon-brand-primary-hover: var(--icon-brand-primary-hover);
+  --color-icon-brand-primary-pressed: var(--icon-brand-primary-pressed);
+  --color-icon-status-critical-rest: var(--icon-status-critical-rest);
+  --color-icon-status-critical-hover: var(--icon-status-critical-hover);
+  --color-icon-status-critical-pressed: var(--icon-status-critical-pressed);
+  --color-icon-status-success-rest: var(--icon-status-success-rest);
+  --color-icon-status-success-hover: var(--icon-status-success-hover);
+  --color-icon-status-success-pressed: var(--icon-status-success-pressed);
+  --color-icon-status-warning-rest: var(--icon-status-warning-rest);
+  --color-icon-status-warning-hover: var(--icon-status-warning-hover);
+  --color-icon-status-warning-pressed: var(--icon-status-warning-pressed);
+
+  --color-button-brand-primary-rest: var(--button-brand-primary-rest);
+  --color-button-brand-primary-hover: var(--button-brand-primary-hover);
+  --color-button-brand-primary-pressed: var(--button-brand-primary-pressed);
+  --color-button-brand-accent-rest: var(--button-brand-accent-rest);
+  --color-button-brand-accent-hover: var(--button-brand-accent-hover);
+  --color-button-brand-accent-pressed: var(--button-brand-accent-pressed);
+  --color-button-subtle-rest: var(--button-subtle-rest);
+  --color-button-subtle-hover: var(--button-subtle-hover);
+  --color-button-subtle-pressed: var(--button-subtle-pressed);
+  --color-button-status-critical-rest: var(--button-status-critical-rest);
+  --color-button-status-critical-hover: var(--button-status-critical-hover);
+  --color-button-status-critical-pressed: var(--button-status-critical-pressed);
+
+  /* Domínio financeiro */
+  --color-typography-finance-income: var(--finance-income);
+  --color-typography-finance-expense: var(--finance-expense);
+  --color-typography-finance-transfer: var(--finance-transfer);
+  --color-typography-finance-single: var(--finance-single);
+  --color-typography-finance-installment: var(--finance-installment);
+  --color-typography-finance-recurring: var(--finance-recurring);
+  --color-icon-finance-income: var(--finance-income-icon);
+  --color-icon-finance-expense: var(--finance-expense-icon);
+  --color-icon-finance-transfer: var(--finance-transfer-icon);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --ring: oklch(0.854 0.129 174.692);
+  --destructive: oklch(0.6189 0.2069 23.39);
+  --text-link: oklch(0.51 0.14 242);
+
+  --background-neutral-000: oklch(1 0 0);
+  --background-neutral-100: oklch(0.967 0.001 286.375);
+  --background-neutral-200: oklch(0.94 0.003 286);
+  --background-neutral-300: oklch(0.9 0.004 286);
+  --background-neutral-disabled: oklch(0.967 0.001 286.375);
+  --background-neutral-inverse: oklch(0.21 0.006 285.885);
+  --background-surface-sunken: oklch(0.975 0.001 286);
+  --background-brand-primary-rest: oklch(0.854 0.129 174.692);
+  --background-brand-primary-hover: oklch(0.8 0.13 174.7);
+  --background-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --background-status-success-rest: oklch(0.6 0.1355 177.53);
+  --background-status-warning-rest: oklch(0.8 0.16 86);
+
+  --typography-neutral-primary: oklch(0.141 0.005 285.823);
+  --typography-neutral-secondary: oklch(0.517 0.016 285.938);
+  --typography-neutral-tertiary: oklch(0.65 0.014 286);
+  --typography-neutral-disabled: oklch(0.75 0.01 286);
+  --typography-neutral-on-color: oklch(0.985 0 0);
+  --typography-neutral-on-color-inverse: oklch(0.141 0.005 285.823);
+  --typography-neutral-inverse: oklch(0.985 0 0);
+  --typography-brand-on-primary: oklch(0.141 0.005 285.823);
+  --typography-brand-primary-rest: oklch(0.5 0.11 175);
+  --typography-brand-primary-hover: oklch(0.45 0.1 175);
+  --typography-brand-primary-pressed: oklch(0.4 0.09 175);
+  --typography-status-critical-rest: oklch(0.545 0.22 18);
+  --typography-status-critical-hover: oklch(0.5 0.21 18);
+  --typography-status-critical-pressed: oklch(0.46 0.19 18);
+  --typography-status-success-rest: oklch(0.495 0.13 163);
+  --typography-status-success-pressed: oklch(0.43 0.12 163);
+  --typography-status-warning-rest: oklch(0.525 0.15 70);
+
+  --border-neutral-subtle: oklch(0.92 0.004 286.32);
+  --border-neutral-rest: oklch(0.87 0.006 286);
+  --border-neutral-hover: oklch(0.8 0.008 286);
+  --border-neutral-disabled: oklch(0.94 0.003 286);
+  --border-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --border-status-critical-hover: oklch(0.55 0.2 23);
+
+  --icon-neutral-subtle: oklch(0.705 0.015 286.067);
+  --icon-neutral-rest: oklch(0.552 0.016 285.938);
+  --icon-neutral-hover: oklch(0.37 0.013 286);
+  --icon-neutral-pressed: oklch(0.141 0.005 285.823);
+  --icon-neutral-on-color-inverse: oklch(0.141 0.005 285.823);
+  --icon-brand-primary-rest: oklch(0.6 0.12 175);
+  --icon-brand-primary-hover: oklch(0.55 0.12 175);
+  --icon-brand-primary-pressed: oklch(0.5 0.11 175);
+  --icon-status-critical-rest: oklch(0.59 0.22 18);
+  --icon-status-critical-hover: oklch(0.53 0.21 18);
+  --icon-status-critical-pressed: oklch(0.48 0.19 18);
+  --icon-status-success-rest: oklch(0.6 0.13 163);
+  --icon-status-success-hover: oklch(0.55 0.13 163);
+  --icon-status-success-pressed: oklch(0.5 0.12 163);
+  --icon-status-warning-rest: oklch(0.75 0.16 75);
+  --icon-status-warning-hover: oklch(0.7 0.16 72);
+  --icon-status-warning-pressed: oklch(0.65 0.15 70);
+
+  --button-brand-primary-rest: oklch(0.854 0.129 174.692);
+  --button-brand-primary-hover: oklch(0.82 0.13 174.7);
+  --button-brand-primary-pressed: oklch(0.78 0.13 174.7);
+  --button-brand-accent-rest: oklab(65.896% 0.04582 -0.17967);
+  --button-brand-accent-hover: oklab(61% 0.045 -0.18);
+  --button-brand-accent-pressed: oklab(57% 0.045 -0.18);
+  --button-subtle-rest: transparent;
+  --button-subtle-hover: oklch(0.967 0.001 286.375);
+  --button-subtle-pressed: oklch(0.94 0.003 286);
+  --button-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --button-status-critical-hover: oklch(0.57 0.2 23.4);
+  --button-status-critical-pressed: oklch(0.52 0.19 23.4);
+
+  /* Texto: contraste mínimo 4.5:1 sobre fundos claros (WCAG AA). */
+  --finance-income: oklch(0.495 0.13 163);
+  --finance-expense: oklch(0.545 0.22 18);
+  --finance-transfer: oklch(0.51 0.14 242);
+  --finance-single: oklch(0.54 0.19 41);
+  --finance-installment: oklch(0.52 0.16 86);
+  --finance-recurring: oklch(0.51 0.23 277);
+  /* Ícone: contraste mínimo 3:1, mantém as cores da paleta original. */
+  --finance-income-icon: oklch(0.6 0.13 163);
+  --finance-expense-icon: oklch(0.59 0.22 18);
+  --finance-transfer-icon: oklch(0.59 0.14 242);
+}
+
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --ring: oklch(0.8034 0.129 174.69);
+  --destructive: oklch(0.6189 0.2069 23.39);
+  --text-link: oklch(0.75 0.14 233);
+
+  --background-neutral-000: oklch(0.21 0.006 285.885);
+  --background-neutral-100: oklch(0.274 0.006 286.033);
+  --background-neutral-200: oklch(0.3 0.006 286);
+  --background-neutral-300: oklch(0.37 0.008 286);
+  --background-neutral-disabled: oklch(0.24 0.006 286);
+  --background-neutral-inverse: oklch(0.985 0 0);
+  --background-surface-sunken: oklch(0.175 0.005 286);
+  --background-brand-primary-rest: oklch(0.8034 0.129 174.69);
+  --background-brand-primary-hover: oklch(0.75 0.129 174.69);
+  --background-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --background-status-success-rest: oklch(0.6 0.1355 177.53);
+  --background-status-warning-rest: oklch(0.84 0.16 84);
+
+  --typography-neutral-primary: oklch(0.985 0 0);
+  --typography-neutral-secondary: oklch(0.705 0.015 286.067);
+  --typography-neutral-tertiary: oklch(0.58 0.014 286);
+  --typography-neutral-disabled: oklch(0.45 0.01 286);
+  --typography-neutral-on-color: oklch(0.985 0 0);
+  --typography-neutral-on-color-inverse: oklch(0.141 0.005 285.823);
+  --typography-neutral-inverse: oklch(0.141 0.005 285.823);
+  --typography-brand-on-primary: oklch(0.141 0.005 285.823);
+  --typography-brand-primary-rest: oklch(0.8034 0.129 174.69);
+  --typography-brand-primary-hover: oklch(0.85 0.12 174.7);
+  --typography-brand-primary-pressed: oklch(0.75 0.129 174.69);
+  --typography-status-critical-rest: oklch(0.72 0.17 13);
+  --typography-status-critical-hover: oklch(0.77 0.15 13);
+  --typography-status-critical-pressed: oklch(0.68 0.17 13);
+  --typography-status-success-rest: oklch(0.77 0.15 163);
+  --typography-status-success-pressed: oklch(0.7 0.15 163);
+  --typography-status-warning-rest: oklch(0.84 0.16 84);
+
+  --border-neutral-subtle: oklch(1 0 0 / 10%);
+  --border-neutral-rest: oklch(1 0 0 / 15%);
+  --border-neutral-hover: oklch(1 0 0 / 22%);
+  --border-neutral-disabled: oklch(1 0 0 / 6%);
+  --border-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --border-status-critical-hover: oklch(0.68 0.19 23);
+
+  --icon-neutral-subtle: oklch(0.552 0.016 285.938);
+  --icon-neutral-rest: oklch(0.705 0.015 286.067);
+  --icon-neutral-hover: oklch(0.87 0.006 286);
+  --icon-neutral-pressed: oklch(0.985 0 0);
+  --icon-neutral-on-color-inverse: oklch(0.141 0.005 285.823);
+  --icon-brand-primary-rest: oklch(0.8034 0.129 174.69);
+  --icon-brand-primary-hover: oklch(0.85 0.12 174.7);
+  --icon-brand-primary-pressed: oklch(0.75 0.129 174.69);
+  --icon-status-critical-rest: oklch(0.72 0.17 13);
+  --icon-status-critical-hover: oklch(0.77 0.15 13);
+  --icon-status-critical-pressed: oklch(0.68 0.17 13);
+  --icon-status-success-rest: oklch(0.77 0.15 163);
+  --icon-status-success-hover: oklch(0.72 0.15 163);
+  --icon-status-success-pressed: oklch(0.67 0.14 163);
+  --icon-status-warning-rest: oklch(0.84 0.16 84);
+  --icon-status-warning-hover: oklch(0.8 0.16 82);
+  --icon-status-warning-pressed: oklch(0.76 0.16 80);
+
+  --button-brand-primary-rest: oklch(0.8034 0.129 174.69);
+  --button-brand-primary-hover: oklch(0.76 0.129 174.69);
+  --button-brand-primary-pressed: oklch(0.72 0.125 174.69);
+  --button-brand-accent-rest: oklab(65.896% 0.04582 -0.17967);
+  --button-brand-accent-hover: oklab(70% 0.045 -0.17);
+  --button-brand-accent-pressed: oklab(62% 0.045 -0.18);
+  --button-subtle-rest: transparent;
+  --button-subtle-hover: oklch(0.274 0.006 286.033);
+  --button-subtle-pressed: oklch(0.3 0.006 286);
+  --button-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --button-status-critical-hover: oklch(0.57 0.2 23.4);
+  --button-status-critical-pressed: oklch(0.52 0.19 23.4);
+
+  --finance-income: oklch(0.77 0.15 163);
+  --finance-expense: oklch(0.72 0.17 13);
+  --finance-transfer: oklch(0.75 0.14 233);
+  --finance-single: oklch(0.76 0.16 56);
+  --finance-installment: oklch(0.84 0.16 84);
+  --finance-recurring: oklch(0.68 0.16 277);
+  --finance-income-icon: oklch(0.77 0.15 163);
+  --finance-expense-icon: oklch(0.72 0.17 13);
+  --finance-transfer-icon: oklch(0.75 0.14 233);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border-neutral-subtle);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-typography-neutral-primary);
+    font-family: var(--font-inter);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Esconde as setas nativas de input numérico (valores monetários). */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .switch-shake {
+    animation: var(--animate-switch-shake);
+  }
 }

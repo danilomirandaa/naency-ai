@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# storybook
+storybook-static
+*storybook.log
+
+# testes
+/test-results/
+/playwright-report/
+/coverage/
+/blob-report/
+# baselines visuais de macOS são só locais; os válidos são os de Linux (CI)
+/tests/visual/__screenshots__/darwin/
+# extratos reais para o eval de importação: nunca commitar
+/.samples/
