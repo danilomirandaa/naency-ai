@@ -6,6 +6,11 @@ name: Atualizar baselines visuais
 # escolhida e dispara a CI para confirmar.
 on:
   workflow_dispatch:
+  # Mudar este arquivo muda o ambiente dos screenshots (ex.: imagem do
+  # Playwright), o que já exige regenerar os baselines.
+  push:
+    branches: [main]
+    paths: ['.github/workflows/visual-baselines.yml']
 
 # Grupo próprio e sem cancelamento: um push na branch não pode interromper a
 # geração dos baselines no meio.

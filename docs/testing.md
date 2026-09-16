@@ -94,8 +94,8 @@ A Vercel publica produção só a partir da `main`; PRs geram preview.
     Linux, valida, commita na branch e dispara a CI.
 - O workflow usa a imagem `mcr.microsoft.com/playwright` na mesma versão do
   `@playwright/test`. Ao atualizar o Playwright, atualize a tag em
-  `.github/workflows/ci.yml` e `.github/workflows/visual-baselines.yml` e
-  regenere os baselines.
+  `.github/workflows/ci.yml` e `.github/workflows/visual-baselines.yml`. Um push
+  na `main` que altera `visual-baselines.yml` regenera os baselines sozinho.
 
 ## Versões
 
