@@ -71,6 +71,10 @@ jobs:
       - run: npm ci
       - run: npm run build-storybook -- --quiet
       - run: npm run test:visual:update
+      # O commit feito com GITHUB_TOKEN não dispara outra execução da CI, então a
+      # validação dos baselines novos acontece aqui, antes de commitar.
+      - name: Validar baselines gerados
+        run: npm run test:visual
       - name: Commitar baselines
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
