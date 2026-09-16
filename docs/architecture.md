@@ -132,6 +132,16 @@ Regras:
   sessão (ver `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
   O proxy não substitui a checagem no DAL.
 
+## Banco e migrations
+
+- Schema em `server/db/schema/`, uma área por arquivo, exportado por `index.ts`.
+- **Toda tabela usa `.enableRLS()` sem policies.** No Supabase, tabela em `public`
+  sem RLS fica legível pela API pública com a chave publishable.
+- Mudou o schema: `npm run db:generate` gera a migration em `server/db/migrations/`,
+  que é commitada. A CI falha se o schema mudar sem migration.
+- `npm run db:migrate` aplica as migrations pendentes (usa `DATABASE_MIGRATION_URL`).
+- Cliente em `server/db/client.ts` (`getDb()`), só no servidor.
+
 ## Espaço ativo
 
 O usuário pode participar de mais de um espaço. O espaço ativo fica em cookie e é
@@ -160,7 +170,8 @@ Nomes:
 
 | Variável | Uso |
 | --- | --- |
-| `DATABASE_URL` | Conexão Drizzle com o Postgres do Supabase |
+| `DATABASE_URL` | App: Drizzle pelo pooler do Supabase em modo transação (porta 6543) |
+| `DATABASE_MIGRATION_URL` | Migrations: mesmo host em modo sessão (porta 5432) |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Login e sessão (RLS impede leitura de dados) |
 | `SUPABASE_SECRET_KEY` | Storage e administração, só no servidor |
 | `ANTHROPIC_API_KEY` | Claude API |

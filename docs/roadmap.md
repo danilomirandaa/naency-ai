@@ -22,11 +22,14 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 
 - [x] Projeto Supabase criado e variáveis públicas configuradas
 - [x] Clientes do Supabase (navegador e servidor) e renovação de sessão no `proxy`, com testes
-- [ ] `DATABASE_URL` no `.env.local` **— precisa do usuário**
+- [x] Drizzle configurado, cliente do banco e migrations versionadas (checagem na CI)
+- [x] Schema de `profiles`, `workspaces`, `workspace_members`, `workspace_invitations`, com RLS
+- [x] Matriz de permissões por papel (`lib/permissions.ts`) com testes
+- [ ] Senha do banco em `DATABASE_URL`/`DATABASE_MIGRATION_URL` no `.env.local` **— precisa do usuário**
+- [ ] Aplicar a migration no Supabase (`npm run db:migrate`)
 - [ ] Docker instalado para o Supabase local **— precisa do usuário**
 - [ ] Drizzle + migrations; Supabase local para testes de integração
 - [ ] Auth: Google e link mágico; `proxy` protegendo `app/(app)`
-- [ ] Schema de `profiles`, `workspaces`, `workspace_members`, `workspace_invitations`
 - [ ] DAL de autorização (`requireMembership`) **com testes por papel**
 - [ ] Provider do TanStack Query e helper de contrato de query
 - [ ] Seletor de espaço no topo da sidebar
