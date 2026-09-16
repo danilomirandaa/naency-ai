@@ -116,13 +116,20 @@ Regras:
   `workspaceId` e chama `requireMembership(workspaceId, papelMínimo)` antes de ler
   ou escrever. Server Action e Route Handler não decidem permissão.
 - `process.env`, o cliente do banco e a chave da AI só existem dentro de `server/`,
-  e todo arquivo lá importa `'server-only'`.
+  e todo arquivo lá importa `'server-only'`. Única exceção: as variáveis
+  `NEXT_PUBLIC_SUPABASE_*`, lidas e validadas em `lib/supabase/env.ts`, porque o
+  Next só as embute no navegador quando acessadas diretamente.
 - **RLS ligado em todas as tabelas** do Supabase com política *deny-all* para os
   papéis `anon` e `authenticated`. O navegador usa o Supabase só para login; os
   dados passam pelo servidor. Mesmo que a chave pública vaze, ela não lê nada.
 - Arquivos de extrato ficam em bucket **privado**, com upload por URL assinada.
-- **Rotas protegidas**: o arquivo `proxy` do Next 16 redireciona para o login
-  quem não tem sessão (ver `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
+- **Sessão**: `proxy.ts` (o antigo middleware, no Next 16) chama
+  `server/supabase/session.ts`, que renova o token a cada requisição e marca como
+  não cacheável a resposta que grava cookie de sessão. Clientes do Supabase:
+  `lib/supabase/client.ts` (navegador) e `server/supabase/client.ts` (servidor),
+  ambos só para autenticação.
+- **Rotas protegidas**: o mesmo `proxy` vai redirecionar para o login quem não tem
+  sessão (ver `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
   O proxy não substitui a checagem no DAL.
 
 ## Espaço ativo
@@ -148,12 +155,13 @@ usuário é membro do espaço do cookie.
 
 ## Variáveis de ambiente
 
-Lidas só em `server/`. Nomes previstos:
+Ficam em `.env.local` (fora do git) e, em produção, nas variáveis da Vercel.
+Nomes:
 
 | Variável | Uso |
 | --- | --- |
 | `DATABASE_URL` | Conexão Drizzle com o Postgres do Supabase |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Login no navegador (RLS impede leitura de dados) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Storage e administração, só no servidor |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Login e sessão (RLS impede leitura de dados) |
+| `SUPABASE_SECRET_KEY` | Storage e administração, só no servidor |
 | `ANTHROPIC_API_KEY` | Claude API |
 | `AI_MODEL_EXTRACT`, `AI_MODEL_ENRICH` | Modelo por tarefa (padrão `claude-opus-5`) |

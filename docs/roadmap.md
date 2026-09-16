@@ -20,7 +20,10 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 
 ## Fase 0b · Fundação
 
-- [ ] Projeto Supabase criado **pelo usuário** e variáveis de ambiente configuradas
+- [x] Projeto Supabase criado e variáveis públicas configuradas
+- [x] Clientes do Supabase (navegador e servidor) e renovação de sessão no `proxy`, com testes
+- [ ] `DATABASE_URL` no `.env.local` **— precisa do usuário**
+- [ ] Docker instalado para o Supabase local **— precisa do usuário**
 - [ ] Drizzle + migrations; Supabase local para testes de integração
 - [ ] Auth: Google e link mágico; `proxy` protegendo `app/(app)`
 - [ ] Schema de `profiles`, `workspaces`, `workspace_members`, `workspace_invitations`
