@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Icon } from '@/components/ui/Icon';
 import { Sidebar, useSidebar } from '@/components/ui/Sidebar';
+import { useTransition } from 'react';
 
 export type NavUserData = {
   name: string;
@@ -47,8 +48,15 @@ function UserSummary({ user }: { user: NavUserData }) {
   );
 }
 
-export function NavUser({ user }: { user: NavUserData }) {
+export function NavUser({
+  user,
+  signOutAction,
+}: {
+  user: NavUserData;
+  signOutAction: () => Promise<void>;
+}) {
   const { isMobile } = useSidebar();
+  const [isSigningOut, startSignOut] = useTransition();
 
   return (
     <Sidebar.Menu>
@@ -86,9 +94,12 @@ export function NavUser({ user }: { user: NavUserData }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isSigningOut}
+              onSelect={() => startSignOut(() => signOutAction())}
+            >
               <Icon icon="logout" className="text-icon-neutral-rest" />
-              Sair
+              {isSigningOut ? 'Saindo…' : 'Sair'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

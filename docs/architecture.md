@@ -128,9 +128,15 @@ Regras:
   não cacheável a resposta que grava cookie de sessão. Clientes do Supabase:
   `lib/supabase/client.ts` (navegador) e `server/supabase/client.ts` (servidor),
   ambos só para autenticação.
-- **Rotas protegidas**: o mesmo `proxy` vai redirecionar para o login quem não tem
-  sessão (ver `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
-  O proxy não substitui a checagem no DAL.
+- **Rotas protegidas**: o `proxy` redireciona quem não tem sessão para `/entrar`
+  (guardando o destino em `?next=`) e quem já tem sessão para fora do login. Regras
+  em `lib/auth/routes.ts`, que também valida o `next` contra redirecionamento aberto.
+  É uma checagem otimista: `app/(app)/layout.tsx` chama `requireUser()` e o DAL
+  chama `requireMembership()` (ver `node_modules/next/dist/docs/01-app/02-guides/authentication.md`).
+- **Login**: link mágico por e-mail (`features/auth/actions.ts`). O link volta em
+  `/auth/callback`, que troca o código pela sessão, cria o `profile` no primeiro
+  acesso e redireciona. No painel do Supabase, **Authentication → URL
+  Configuration** precisa listar o endereço do app (local e produção) em Redirect URLs.
 
 ## Banco e migrations
 

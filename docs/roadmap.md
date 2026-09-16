@@ -29,8 +29,10 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Migration `0000` aplicada no Supabase; RLS confirmado (escrita anônima negada pela API)
 - [ ] Docker instalado para o Supabase local **— precisa do usuário**
 - [ ] Drizzle + migrations; Supabase local para testes de integração
-- [ ] Auth: Google e link mágico; `proxy` protegendo `app/(app)`
-- [ ] DAL de autorização (`requireMembership`) **com testes por papel**
+- [x] Login por link mágico (`/entrar`, `/auth/callback`), perfil criado no primeiro acesso e sair
+- [x] `proxy` protegendo `app/(app)`, com destino preservado e validado
+- [x] `requireUser` e `requireMembership` com testes por papel (unitários)
+- [ ] Login com Google (ativar o provedor no Supabase; a tela já suporta)
 - [ ] Provider do TanStack Query e helper de contrato de query
 - [ ] Seletor de espaço no topo da sidebar
 - [ ] `lib/money.ts` e `lib/dates.ts` com testes unitários

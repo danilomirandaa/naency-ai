@@ -1,7 +1,7 @@
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Sidebar } from '@/components/ui/Sidebar';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
 const meta: Meta<typeof AppSidebar> = {
   title: 'Layout/AppSidebar',
@@ -9,6 +9,10 @@ const meta: Meta<typeof AppSidebar> = {
   parameters: {
     layout: 'fullscreen',
     nextjs: { appDirectory: true, navigation: { pathname: '/transacoes/receitas' } },
+  },
+  args: {
+    user: { name: 'Danilo Miranda', description: 'Conta pessoal' },
+    signOutAction: fn(async () => {}),
   },
   decorators: [
     (Story) => (

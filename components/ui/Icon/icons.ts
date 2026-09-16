@@ -21,6 +21,7 @@ import { IconDiskette } from '@devigner-ui/icons/Diskette';
 import { IconDoubleAltArrowLeft } from '@devigner-ui/icons/DoubleAltArrowLeft';
 import { IconDoubleAltArrowRight } from '@devigner-ui/icons/DoubleAltArrowRight';
 import { IconEye } from '@devigner-ui/icons/Eye';
+import { IconGoogle } from '@devigner-ui/icons/Google';
 import { IconInbox } from '@devigner-ui/icons/Inbox';
 import { IconInfoCircle } from '@devigner-ui/icons/InfoCircle';
 import { IconInfoSquare } from '@devigner-ui/icons/InfoSquare';
@@ -120,6 +121,9 @@ export const icons = {
   'theme-dark': IconMoon,
   'theme-system': IconMonitor,
   'shield-lock': IconShieldKeyhole,
+
+  // Marcas (logos de terceiros; exceção à família Solar)
+  google: IconGoogle,
 } satisfies Record<string, IconComponentType>;
 
 export type Icons = keyof typeof icons;

@@ -1,5 +1,5 @@
+import { BrandMark } from '@/components/layout/BrandMark';
 import { navMain, navSecondary } from '@/components/layout/navigation';
-import { Icon } from '@/components/ui/Icon';
 import { Sidebar } from '@/components/ui/Sidebar';
 import Link from 'next/link';
 import type * as React from 'react';
@@ -15,12 +15,12 @@ const accounts: NavAccount[] = [
   { name: 'Carteira', url: '/contas/carteira', icon: 'wallet' },
 ];
 
-const user: NavUserData = {
-  name: 'Danilo Miranda',
-  description: 'Conta pessoal',
+export type AppSidebarProps = React.ComponentProps<typeof Sidebar.Root> & {
+  user: NavUserData;
+  signOutAction: () => Promise<void>;
 };
 
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar.Root>) {
+export function AppSidebar({ user, signOutAction, ...props }: AppSidebarProps) {
   return (
     <Sidebar.Root variant="inset" {...props}>
       <Sidebar.Header>
@@ -28,15 +28,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar.Root>) {
           <Sidebar.MenuItem>
             <Sidebar.MenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-control-sm bg-background-brand-primary-rest text-typography-brand-on-primary">
-                  <Icon icon="wallet" className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Naency</span>
-                  <span className="truncate text-typography-neutral-secondary text-xs">
-                    Controle financeiro
-                  </span>
-                </div>
+                <BrandMark />
               </Link>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
@@ -48,7 +40,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar.Root>) {
         <NavSecondary items={navSecondary} className="mt-auto" />
       </Sidebar.Content>
       <Sidebar.Footer>
-        <NavUser user={user} />
+        <NavUser user={user} signOutAction={signOutAction} />
       </Sidebar.Footer>
     </Sidebar.Root>
   );
