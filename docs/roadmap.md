@@ -15,7 +15,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Regressão visual de todas as stories em light e dark (baselines locais)
 - [x] Workflow de CI (`.github/workflows/ci.yml`)
 - [ ] Repositório no GitHub (hoje o projeto não tem remote) **— precisa do usuário**
-- [ ] Rodar o workflow manualmente para gerar os **baselines Linux** e commitá-los
+- [ ] Rodar o workflow **Atualizar baselines visuais** para gerar os baselines Linux
 - [ ] Proteção da branch `main` exigindo os jobs da CI
 
 ## Fase 0b · Fundação

@@ -89,12 +89,13 @@ A Vercel publica produção só a partir da `main`; PRs geram preview.
 - **Quando a mudança visual é intencional** (ex.: trocar ícones), confira as
   diferenças no relatório (`npx playwright show-report`) e regenere:
   - local: `npm run test:visual:update`;
-  - baselines oficiais: rodar o workflow **CI** manualmente no GitHub com
-    "Regenerar e commitar os baselines visuais" marcado. Ele gera os PNGs de
-    Linux e faz o commit na branch.
+  - baselines oficiais: no GitHub, **Actions → Atualizar baselines visuais →
+    Run workflow**, escolhendo a branch. O workflow gera os PNGs no container
+    Linux, valida, commita na branch e dispara a CI.
 - O workflow usa a imagem `mcr.microsoft.com/playwright` na mesma versão do
   `@playwright/test`. Ao atualizar o Playwright, atualize a tag em
-  `.github/workflows/ci.yml` e regenere os baselines.
+  `.github/workflows/ci.yml` e `.github/workflows/visual-baselines.yml` e
+  regenere os baselines.
 
 ## Versões
 

@@ -4,12 +4,9 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Permite rodar de novo manualmente (e é como o workflow de baselines
+  # dispara a validação depois de commitar os screenshots).
   workflow_dispatch:
-    inputs:
-      update_visual_baselines:
-        description: Regenerar e commitar os baselines visuais (Linux)
-        type: boolean
-        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -17,11 +14,11 @@ concurrency:
 
 # Todos os jobs usam a imagem oficial do Playwright na MESMA versão do
 # @playwright/test do package-lock (1.63.0), para os screenshots serem idênticos
-# entre execuções. Ao atualizar o Playwright, atualize as tags `image` abaixo.
+# entre execuções. Ao atualizar o Playwright, atualize as tags `image` abaixo e
+# em visual-baselines.yml.
 jobs:
   quality:
     name: Tipos, lint, testes e build
-    if: ${{ !inputs.update_visual_baselines }}
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
@@ -37,7 +34,6 @@ jobs:
 
   visual:
     name: Regressão visual
-    if: ${{ !inputs.update_visual_baselines }}
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
@@ -56,31 +52,3 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
-
-  update-visual-baselines:
-    name: Atualizar baselines visuais
-    if: ${{ inputs.update_visual_baselines }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
-      options: --ipc=host
-    steps:
-      - uses: actions/checkout@v7
-      - run: npm ci
-      - run: npm run build-storybook -- --quiet
-      - run: npm run test:visual:update
-      # O commit feito com GITHUB_TOKEN não dispara outra execução da CI, então a
-      # validação dos baselines novos acontece aqui, antes de commitar.
-      - name: Validar baselines gerados
-        run: npm run test:visual
-      - name: Commitar baselines
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add tests/visual/__screenshots__/linux
-          git diff --cached --quiet && echo "Nenhum baseline mudou." && exit 0
-          git commit -m "test(visual): atualiza baselines Linux"
-          git push
