@@ -1,4 +1,5 @@
 import { MemberAvatar } from '@/components/finance/MemberAvatar';
+import { List } from '@/components/ui/List';
 import { Panel } from '@/components/ui/Panel';
 import { Text } from '@/components/ui/Text';
 import { ROLE_LABELS, type WorkspaceRole } from '@/lib/permissions';
@@ -34,14 +35,11 @@ export function MembersList({ members, currentUserId }: MembersListProps) {
         </Panel.HeaderText>
       </Panel.Header>
       <Panel.Body>
-        <ul aria-label="Membros" className="flex flex-col">
+        <List.Root aria-label="Membros">
           {members.map((member) => (
-            <li
-              key={member.userId}
-              className="flex items-center gap-3 border-border-neutral-subtle border-b px-4 py-3 last:border-b-0"
-            >
+            <List.Item key={member.userId}>
               <MemberAvatar name={member.name} />
-              <div className="flex min-w-0 flex-1 flex-col">
+              <List.ItemText>
                 <Text size="sm" weight="medium" className="truncate">
                   {member.name}
                   {member.userId === currentUserId && (
@@ -56,13 +54,13 @@ export function MembersList({ members, currentUserId }: MembersListProps) {
                     {member.email}
                   </Text>
                 )}
-              </div>
+              </List.ItemText>
               <Panel.RowBadge color={roleBadgeColor[member.role]}>
                 {ROLE_LABELS[member.role]}
               </Panel.RowBadge>
-            </li>
+            </List.Item>
           ))}
-        </ul>
+        </List.Root>
       </Panel.Body>
     </Panel.Root>
   );

@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { List } from '@/components/ui/List';
 import { Panel } from '@/components/ui/Panel';
 import { Text } from '@/components/ui/Text';
 import { formatRelativeDays } from '@/lib/dates';
@@ -59,30 +60,27 @@ export function PendingInvitations({ invitations, revokeAction, now }: PendingIn
         </Panel.HeaderText>
       </Panel.Header>
       <Panel.Body>
-        <ul aria-label="Convites pendentes" className="flex flex-col">
+        <List.Root aria-label="Convites pendentes">
           {invitations.map((invitation) => (
-            <li
-              key={invitation.id}
-              className="flex items-center gap-3 border-border-neutral-subtle border-b px-4 py-3 last:border-b-0"
-            >
+            <List.Item key={invitation.id}>
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background-neutral-100">
                 <Icon icon="mail" className="size-4 text-icon-neutral-rest" />
               </span>
-              <div className="flex min-w-0 flex-1 flex-col">
+              <List.ItemText>
                 <Text size="sm" weight="medium" className="truncate">
                   {invitation.email}
                 </Text>
                 <Text size="xs" color="secondary">
                   {ROLE_LABELS[invitation.role]} · expira {formatRelativeDays(invitation.expiresAt, now)}
                 </Text>
-              </div>
+              </List.ItemText>
               <RevokeButton
                 email={invitation.email}
                 onRevoke={() => revokeAction(invitation.id)}
               />
-            </li>
+            </List.Item>
           ))}
-        </ul>
+        </List.Root>
       </Panel.Body>
     </Panel.Root>
   );

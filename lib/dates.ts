@@ -27,3 +27,40 @@ function dayStart(date: Date) {
   }).format(date);
   return Date.parse(`${parts}T00:00:00Z`);
 }
+
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** "2026-09-16" que existe no calendário (rejeita 2026-02-30). */
+export function isIsoDate(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const match = ISO_DATE.exec(value);
+  if (!match) {
+    return false;
+  }
+  const [, year, month, day] = match.map(Number) as [number, number, number, number];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
+/** Data de hoje ("2026-09-16") no fuso de negócio. */
+export function todayIsoDate(now: Date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}
+
+/** "2026-09-16" → "16/09/2026". Datas de calendário não passam por fuso. */
+export function formatIsoDate(value: string) {
+  if (!isIsoDate(value)) {
+    throw new RangeError(`Data inválida: ${value}`);
+  }
+  const [year, month, day] = value.split('-');
+  return `${day}/${month}/${year}`;
+}

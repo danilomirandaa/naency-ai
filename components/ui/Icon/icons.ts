@@ -1,6 +1,8 @@
 import type { IconComponentType } from '@devigner-ui/icons';
 import { IconAdd } from '@devigner-ui/icons/Add';
 import { IconAlertCircle } from '@devigner-ui/icons/AlertCircle';
+import { IconArchive } from '@devigner-ui/icons/Archive';
+import { IconArchiveUp } from '@devigner-ui/icons/ArchiveUp';
 import { IconArrowLeftDown } from '@devigner-ui/icons/ArrowLeftDown';
 import { IconArrowRight } from '@devigner-ui/icons/ArrowRight';
 import { IconArrowRightUp } from '@devigner-ui/icons/ArrowRightUp';
@@ -22,6 +24,7 @@ import { IconDoubleAltArrowLeft } from '@devigner-ui/icons/DoubleAltArrowLeft';
 import { IconDoubleAltArrowRight } from '@devigner-ui/icons/DoubleAltArrowRight';
 import { IconEye } from '@devigner-ui/icons/Eye';
 import { IconGoogle } from '@devigner-ui/icons/Google';
+import { IconGraphUp } from '@devigner-ui/icons/GraphUp';
 import { IconInbox } from '@devigner-ui/icons/Inbox';
 import { IconInfoCircle } from '@devigner-ui/icons/InfoCircle';
 import { IconInfoSquare } from '@devigner-ui/icons/InfoSquare';
@@ -37,6 +40,7 @@ import { IconPieChart2 } from '@devigner-ui/icons/PieChart2';
 import { IconQuestionCircle } from '@devigner-ui/icons/QuestionCircle';
 import { IconReceiptText } from '@devigner-ui/icons/ReceiptText';
 import { IconRepeat } from '@devigner-ui/icons/Repeat';
+import { IconSafeSquare } from '@devigner-ui/icons/SafeSquare';
 import { IconSettings } from '@devigner-ui/icons/Settings';
 import { IconShieldKeyhole } from '@devigner-ui/icons/ShieldKeyhole';
 import { IconSidebarMinimalistic } from '@devigner-ui/icons/SidebarMinimalistic';
@@ -49,6 +53,7 @@ import { IconTransferHorizontal } from '@devigner-ui/icons/TransferHorizontal';
 import { IconTrashBinMinimalistic } from '@devigner-ui/icons/TrashBinMinimalistic';
 import { IconUndoLeft } from '@devigner-ui/icons/UndoLeft';
 import { IconUserRounded } from '@devigner-ui/icons/UserRounded';
+import { IconWadOfMoney } from '@devigner-ui/icons/WadOfMoney';
 import { IconWallet } from '@devigner-ui/icons/Wallet';
 
 /**
@@ -74,6 +79,8 @@ export const icons = {
   return: IconUndoLeft,
   settings: IconSettings,
   view: IconEye,
+  archive: IconArchive,
+  unarchive: IconArchiveUp,
   logout: IconLogout2,
 
   // Navegação
@@ -110,6 +117,9 @@ export const icons = {
   category: IconTag,
   calendar: IconCalendar,
   bank: IconBank,
+  savings: IconSafeSquare,
+  investment: IconGraphUp,
+  cash: IconWadOfMoney,
   transactions: IconReceiptText,
   reports: IconPieChart2,
   goal: IconTarget,
