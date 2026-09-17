@@ -21,7 +21,7 @@ Uma entrega (feature, componente, correção) só está pronta quando tem:
 | **Lógica pura**: `lib/money`, `lib/dates`, parsers OFX/CSV, `fingerprint` e deduplicação, atribuição de compra à fatura, geração de parcelas, regras de categorização | **Vitest** (unit) | `*.test.ts` ao lado do arquivo |
 | **Componentes** (`ui`, `finance`, `layout`, `features/*/components`): renderiza, interage, é acessível | **Stories como testes**: `@storybook/addon-vitest` em modo browser (Playwright) + `play` functions + `@storybook/addon-a11y` | `*.stories.tsx` |
 | **Nada mudou visualmente** | **Regressão visual**: screenshot de cada story em light e dark, comparado com o baseline commitado (Playwright `toHaveScreenshot` sobre as stories) | `tests/visual/` + baselines |
-| **DAL e Server Actions**: regras de negócio e autorização por papel | **Vitest de integração** contra o Postgres real do **Supabase local** (Supabase CLI/Docker), com banco limpo a cada teste | `server/**/*.integration.test.ts` |
+| **DAL**: regras de negócio e autorização por papel | **Vitest de integração** contra Postgres real em memória (**PGlite**, WebAssembly, sem Docker) com as migrations do projeto e banco limpo a cada teste | `server/**/*.integration.test.ts` |
 | **Fluxos críticos de ponta a ponta** | **Playwright E2E** contra o build de produção | `tests/e2e/` |
 | **Qualidade da AI** | **Eval** com amostras reais (não roda na CI) | `evals/import/` |
 
@@ -42,6 +42,17 @@ Uma entrega (feature, componente, correção) só está pronta quando tem:
 1. Login → onboarding → importar CSV de amostra → revisar → confirmar → dashboard mostra os valores.
 2. Admin convida membro como leitor → leitor entra, vê os mesmos dados e não consegue editar.
 3. Lançar despesa no cartão → aparece na fatura certa → pagar fatura → saldo da conta e do cartão corretos.
+
+## Testes de integração (PGlite)
+
+- `tests/integration/setup.ts` troca o banco por PGlite, `next/headers` por cookies
+  em memória e o usuário atual por `signInAs()`. O schema `auth.users` do Supabase é
+  criado com só o que o app referencia.
+- Cada teste começa com `resetTestDb()`: banco novo e migrations aplicadas.
+- Todo teste de regra de acesso foi validado quebrando a regra de propósito e vendo o
+  teste falhar. Faça o mesmo ao escrever um novo.
+- O PGlite não tem RLS/roles do Supabase: a autorização testada aqui é a do DAL, que
+  é onde ela vive.
 
 ## Regras
 
@@ -110,11 +121,11 @@ A Vercel publica produção só a partir da `main`; PRs geram preview.
 
 | Comando | O que roda |
 | --- | --- |
-| `npm run test` | Unit + stories (Vitest) |
+| `npm run test` | Unit + integração + stories (Vitest) |
 | `npm run test:unit` | Só testes unitários |
 | `npm run test:storybook` | Só stories como teste (render, `play`, a11y) |
-| `npm run test:coverage` | Unit com cobertura (meta de 90% nas pastas críticas) |
+| `npm run test:coverage` | Unit + integração com cobertura (meta de 90%, também na CI) |
 | `npm run build-storybook && npm run test:visual` | Regressão visual |
 | `npm run test:visual:update` | Regenera baselines locais (uso deliberado) |
-| `npm run test:integration` | Integração contra Supabase local (Fase 0b) |
+| `npm run test:integration` | DAL contra Postgres em memória (PGlite) |
 | `npm run test:e2e` | E2E com Playwright (Fase 3) |

@@ -27,16 +27,17 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Matriz de permissões por papel (`lib/permissions.ts`) com testes
 - [x] Conexões `DATABASE_URL`/`DATABASE_MIGRATION_URL` configuradas
 - [x] Migration `0000` aplicada no Supabase; RLS confirmado (escrita anônima negada pela API)
-- [ ] Docker instalado para o Supabase local **— precisa do usuário**
 - [ ] Drizzle + migrations; Supabase local para testes de integração
 - [x] Login por link mágico (`/entrar`, `/auth/callback`), perfil criado no primeiro acesso e sair
 - [x] `proxy` protegendo `app/(app)`, com destino preservado e validado
-- [x] `requireUser` e `requireMembership` com testes por papel (unitários)
+- [x] `requireUser` e `requireMembership` com testes por papel (unitários e integração)
+- [x] Testes de integração do DAL com PGlite (sem Docker) e cobertura mínima na CI
 - [ ] Login com Google (ativar o provedor no Supabase; a tela já suporta)
 - [ ] Provider do TanStack Query e helper de contrato de query
 - [x] Criar espaço (`/comecar`), espaço ativo em cookie e seletor de espaços na sidebar
-- [ ] `lib/money.ts` e `lib/dates.ts` com testes unitários
-- [ ] `components/finance` base: `MoneyValue`, `MoneyInput`, `DateInput`, com stories e testes
+- [x] `lib/money.ts` e `lib/dates.ts` com testes unitários
+- [x] `components/finance`: `MoneyValue`, `MoneyInput`, `MemberAvatar`, com stories e testes
+- [ ] `DateInput`
 
 ## Fase 1 · Núcleo financeiro
 

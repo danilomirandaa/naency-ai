@@ -23,6 +23,18 @@ export default defineConfig({
         },
       },
       {
+        // DAL contra Postgres real (PGlite, em memória) com as migrations do projeto.
+        extends: true,
+        test: {
+          name: 'integration',
+          environment: 'node',
+          include: ['server/**/*.integration.test.ts'],
+          setupFiles: ['tests/integration/setup.ts'],
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
+        },
+      },
+      {
         // Cada story vira um teste: renderiza, roda o `play` e checa acessibilidade.
         extends: true,
         plugins: [storybookTest({ configDir: path.join(dirname, '.storybook') })],
@@ -44,7 +56,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      include: ['lib/**', 'server/import/**', 'server/dal/**'],
+      include: ['lib/**', 'server/import/**', 'server/dal/**', 'server/invitations/**', 'server/auth/**'],
       exclude: ['**/*.test.ts', '**/*.integration.test.ts'],
       thresholds: { lines: 90 },
     },
