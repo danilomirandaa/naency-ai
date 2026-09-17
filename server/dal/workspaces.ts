@@ -7,6 +7,7 @@ import {
 } from '@/lib/workspaces/active';
 import { UnauthenticatedError } from '@/server/auth/errors';
 import { getCurrentUser } from '@/server/auth/current-user';
+import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
 import { workspaceMembers, workspaces } from '@/server/db/schema';
 import { seedDefaultCategories } from '@/server/dal/categories';
@@ -75,4 +76,11 @@ export async function setActiveWorkspaceCookie(workspaceId: string) {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 365,
   });
+}
+
+/** Renomeia o espaço (só administrador). */
+export async function renameWorkspace(workspaceId: string, input: unknown) {
+  const { name } = createWorkspaceSchema.parse(input);
+  await requireMembership(workspaceId, 'workspace.manage');
+  await getDb().update(workspaces).set({ name }).where(eq(workspaces.id, workspaceId));
 }

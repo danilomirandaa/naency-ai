@@ -14,10 +14,12 @@ export type MonthlyEvolutionProps = {
   data: EvolutionPoint[] | undefined;
   isLoading?: boolean;
   isError?: boolean;
+  /** Quantidade de meses mostrada (para o subtítulo). */
+  months?: number;
 };
 
 /** "Estamos melhorando?": receitas e despesas dos últimos meses em colunas, com tabela para leitores de tela. */
-export function MonthlyEvolution({ data, isLoading, isError }: MonthlyEvolutionProps) {
+export function MonthlyEvolution({ data, isLoading, isError, months = 6 }: MonthlyEvolutionProps) {
   const points = data ?? [];
   const max = Math.max(1, ...points.flatMap((point) => [point.incomeCents, Math.abs(point.expenseCents)]));
   const empty = points.every((point) => point.incomeCents === 0 && point.expenseCents === 0);
@@ -25,7 +27,7 @@ export function MonthlyEvolution({ data, isLoading, isError }: MonthlyEvolutionP
   return (
     <DashboardCard
       title="Evolução"
-      description="Receitas e despesas dos últimos 6 meses"
+      description={`Receitas e despesas dos últimos ${months} meses`}
       isLoading={isLoading}
       isError={isError}
       isEmpty={empty}
@@ -33,7 +35,7 @@ export function MonthlyEvolution({ data, isLoading, isError }: MonthlyEvolutionP
       emptyMessage="Sem lançamentos nos últimos meses"
     >
       <div className="flex flex-col gap-3 px-4 py-3">
-        <div aria-hidden className="flex h-40 items-end gap-3">
+        <div aria-hidden className="flex h-40 items-end gap-1.5 sm:gap-3">
           {points.map((point) => (
             <div key={point.month} className="flex h-full flex-1 flex-col items-center gap-1">
               <div className="flex w-full flex-1 items-end justify-center gap-1">

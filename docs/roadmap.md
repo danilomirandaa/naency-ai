@@ -87,7 +87,12 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 - [ ] Assistente de AI: perguntas sobre os dados do espaço, com ferramentas somente leitura
 - [ ] Insights automáticos no dashboard
 
+## Extras entregues
+
+- [x] /configuracoes: renomear espaço (admin), estado e consumo da AI, créditos
+- [x] /relatorios: resultado do mês, evolução de 12 meses e categorias
+
 ## Antes do lançamento público
 
-- [ ] Crédito dos ícones (CC BY 4.0) visível no produto ([créditos](./credits.md))
+- [x] Crédito dos ícones (CC BY 4.0) visível no produto (Configurações → Sobre)
 - [ ] Política de retenção de dados da AI documentada e informada na importação

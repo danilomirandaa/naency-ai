@@ -20,6 +20,7 @@ export function loadDashboardBlock<B extends DashboardBlock>(
     resultado: () => getMonthResult(workspaceId, month),
     categorias: () => getCategoryBreakdown(workspaceId, month),
     evolucao: () => getMonthlyEvolution(workspaceId, month),
+    'evolucao-anual': () => getMonthlyEvolution(workspaceId, month, 12),
     'a-vencer': () => getUpcoming(workspaceId),
     saldos: () => getBalances(workspaceId),
     recentes: () => getRecentTransactions(workspaceId),

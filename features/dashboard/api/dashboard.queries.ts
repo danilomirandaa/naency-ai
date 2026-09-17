@@ -14,6 +14,7 @@ export type DashboardBlocks = {
   resultado: MonthResultData;
   categorias: CategorySlice[];
   evolucao: EvolutionPoint[];
+  'evolucao-anual': EvolutionPoint[];
   'a-vencer': UpcomingItem[];
   saldos: BalanceData;
   recentes: RecentTransaction[];
@@ -26,6 +27,7 @@ export const DASHBOARD_BLOCKS: DashboardBlock[] = [
   'resultado',
   'categorias',
   'evolucao',
+  'evolucao-anual',
   'a-vencer',
   'saldos',
   'recentes',
