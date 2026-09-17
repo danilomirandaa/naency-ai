@@ -64,11 +64,12 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
 - [ ] Onboarding (criar espaço, convidar, escolher bancos, importar, revisar)
-- [ ] Upload para Storage e `import_batches`
-- [ ] Parsers OFX e CSV de layouts conhecidos, com testes
-- [ ] Mapeamento de CSV desconhecido e extração de PDF com AI
-- [ ] Enriquecimento com AI, memória de categorização, deduplicação
-- [ ] Tela de revisão e commit
+- [x] `import_batches`/`import_rows`: o arquivo é lido no navegador e revisado antes de virar lançamento (Storage fica para PDF)
+- [x] Leitores OFX (1.x SGML e 2.x XML) e CSV (Nubank conta, Nubank cartão, genérico com valor ou débito/crédito), Windows-1252, com testes
+- [ ] Mapeamento de CSV desconhecido e extração de PDF com AI — precisa de `ANTHROPIC_API_KEY` e extratos reais
+- [x] Memória de categorização ("lembrar para os próximos") e deduplicação (impressão digital + mesmo valor em ±2 dias)
+- [ ] Enriquecimento com AI (nome limpo, categoria) — precisa de `ANTHROPIC_API_KEY`
+- [x] Tela de revisão (/importar): incluir/excluir, categoria, lembrar, duplicados; importar em transação única e descartar
 - [ ] Eval Opus 5 × Sonnet 5 com as amostras e escolha do modelo por tarefa
 - [ ] Validar limites de duração da Vercel (fila se necessário)
 - [ ] Registro de consumo de AI

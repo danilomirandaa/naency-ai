@@ -39,6 +39,7 @@ export const navMain: NavItem[] = [
 ];
 
 export const navSecondary: NavItem[] = [
+  { title: 'Importar extrato', url: '/importar', icon: 'upload' },
   { title: 'Categorias', url: '/categorias', icon: 'category' },
   { title: 'Membros', url: '/membros', icon: 'user' },
   { title: 'Configurações', url: '/configuracoes', icon: 'settings' },

@@ -57,7 +57,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['lib/**', 'server/import/**', 'server/dal/**', 'server/invitations/**', 'server/auth/**'],
-      exclude: ['**/*.test.ts', '**/*.integration.test.ts'],
+      exclude: ['**/*.test.ts', '**/*.integration.test.ts', '**/__fixtures__/**'],
       thresholds: { lines: 90 },
     },
   },

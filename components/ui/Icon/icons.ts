@@ -71,6 +71,7 @@ import { IconTransferHorizontal } from '@devigner-ui/icons/TransferHorizontal';
 import { IconTrashBinMinimalistic } from '@devigner-ui/icons/TrashBinMinimalistic';
 import { IconTShirt } from '@devigner-ui/icons/TShirt';
 import { IconUndo } from '@devigner-ui/icons/Undo';
+import { IconUploadMinimalistic } from '@devigner-ui/icons/UploadMinimalistic';
 import { IconUndoLeft } from '@devigner-ui/icons/UndoLeft';
 import { IconUserRounded } from '@devigner-ui/icons/UserRounded';
 import { IconWadOfMoney } from '@devigner-ui/icons/WadOfMoney';
@@ -101,6 +102,7 @@ export const icons = {
   return: IconUndoLeft,
   settings: IconSettings,
   view: IconEye,
+  upload: IconUploadMinimalistic,
   archive: IconArchive,
   unarchive: IconArchiveUp,
   logout: IconLogout2,

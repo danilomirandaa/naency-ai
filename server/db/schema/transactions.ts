@@ -16,6 +16,7 @@ import {
 import { accounts } from './accounts';
 import { cardInvoices, installmentGroups } from './cards';
 import { categories } from './categories';
+import { importBatches } from './imports';
 import { profiles, workspaces } from './workspaces';
 
 export const transactionKind = pgEnum('transaction_kind', TRANSACTION_KINDS);
@@ -51,6 +52,9 @@ export const transactions = pgTable(
     }),
     installmentNumber: integer('installment_number'),
     installmentTotal: integer('installment_total'),
+    importBatchId: uuid('import_batch_id').references((): AnyPgColumn => importBatches.id, { onDelete: 'set null' }),
+    /** Deduplicação de importações (server/import/fingerprint.ts). */
+    fingerprint: text('fingerprint'),
     notes: text('notes'),
     createdBy: uuid('created_by')
       .notNull()
@@ -72,6 +76,7 @@ export const transactions = pgTable(
     index('transactions_transfer_group_id_idx').on(table.transferGroupId),
     index('transactions_invoice_id_idx').on(table.invoiceId),
     index('transactions_installment_group_id_idx').on(table.installmentGroupId),
+    index('transactions_account_fingerprint_idx').on(table.accountId, table.fingerprint),
     check(
       'transactions_amount_sign',
       sql`(${table.kind} = 'income' and ${table.amountCents} > 0)

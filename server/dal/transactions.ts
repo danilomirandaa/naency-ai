@@ -38,7 +38,7 @@ export class TransactionError extends Error {
 }
 
 type Db = ReturnType<typeof getDb>;
-type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
+export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
 const counterpart = alias(transactions, 'counterpart');
 const counterpartAccount = alias(accounts, 'counterpart_account');
@@ -234,7 +234,7 @@ async function assertCategory(
 }
 
 /** Fatura do cartão para a data; cria a fatura se ainda não existir. `null` se não for cartão. */
-async function resolveInvoiceId(tx: Tx, workspaceId: string, accountId: string, date: string) {
+export async function resolveInvoiceId(tx: Tx, workspaceId: string, accountId: string, date: string) {
   const [card] = await tx
     .select({ closingDay: creditCardDetails.closingDay, dueDay: creditCardDetails.dueDay })
     .from(creditCardDetails)
