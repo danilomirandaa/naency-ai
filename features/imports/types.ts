@@ -10,6 +10,8 @@ export type ImportRowItem = {
   categoryId: string | null;
   /** Categoria veio da memória de categorização. */
   suggestedByRule: boolean;
+  /** Nome e categoria sugeridos pela AI. */
+  suggestedByAi: boolean;
   include: boolean;
   rememberCategory: boolean;
   duplicate: 'exact' | 'possible' | null;

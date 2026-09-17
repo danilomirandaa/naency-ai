@@ -11,6 +11,7 @@ import {
   commitImportAction,
   createImportAction,
   discardImportAction,
+  suggestImportCategoriesAction,
   updateImportRowAction,
 } from '@/features/imports/actions';
 import { importsQuery } from '@/features/imports/api/imports.queries';
@@ -27,10 +28,12 @@ import * as React from 'react';
 export type ImportScreenProps = {
   workspaceId: string;
   canImport: boolean;
+  /** AI configurada no servidor (ANTHROPIC_API_KEY). */
+  aiEnabled: boolean;
 };
 
 /** Container: envio do arquivo, revisão do lote (?lote=) e conclusão. */
-export function ImportScreen({ workspaceId, canImport }: ImportScreenProps) {
+export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreenProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -109,6 +112,15 @@ export function ImportScreen({ workspaceId, canImport }: ImportScreenProps) {
               await refreshAfterCommit();
               router.push(`/transacoes?conta=${result.accountId}`);
             }}
+            onSuggest={
+              aiEnabled
+                ? async () => {
+                    const result = await suggestImportCategoriesAction(workspaceId, batch.data.id);
+                    setMessage(result.ok ? null : result.message);
+                    await queryClient.invalidateQueries({ queryKey: importsQuery.batch(workspaceId, batch.data.id).queryKey });
+                  }
+                : undefined
+            }
             onDiscard={async () => {
               const result = await discardImportAction(workspaceId, batch.data.id);
               setMessage(result.ok ? null : result.message);

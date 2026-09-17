@@ -25,10 +25,12 @@ export const Review: Story = {
     const [padaria, salario, pix] = importBatchFixture.rows;
     await expect(canvas.getByText('Categoria lembrada')).toBeInTheDocument();
     await expect(canvas.getByText('Possível duplicado')).toBeInTheDocument();
-    await expect(canvas.getByRole('checkbox', { name: 'Incluir Pix enviado - Maria' })).not.toBeChecked();
-    await expect(canvas.getByLabelText('Categoria de Pix enviado - Maria')).toBeDisabled();
+    await expect(canvas.getByText('Sugerido pela AI')).toBeInTheDocument();
+    await expect(canvas.getByText('· Pix enviado - Maria')).toBeInTheDocument();
+    await expect(canvas.getByRole('checkbox', { name: 'Incluir Maria' })).not.toBeChecked();
+    await expect(canvas.getByLabelText('Categoria de Maria')).toBeDisabled();
 
-    await userEvent.click(canvas.getByRole('checkbox', { name: 'Incluir Pix enviado - Maria' }));
+    await userEvent.click(canvas.getByRole('checkbox', { name: 'Incluir Maria' }));
     await expect(args.onRowChange).toHaveBeenLastCalledWith(pix, { include: true });
 
     await userEvent.click(canvas.getByLabelText('Categoria de Transferência recebida - EMPRESA LTDA'));

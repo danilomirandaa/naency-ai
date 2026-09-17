@@ -47,3 +47,12 @@ export const NothingIncluded: Story = {
     await expect(within(canvasElement).getByRole('button', { name: 'Importar 0' })).toBeDisabled();
   },
 };
+
+export const WithAi: Story = {
+  args: { onSuggest: fn(async () => {}) },
+  play: async ({ canvasElement, args }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Sugerir com AI' }));
+    await expect(args.onSuggest).toHaveBeenCalledOnce();
+    (document.activeElement as HTMLElement | null)?.blur();
+  },
+};

@@ -62,6 +62,8 @@ export const importRows = pgTable(
     /** Regra que sugeriu a categoria, quando houver. */
     ruleId: uuid('rule_id'),
     include: boolean('include').notNull().default(true),
+    /** Nome e categoria vieram da AI (a pessoa pode corrigir). */
+    aiSuggested: boolean('ai_suggested').notNull().default(false),
     /** Criar regra com a categoria escolhida ao confirmar. */
     rememberCategory: boolean('remember_category').notNull().default(false),
     fingerprint: text('fingerprint').notNull(),
@@ -94,4 +96,22 @@ export const categorizationRules = pgTable(
     index('categorization_rules_workspace_id_idx').on(table.workspaceId),
     check('categorization_rules_pattern_length', sql`length(${table.pattern}) >= 3`),
   ],
+).enableRLS();
+
+/** Consumo da AI por espaço, para acompanhar custo (docs/domain.md). */
+export const aiUsageEvents = pgTable(
+  'ai_usage_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    task: text('task').notNull(),
+    model: text('model').notNull(),
+    inputTokens: integer('input_tokens').notNull(),
+    outputTokens: integer('output_tokens').notNull(),
+    importBatchId: uuid('import_batch_id').references(() => importBatches.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ai_usage_events_workspace_id_idx').on(table.workspaceId)],
 ).enableRLS();

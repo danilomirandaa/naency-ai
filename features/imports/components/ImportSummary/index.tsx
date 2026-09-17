@@ -15,6 +15,8 @@ export type ImportSummaryProps = {
   canEdit: boolean;
   onCommit: () => Promise<void>;
   onDiscard: () => Promise<void>;
+  /** Presente quando a AI está configurada. */
+  onSuggest?: () => Promise<void>;
 };
 
 function plural(count: number, one: string, many: string) {
@@ -22,11 +24,12 @@ function plural(count: number, one: string, many: string) {
 }
 
 /** Resumo da revisão e as ações de concluir ou descartar. */
-export function ImportSummary({ batch, canEdit, onCommit, onDiscard }: ImportSummaryProps) {
+export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }: ImportSummaryProps) {
   const [isCommitting, startCommit] = useTransition();
   const [isDiscarding, startDiscard] = useTransition();
+  const [isSuggesting, startSuggest] = useTransition();
   const { summary } = batch;
-  const busy = isCommitting || isDiscarding;
+  const busy = isCommitting || isDiscarding || isSuggesting;
   const reviewing = batch.status === 'review';
 
   return (
@@ -59,7 +62,13 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard }: ImportSum
           </Panel.RowBadge>
         ) : (
           canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {onSuggest && summary.uncategorized > 0 && (
+                <Button variant="secondary" disabled={busy} onClick={() => startSuggest(onSuggest)}>
+                  {isSuggesting ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="category" data-icon="inline-start" />}
+                  {isSuggesting ? 'Sugerindo…' : 'Sugerir com AI'}
+                </Button>
+              )}
               <Button variant="outline" disabled={busy} onClick={() => startDiscard(onDiscard)}>
                 {isDiscarding ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="close" data-icon="inline-start" />}
                 Descartar

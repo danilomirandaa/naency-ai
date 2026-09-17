@@ -144,3 +144,17 @@ A escolha final de modelo por tarefa sai de medição, não de suposição.
 - Chaves só no servidor.
 - Antes do lançamento público, documentar a política de retenção de dados da API do
   provedor de AI e informar isso ao usuário na tela de importação.
+
+## Estado atual (implementado)
+
+- Leitura no navegador (`lib/import/decode.ts`) e parsers em `lib/import/` (OFX 1.x/2.x,
+  CSV Nubank conta e cartão, CSV genérico por sinônimos de colunas).
+- Revisão em `/importar?lote=<id>`: incluir/excluir, categoria por linha, "lembrar para
+  os próximos" (cria regra `user`), duplicados exatos (impressão digital) e possíveis
+  (mesmo valor em ±2 dias, fora por padrão).
+- AI (`server/ai/`): `createAnthropicEnricher` usa `client.messages.parse` com saída
+  estruturada (Zod), categorias no system com cache e lotes de 80 linhas. Só liga com
+  `ANTHROPIC_API_KEY`; modelo por `AI_MODEL_ENRICH` (padrão `claude-opus-5`). Cada
+  chamada grava `ai_usage_events`. Sugestões com categoria de outro tipo ou id
+  inexistente são descartadas.
+- Falta: PDF e CSV desconhecido com AI, e o eval com extratos reais em `.samples/`.

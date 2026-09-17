@@ -13,6 +13,7 @@ import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
 import {
   accounts,
+  aiUsageEvents,
   categories,
   categorizationRules,
   importBatches,
@@ -20,6 +21,7 @@ import {
   institutions,
   transactions,
 } from '@/server/db/schema';
+import type { Enricher } from '@/server/ai/enrich';
 import { resolveInvoiceId } from '@/server/dal/transactions';
 import { fingerprintAll } from '@/server/import/fingerprint';
 import { and, asc, count, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
@@ -202,6 +204,7 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
         rawDescription: importRows.rawDescription,
         categoryId: importRows.categoryId,
         ruleId: importRows.ruleId,
+        aiSuggested: importRows.aiSuggested,
         include: importRows.include,
         rememberCategory: importRows.rememberCategory,
         fingerprint: importRows.fingerprint,
@@ -226,6 +229,7 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
     rawDescription: row.rawDescription,
     categoryId: row.categoryId,
     suggestedByRule: row.ruleId !== null,
+    suggestedByAi: row.aiSuggested,
     include: row.include,
     rememberCategory: row.rememberCategory,
     duplicate: row.duplicateOfTransactionId
@@ -294,7 +298,7 @@ export async function updateImportRow(workspaceId: string, rowId: string, input:
     .set({
       ...data,
       // Categoria escolhida à mão deixa de ser sugestão de regra.
-      ...(data.categoryId !== undefined ? { ruleId: null } : {}),
+      ...(data.categoryId !== undefined ? { ruleId: null, aiSuggested: false } : {}),
     })
     .where(eq(importRows.id, rowId));
 }
@@ -396,4 +400,66 @@ export async function listImportBatches(workspaceId: string): Promise<ImportBatc
     .orderBy(desc(importBatches.createdAt))
     .limit(20);
   return rows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }));
+}
+
+/**
+ * Pede à AI nome limpo e categoria para as linhas incluídas ainda sem categoria.
+ * O `enricher` é injetado: em produção vem da Claude API; nos testes, um falso.
+ */
+export async function suggestImportCategories(
+  workspaceId: string,
+  batchId: string,
+  { enricher, model }: { enricher: Enricher; model: string },
+) {
+  await requireMembership(workspaceId, 'import.run');
+  const batch = await findBatch(workspaceId, batchId);
+  if (batch.status !== 'review') {
+    throw new ImportError('not-in-review', 'Esta importação já foi concluída.');
+  }
+  const db = getDb();
+  const [rows, allCategories] = await Promise.all([
+    db
+      .select({ id: importRows.id, description: importRows.rawDescription, amountCents: importRows.amountCents })
+      .from(importRows)
+      .where(and(eq(importRows.batchId, batch.id), eq(importRows.include, true), isNull(importRows.categoryId))),
+    db
+      .select({ id: categories.id, name: categories.name, kind: categories.kind, parentId: categories.parentId })
+      .from(categories)
+      .where(and(eq(categories.workspaceId, workspaceId), isNull(categories.archivedAt))),
+  ]);
+  if (rows.length === 0) {
+    return { suggested: 0 };
+  }
+  const nameById = new Map(allCategories.map((category) => [category.id, category.name]));
+  const { suggestions, usage } = await enricher({
+    rows,
+    categories: allCategories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      kind: category.kind,
+      parentName: category.parentId ? (nameById.get(category.parentId) ?? null) : null,
+    })),
+  });
+
+  await db.transaction(async (tx) => {
+    for (const suggestion of suggestions) {
+      await tx
+        .update(importRows)
+        .set({ description: suggestion.cleanName, categoryId: suggestion.categoryId, aiSuggested: true })
+        .where(and(eq(importRows.id, suggestion.id), eq(importRows.batchId, batch.id)));
+    }
+    if (usage.length > 0) {
+      await tx.insert(aiUsageEvents).values(
+        usage.map((item) => ({
+          workspaceId,
+          task: 'enrich',
+          model: item.model || model,
+          inputTokens: item.inputTokens,
+          outputTokens: item.outputTokens,
+          importBatchId: batch.id,
+        })),
+      );
+    }
+  });
+  return { suggested: suggestions.filter((item) => item.categoryId !== null).length };
 }

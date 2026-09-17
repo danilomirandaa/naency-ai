@@ -13,6 +13,7 @@ import {
   discardImportBatch,
   getImportBatch,
   listImportBatches,
+  suggestImportCategories,
   updateImportRow,
 } from './imports';
 import { acceptInvitation, createInvitation } from './members';
@@ -198,5 +199,68 @@ describe('importação: papéis e isolamento', () => {
     });
     signInAs(null);
     await expect(getImportBatch(workspaceId, batch.id)).rejects.toThrow();
+  });
+});
+
+describe('importação: sugestões da AI', () => {
+  it('aplica nome limpo e categoria nas linhas sem categoria e registra o consumo', async () => {
+    const batch = await importOfx();
+    await updateImportRow(workspaceId, batch.rows[2]?.id ?? '', { include: false });
+    const calls: { rows: { id: string }[]; categoryNames: string[] }[] = [];
+    const enricher = async ({ rows, categories }: { rows: { id: string; description: string }[]; categories: { name: string; parentName: string | null }[] }) => {
+      calls.push({ rows, categoryNames: categories.map((c) => (c.parentName ? `${c.parentName} › ${c.name}` : c.name)) });
+      return {
+        suggestions: [
+          { id: batch.rows[0]?.id ?? '', cleanName: 'Padaria São João', categoryId: padaria },
+          { id: batch.rows[1]?.id ?? '', cleanName: 'Empresa Ltda', categoryId: null },
+        ],
+        usage: [{ model: 'claude-opus-5', inputTokens: 1200, outputTokens: 300 }],
+      };
+    };
+
+    await expect(suggestImportCategories(workspaceId, batch.id, { enricher, model: 'claude-opus-5' })).resolves.toEqual({
+      suggested: 1,
+    });
+    // Só as incluídas e sem categoria vão para a AI.
+    expect(calls[0]?.rows.map((row) => row.id)).toEqual([batch.rows[0]?.id, batch.rows[1]?.id]);
+    expect(calls[0]?.categoryNames).toContain('Alimentação › Padaria e café');
+
+    const updated = await getImportBatch(workspaceId, batch.id);
+    expect(updated.rows[0]).toMatchObject({
+      description: 'Padaria São João',
+      rawDescription: 'Compra no débito - PADARIA SAO JOAO',
+      categoryId: padaria,
+      suggestedByAi: true,
+    });
+    // Corrigir à mão tira a marca da AI.
+    await updateImportRow(workspaceId, batch.rows[0]?.id ?? '', { categoryId: null });
+    expect((await getImportBatch(workspaceId, batch.id)).rows[0]?.suggestedByAi).toBe(false);
+
+    const { getTestDb } = await import('@/tests/integration/db');
+    const { aiUsageEvents } = await import('@/server/db/schema');
+    expect(await getTestDb().select().from(aiUsageEvents)).toEqual([
+      expect.objectContaining({ task: 'enrich', inputTokens: 1200, outputTokens: 300, importBatchId: batch.id }),
+    ]);
+  });
+
+  it('sem linhas pendentes não chama a AI; leitor não pede sugestões', async () => {
+    const batch = await importOfx();
+    for (const row of batch.rows) {
+      await updateImportRow(workspaceId, row.id, { include: false });
+    }
+    let called = false;
+    const enricher = async () => {
+      called = true;
+      return { suggestions: [], usage: [] };
+    };
+    await expect(suggestImportCategories(workspaceId, batch.id, { enricher, model: 'm' })).resolves.toEqual({ suggested: 0 });
+    expect(called).toBe(false);
+
+    const { token } = await createInvitation(workspaceId, { email: 'leitor@exemplo.com', role: 'viewer' });
+    await createUser('leitor@exemplo.com', { signIn: true });
+    await acceptInvitation(token);
+    await expect(suggestImportCategories(workspaceId, batch.id, { enricher, model: 'm' })).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
   });
 });

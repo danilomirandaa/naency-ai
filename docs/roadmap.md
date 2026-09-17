@@ -68,11 +68,11 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 - [x] Leitores OFX (1.x SGML e 2.x XML) e CSV (Nubank conta, Nubank cartão, genérico com valor ou débito/crédito), Windows-1252, com testes
 - [ ] Mapeamento de CSV desconhecido e extração de PDF com AI — precisa de `ANTHROPIC_API_KEY` e extratos reais
 - [x] Memória de categorização ("lembrar para os próximos") e deduplicação (impressão digital + mesmo valor em ±2 dias)
-- [ ] Enriquecimento com AI (nome limpo, categoria) — precisa de `ANTHROPIC_API_KEY`
+- [x] Enriquecimento com AI (nome limpo e categoria) na revisão da importação, validado contra as categorias do espaço; liga com `ANTHROPIC_API_KEY`
 - [x] Tela de revisão (/importar): incluir/excluir, categoria, lembrar, duplicados; importar em transação única e descartar
 - [ ] Eval Opus 5 × Sonnet 5 com as amostras e escolha do modelo por tarefa
 - [ ] Validar limites de duração da Vercel (fila se necessário)
-- [ ] Registro de consumo de AI
+- [x] Registro de consumo de AI (`ai_usage_events`: tarefa, modelo, tokens)
 
 ## Fase 4 · Dashboard e atividade
 

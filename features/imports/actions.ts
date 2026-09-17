@@ -1,13 +1,17 @@
 'use server';
 
+import { getAiConfig } from '@/server/ai/config';
+import { createAnthropicEnricher } from '@/server/ai/enrich';
 import { ForbiddenError } from '@/server/auth/errors';
 import {
   ImportError,
   commitImportBatch,
   createImportBatch,
   discardImportBatch,
+  suggestImportCategories,
   updateImportRow,
 } from '@/server/dal/imports';
+import Anthropic from '@anthropic-ai/sdk';
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
 import type { CreateImportInput, UpdateImportRowInput } from './schemas';
@@ -73,5 +77,25 @@ export async function discardImportAction(workspaceId: string, batchId: string):
     return { ok: true };
   } catch (error) {
     return failure(error, 'Não foi possível descartar a importação.');
+  }
+}
+
+export async function suggestImportCategoriesAction(
+  workspaceId: string,
+  batchId: string,
+): Promise<Result<{ suggested: number }>> {
+  const config = getAiConfig();
+  if (!config.enabled) {
+    return { ok: false, message: 'Sugestões com AI desligadas: falta configurar a ANTHROPIC_API_KEY.' };
+  }
+  try {
+    const enricher = createAnthropicEnricher(new Anthropic(), config.models.enrich);
+    const result = await suggestImportCategories(workspaceId, batchId, { enricher, model: config.models.enrich });
+    return { ok: true, ...result };
+  } catch (error) {
+    if (error instanceof Anthropic.APIError) {
+      return { ok: false, message: 'A AI não respondeu agora. Tente de novo em instantes.' };
+    }
+    return failure(error, 'Não foi possível sugerir categorias.');
   }
 }

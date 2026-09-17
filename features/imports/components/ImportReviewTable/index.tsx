@@ -51,6 +51,12 @@ export function ImportReviewTable({ rows, categories, onRowChange, readOnly = fa
                     </Panel.RowBadge>
                   )}
                   {row.suggestedByRule && <Panel.RowBadge color="blue">Categoria lembrada</Panel.RowBadge>}
+                  {row.suggestedByAi && <Panel.RowBadge color="dark">Sugerido pela AI</Panel.RowBadge>}
+                  {row.description !== row.rawDescription && (
+                    <span className="truncate" title={row.rawDescription}>
+                      · {row.rawDescription}
+                    </span>
+                  )}
                 </Text>
               </div>
               <MoneyValue

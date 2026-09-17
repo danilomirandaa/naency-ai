@@ -3,6 +3,7 @@ import { categoriesQuery } from '@/features/categories/api/categories.queries';
 import { ImportScreen } from '@/features/imports/containers/ImportScreen';
 import { can } from '@/lib/permissions';
 import { makeQueryClient } from '@/lib/query-client';
+import { getAiConfig } from '@/server/ai/config';
 import { listAccounts } from '@/server/dal/accounts';
 import { listCategories } from '@/server/dal/categories';
 import { getActiveWorkspace } from '@/server/dal/workspaces';
@@ -32,7 +33,7 @@ export default async function ImportPage() {
   ]);
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ImportScreen workspaceId={active.id} canImport={can(active.role, 'import.run')} />
+      <ImportScreen workspaceId={active.id} canImport={can(active.role, 'import.run')} aiEnabled={getAiConfig().enabled} />
     </HydrationBoundary>
   );
 }
