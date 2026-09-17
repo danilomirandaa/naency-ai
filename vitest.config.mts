@@ -18,7 +18,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['{lib,hooks,components,features,server}/**/*.test.{ts,tsx}'],
+          include: ['{lib,hooks,components,features,server,tests/architecture}/**/*.test.{ts,tsx}'],
           exclude: ['**/*.integration.test.ts', 'node_modules/**'],
         },
       },

@@ -1,4 +1,6 @@
-import { Avatar } from '@/components/ui/Avatar';
+// Exports nomeados: este componente roda no servidor, e um objeto composto
+// (`Avatar.Root`) vindo de módulo 'use client' chega undefined lá.
+import { AvatarFallback, AvatarImage, AvatarRoot } from '@/components/ui/Avatar';
 import { classMerge } from '@/lib/utils';
 
 export function getInitials(name: string) {
@@ -31,9 +33,9 @@ export function MemberAvatar({
 }: MemberAvatarProps) {
   const radius = shape === 'square' ? 'rounded-control-sm' : undefined;
   return (
-    <Avatar.Root size={size} className={classMerge(radius, className)}>
-      {avatarUrl && <Avatar.Image src={avatarUrl} alt={name} />}
-      <Avatar.Fallback className={radius}>{getInitials(name)}</Avatar.Fallback>
-    </Avatar.Root>
+    <AvatarRoot size={size} className={classMerge(radius, className)}>
+      {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
+      <AvatarFallback className={radius}>{getInitials(name)}</AvatarFallback>
+    </AvatarRoot>
   );
 }
