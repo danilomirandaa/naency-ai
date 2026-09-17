@@ -61,6 +61,7 @@ import { IconQuestionCircle } from '@devigner-ui/icons/QuestionCircle';
 import { IconReceiptText } from '@devigner-ui/icons/ReceiptText';
 import { IconRepeat } from '@devigner-ui/icons/Repeat';
 import { IconSafeSquare } from '@devigner-ui/icons/SafeSquare';
+import { IconScissors } from '@devigner-ui/icons/Scissors';
 import { IconSettings } from '@devigner-ui/icons/Settings';
 import { IconShieldKeyhole } from '@devigner-ui/icons/ShieldKeyhole';
 import { IconSidebarMinimalistic } from '@devigner-ui/icons/SidebarMinimalistic';
@@ -158,7 +159,9 @@ export const icons = {
 
   // Categorias (lib/categories.ts: CATEGORY_ICONS)
   'category-bills': IconBillList,
+  'category-beauty': IconScissors,
   'category-business': IconCaseMinimalistic,
+  'category-debt': IconCard,
   'category-clothes': IconTShirt,
   'category-education': IconSquareAcademicCap,
   'category-energy': IconBolt,

@@ -34,7 +34,7 @@ export const ExpensesEditor: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const list = within(canvas.getByRole('list', { name: 'Categorias de despesa' }));
-    await expect(list.getByText('13 subcategorias')).toBeInTheDocument();
+    await expect(list.getByText('16 subcategorias')).toBeInTheDocument();
     await expect(list.queryByText('Salário')).toBeNull();
     await expect(list.queryByText('Pets')).toBeNull();
 

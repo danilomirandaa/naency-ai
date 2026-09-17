@@ -31,7 +31,7 @@ describe('DEFAULT_CATEGORIES', () => {
   it('as migrations que semeiam espaços existentes cobrem exatamente a lista padrão', () => {
     const dir = 'server/db/migrations';
     const sql = readdirSync(dir)
-      .filter((name) => /seed_default_(sub)?categories/.test(name))
+      .filter((name) => /seed_(more_)?default_(sub)?categories/.test(name))
       .map((name) => readFileSync(path.join(dir, name), 'utf8'))
       .join('\n');
     const expected = DEFAULT_CATEGORIES.flatMap((category) => [

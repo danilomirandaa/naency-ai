@@ -34,6 +34,8 @@ const ICON_LABELS: Record<CategoryIconName, string> = {
   'category-investments': 'Investimentos',
   'category-refund': 'Reembolso',
   'category-business': 'Trabalho',
+  'category-beauty': 'Estética',
+  'category-debt': 'Dívidas',
   'category-other': 'Outros',
 };
 

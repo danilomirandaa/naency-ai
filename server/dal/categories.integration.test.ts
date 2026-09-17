@@ -80,10 +80,10 @@ describe('categorias: CRUD e regras', () => {
   it('cria principal e subcategoria', async () => {
     const { id } = await createCategory(workspaceId, input);
     const saude = await byName('Saúde');
-    await createCategory(workspaceId, { ...input, name: 'Dentista', parentId: saude.id });
+    await createCategory(workspaceId, { ...input, name: 'Fonoaudiologia', parentId: saude.id });
 
     expect(await byName('Crossfit')).toMatchObject({ id, parentId: null, archived: false });
-    expect(await byName('Dentista')).toMatchObject({ parentId: saude.id });
+    expect(await byName('Fonoaudiologia')).toMatchObject({ parentId: saude.id });
   });
 
   it('nome repetido no mesmo nível e tipo é recusado, sem diferenciar maiúsculas', async () => {

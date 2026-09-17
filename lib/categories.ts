@@ -34,6 +34,8 @@ export const CATEGORY_ICONS = [
   'category-investments',
   'category-refund',
   'category-business',
+  'category-beauty',
+  'category-debt',
   'category-other',
 ] as const;
 export type CategoryIconName = (typeof CATEGORY_ICONS)[number];
@@ -66,7 +68,8 @@ export type CategoryDefinition = {
 
 /**
  * Conjunto semeado em todo espaço novo. Espaços existentes receberam pelas migrations
- * `seed_default_categories` (0004) e `seed_default_subcategories` (0010).
+ * `seed_default_categories` (0004), `seed_default_subcategories` (0010) e
+ * `seed_more_default_categories` (0011).
  */
 export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   {
@@ -88,6 +91,9 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       'Eletrodomésticos',
       'Reparos',
       'Taxas',
+      'Água mineral',
+      'Diarista',
+      'Celular e internet móvel',
     ],
   },
   { name: 'Mercado', kind: 'expense', icon: 'category-market', color: '#16A34A' },
@@ -96,7 +102,17 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
     kind: 'expense',
     icon: 'category-food',
     color: '#EA580C',
-    children: ['Restaurantes', 'Delivery', 'Padaria e café', 'Açougue', 'Bares', 'Fast food', 'Hortifruti', 'Pescados'],
+    children: [
+      'Restaurantes',
+      'Delivery',
+      'Padaria e café',
+      'Açougue',
+      'Bares',
+      'Fast food',
+      'Hortifruti',
+      'Pescados',
+      'Conveniência',
+    ],
   },
   {
     name: 'Transporte',
@@ -136,6 +152,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       'Terapias',
       'Academia',
       'Barbearia',
+      'Dentista',
     ],
   },
   {
@@ -143,14 +160,26 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
     kind: 'expense',
     icon: 'category-education',
     color: '#7C3AED',
-    children: ['Escola', 'Inglês', 'Cursos', 'Faculdade', 'Material escolar'],
+    children: ['Escola', 'Inglês', 'Cursos', 'Faculdade', 'Pós-graduação', 'Material escolar'],
   },
   {
     name: 'Lazer',
     kind: 'expense',
     icon: 'category-leisure',
     color: '#DB2777',
-    children: ['Viagens', 'Passeios', 'Hobbies', 'Cinema', 'Teatro', 'Shows', 'Festas', 'Festivais', 'Futebol'],
+    children: [
+      'Viagens',
+      'Passeios',
+      'Hobbies',
+      'Cinema',
+      'Teatro',
+      'Shows',
+      'Festas',
+      'Festivais',
+      'Futebol',
+      'Churrasco',
+      'Parques e eventos',
+    ],
   },
   {
     name: 'Assinaturas',
@@ -172,9 +201,29 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
     kind: 'expense',
     icon: 'category-bills',
     color: '#475569',
-    children: ['Tarifas bancárias', 'Impostos'],
+    children: ['Tarifas bancárias', 'Impostos', 'INSS', 'DAS', 'Contador'],
   },
-  { name: 'Outras despesas', kind: 'expense', icon: 'category-other', color: '#64748B' },
+  {
+    name: 'Bem-estar e estética',
+    kind: 'expense',
+    icon: 'category-beauty',
+    color: '#0D9488',
+    children: ['Salão de beleza', 'Depilação', 'Manicure', 'Produtos estéticos'],
+  },
+  {
+    name: 'Dívidas e crediários',
+    kind: 'expense',
+    icon: 'category-debt',
+    color: '#DC2626',
+    children: ['Empréstimos', 'Crediário de lojas', 'Renegociações'],
+  },
+  {
+    name: 'Outras despesas',
+    kind: 'expense',
+    icon: 'category-other',
+    color: '#64748B',
+    children: ['Ajuda familiar', 'Doações', 'Imprevistos', 'Presentes'],
+  },
   { name: 'Salário', kind: 'income', icon: 'category-salary', color: '#16A34A' },
   { name: 'Rendimentos', kind: 'income', icon: 'category-investments', color: '#0D9488' },
   { name: 'Reembolsos', kind: 'income', icon: 'category-refund', color: '#0EA5E9' },
