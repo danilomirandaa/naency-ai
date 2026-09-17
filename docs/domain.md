@@ -122,18 +122,29 @@ Cartão é uma conta do tipo `credit_card` com detalhes e faturas.
 
 - **`credit_card_details`**: `account_id` (PK), `closing_day`, `due_day`,
   `limit_cents`, `default_payment_account_id`.
-- **`card_invoices`**: `account_id`, `reference_month` (ex.: 2026-09), `closing_date`,
-  `due_date`, `status` (`open | closed | paid`).
+- **`card_invoices`**: `account_id`, `reference_month` (mês do **vencimento**, ex.: 2026-10),
+  `closing_date`, `due_date`, `paid_at`, `payment_transfer_group_id`. O status é
+  derivado (`lib/cards.ts`): paga se tem `paid_at`; senão aberta até o fechamento e
+  fechada depois.
 
-Regras:
+Regras (`lib/cards.ts`, com testes):
 
-- **Qual fatura recebe a compra**: compra com data até o dia de fechamento entra na
-  fatura do mês; depois do fechamento, na do mês seguinte. A fatura é criada sob
-  demanda quando o primeiro lançamento cai nela.
-- **Total da fatura** é calculado pela soma dos lançamentos ligados a ela.
-- **Pagar fatura** é uma transferência da conta de pagamento para a conta do cartão
-  (ver Transferência), que marca a fatura como `paid`.
-- **Limite disponível** = `limit_cents` − saldo devedor do cartão.
+- **Qual fatura recebe a compra**: compra até o dia de fechamento (inclusive) entra
+  na fatura que fecha naquele mês; depois, na do mês seguinte. O vencimento cai no
+  mês do fechamento se o dia de vencimento for maior que o de fechamento; senão, no
+  mês seguinte. Dias além do fim do mês usam o último dia (fechamento 31 em fevereiro).
+- A fatura é criada sob demanda quando o primeiro lançamento cai nela. Mudar a data
+  ou a conta de uma compra recalcula a fatura.
+- **Total da fatura** = soma dos lançamentos ligados a ela, sem transferências.
+- **Pagar fatura** cria uma transferência da conta de pagamento para o cartão e
+  marca `paid_at`; desfazer exclui a transferência e reabre.
+- **Limite disponível** = limite − dívida do cartão (todas as compras, inclusive
+  parcelas futuras).
+- **Parcelado** (`installment_groups`): o valor digitado é o total; gera uma despesa
+  por mês (mesmo dia, limitado ao fim do mês), cada uma na sua fatura, com
+  "Descrição (k/N)". A sobra dos centavos vai na primeira. Editar muda só a parcela;
+  excluir remove a compra inteira. Parcelar só em despesa de cartão.
+- Uma conta não vira cartão nem deixa de ser cartão depois de criada.
 
 ## Lançamentos
 

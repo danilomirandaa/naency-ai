@@ -1,10 +1,12 @@
 import { TRANSACTION_KINDS, TRANSACTION_STATUSES } from '@/lib/transactions';
 import { sql } from 'drizzle-orm';
 import {
+  type AnyPgColumn,
   bigint,
   check,
   date,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -12,6 +14,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { accounts } from './accounts';
+import { cardInvoices, installmentGroups } from './cards';
 import { categories } from './categories';
 import { profiles, workspaces } from './workspaces';
 
@@ -41,6 +44,13 @@ export const transactions = pgTable(
     categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
     status: transactionStatus('status').notNull().default('cleared'),
     transferGroupId: uuid('transfer_group_id'),
+    /** Fatura do cartão (só em lançamentos de conta cartão que não são transferência). */
+    invoiceId: uuid('invoice_id').references((): AnyPgColumn => cardInvoices.id, { onDelete: 'set null' }),
+    installmentGroupId: uuid('installment_group_id').references((): AnyPgColumn => installmentGroups.id, {
+      onDelete: 'set null',
+    }),
+    installmentNumber: integer('installment_number'),
+    installmentTotal: integer('installment_total'),
     notes: text('notes'),
     createdBy: uuid('created_by')
       .notNull()
@@ -60,6 +70,8 @@ export const transactions = pgTable(
     index('transactions_account_id_idx').on(table.accountId),
     index('transactions_category_id_idx').on(table.categoryId),
     index('transactions_transfer_group_id_idx').on(table.transferGroupId),
+    index('transactions_invoice_id_idx').on(table.invoiceId),
+    index('transactions_installment_group_id_idx').on(table.installmentGroupId),
     check(
       'transactions_amount_sign',
       sql`(${table.kind} = 'income' and ${table.amountCents} > 0)

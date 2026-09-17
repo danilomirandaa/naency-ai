@@ -80,6 +80,7 @@ export const CreateExpense: Story = {
       accountId: nubank,
       categoryId: categoryFixtureId('Alimentação/Padaria e café'),
       notes: '',
+      installments: '1',
     });
   },
 };

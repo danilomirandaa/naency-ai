@@ -23,11 +23,11 @@ export type AccountsScreenProps = {
   canEdit: boolean;
   institutions: InstitutionSummary[];
   today: string;
-  /** Abre "Nova conta" ao entrar (link da sidebar). */
-  startCreating?: boolean;
+  /** Abre o formulário ao entrar: "Nova conta" (sidebar) ou "Novo cartão" (/cartoes). */
+  startCreating?: 'account' | 'card' | null;
 };
 
-type DialogState = { mode: 'create' } | { mode: 'edit'; account: AccountSummary } | null;
+type DialogState = { mode: 'create'; card: boolean } | { mode: 'edit'; account: AccountSummary } | null;
 
 /**
  * Container: liga o contrato de query e as Server Actions aos componentes.
@@ -39,14 +39,14 @@ export function AccountsScreen({
   canEdit,
   institutions,
   today,
-  startCreating = false,
+  startCreating = null,
 }: AccountsScreenProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const accounts = useQuery(accountsQuery.options(workspaceId, { includeArchived: true }));
   const [dialog, setDialog] = React.useState<DialogState>(
-    canEdit && startCreating ? { mode: 'create' } : null,
+    canEdit && startCreating ? { mode: 'create', card: startCreating === 'card' } : null,
   );
   const [archiveFailed, setArchiveFailed] = React.useState(false);
 
@@ -84,7 +84,7 @@ export function AccountsScreen({
         description={`Onde fica o dinheiro de ${workspaceName}.`}
         actions={
           canEdit ? (
-            <Button onClick={() => setDialog({ mode: 'create' })}>
+            <Button onClick={() => setDialog({ mode: 'create', card: false })}>
               <Icon icon="add" data-icon="inline-start" />
               Nova conta
             </Button>
@@ -102,7 +102,7 @@ export function AccountsScreen({
         isError={accounts.isError}
         onRetry={() => void accounts.refetch()}
         canEdit={canEdit}
-        onCreate={() => setDialog({ mode: 'create' })}
+        onCreate={() => setDialog({ mode: 'create', card: false })}
         onEdit={(account) => setDialog({ mode: 'edit', account })}
         onArchiveChange={handleArchiveChange}
       />
@@ -115,6 +115,8 @@ export function AccountsScreen({
           action={action}
           onSaved={() => void invalidate()}
           today={today}
+          defaultType={dialog?.mode === 'create' && dialog.card ? 'credit_card' : undefined}
+          paymentAccounts={(accounts.data ?? []).filter((item) => !item.archived)}
         />
       )}
     </div>

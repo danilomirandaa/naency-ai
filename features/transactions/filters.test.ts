@@ -13,6 +13,7 @@ describe('filtersFromSearchParams', () => {
       kind: null,
       search: '',
       page: 1,
+      invoiceId: null,
     });
   });
 
@@ -32,6 +33,7 @@ describe('filtersFromSearchParams', () => {
       kind: 'expense',
       search: 'padaria',
       page: 3,
+      invoiceId: null,
     });
   });
 

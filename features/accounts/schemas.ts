@@ -25,9 +25,33 @@ export const accountInputSchema = z.object({
   initialBalanceDate: z
     .string({ error: 'Informe a data do saldo.' })
     .refine(isIsoDate, 'Informe a data do saldo.'),
+  // Só para cartão de crédito.
+  closingDay: z.preprocess(emptyToNull, z.coerce.number().int().min(1).max(31).nullable()).default(null),
+  dueDay: z.preprocess(emptyToNull, z.coerce.number().int().min(1).max(31).nullable()).default(null),
+  limitCents: z
+    .preprocess(
+      emptyToNull,
+      z.coerce.number().int('Limite inválido.').min(0, 'Limite inválido.').max(MAX_BALANCE_CENTS, 'Limite alto demais.').nullable(),
+    )
+    .default(null),
+  defaultPaymentAccountId: z
+    .preprocess(emptyToNull, z.uuid({ error: 'Conta de pagamento inválida.' }).nullable())
+    .default(null),
+}).superRefine((value, ctx) => {
+  if (value.type !== 'credit_card') {
+    return;
+  }
+  if (value.closingDay === null) {
+    ctx.addIssue({ code: 'custom', path: ['closingDay'], message: 'Informe o dia de fechamento (1 a 31).' });
+  }
+  if (value.dueDay === null) {
+    ctx.addIssue({ code: 'custom', path: ['dueDay'], message: 'Informe o dia de vencimento (1 a 31).' });
+  }
 });
 
 export type AccountInput = z.infer<typeof accountInputSchema>;
+/** Entrada aceita pelo DAL (campos de cartão opcionais). */
+export type AccountInputRaw = z.input<typeof accountInputSchema>;
 
 /** Valores do formulário como digitados, para devolver no erro (o React limpa o form). */
 export type AccountFormValues = {
@@ -36,6 +60,10 @@ export type AccountFormValues = {
   institutionId: string;
   initialBalanceCents: number | null;
   initialBalanceDate: string;
+  closingDay: string;
+  dueDay: string;
+  limitCents: number | null;
+  defaultPaymentAccountId: string;
 };
 
 export type AccountFormState =
@@ -58,6 +86,7 @@ function text(formData: FormData, key: string) {
 export function readAccountForm(formData: FormData): AccountFormValues {
   const type = text(formData, 'type');
   const cents = text(formData, 'initialBalanceCents');
+  const limit = text(formData, 'limitCents');
   return {
     name: text(formData, 'name'),
     type: (CREATABLE_ACCOUNT_TYPES as readonly string[]).includes(type)
@@ -66,6 +95,10 @@ export function readAccountForm(formData: FormData): AccountFormValues {
     institutionId: text(formData, 'institutionId'),
     initialBalanceCents: cents === '' || Number.isNaN(Number(cents)) ? null : Number(cents),
     initialBalanceDate: text(formData, 'initialBalanceDate'),
+    closingDay: text(formData, 'closingDay'),
+    dueDay: text(formData, 'dueDay'),
+    limitCents: limit === '' || Number.isNaN(Number(limit)) ? null : Number(limit),
+    defaultPaymentAccountId: text(formData, 'defaultPaymentAccountId'),
   };
 }
 
@@ -80,6 +113,10 @@ export function parseAccountForm(
     institutionId: formData.get('institutionId') ?? undefined,
     initialBalanceCents: formData.get('initialBalanceCents') ?? undefined,
     initialBalanceDate: formData.get('initialBalanceDate') ?? undefined,
+    closingDay: formData.get('closingDay') ?? undefined,
+    dueDay: formData.get('dueDay') ?? undefined,
+    limitCents: formData.get('limitCents') ?? undefined,
+    defaultPaymentAccountId: formData.get('defaultPaymentAccountId') ?? undefined,
   });
   if (parsed.success) {
     return { success: true, data: parsed.data };

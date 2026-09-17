@@ -2,14 +2,9 @@
 export const ACCOUNT_TYPES = ['checking', 'savings', 'investment', 'cash', 'credit_card'] as const;
 export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
-/** Cartão de crédito tem fechamento, vencimento e faturas: entra na Fase 2. */
-export const CREATABLE_ACCOUNT_TYPES = [
-  'checking',
-  'savings',
-  'investment',
-  'cash',
-] as const satisfies readonly AccountType[];
-export type CreatableAccountType = (typeof CREATABLE_ACCOUNT_TYPES)[number];
+/** Todos os tipos podem ser criados; cartão pede fechamento e vencimento. */
+export const CREATABLE_ACCOUNT_TYPES = ACCOUNT_TYPES;
+export type CreatableAccountType = AccountType;
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
   checking: 'Conta corrente',

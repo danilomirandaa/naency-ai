@@ -37,7 +37,7 @@ export default async function AccountsPage({ searchParams }: PageProps<'/contas'
         canEdit={canEdit}
         institutions={institutions}
         today={todayIsoDate()}
-        startCreating={nova === '1'}
+        startCreating={nova === 'cartao' ? 'card' : nova === '1' ? 'account' : null}
       />
     </HydrationBoundary>
   );

@@ -27,8 +27,25 @@ describe('parseAccountForm', () => {
         institutionId: null,
         initialBalanceCents: 150075,
         initialBalanceDate: '2026-09-01',
+        closingDay: null,
+        dueDay: null,
+        limitCents: null,
+        defaultPaymentAccountId: null,
       },
     });
+  });
+
+  it('cartão exige dias de fechamento e vencimento', () => {
+    expect(parseAccountForm(form({ ...valid, type: 'credit_card' }))).toMatchObject({
+      status: 'error',
+      fieldErrors: {
+        closingDay: 'Informe o dia de fechamento (1 a 31).',
+        dueDay: 'Informe o dia de vencimento (1 a 31).',
+      },
+    });
+    expect(
+      parseAccountForm(form({ ...valid, type: 'credit_card', closingDay: '25', dueDay: '5', limitCents: '500000' })),
+    ).toMatchObject({ success: true, data: { closingDay: 25, dueDay: 5, limitCents: 500000 } });
   });
 
   it('saldo vazio vira zero e aceita negativo (conta no cheque especial)', () => {
@@ -42,7 +59,7 @@ describe('parseAccountForm', () => {
     const result = parseAccountForm(
       form({
         name: ' ',
-        type: 'credit_card',
+        type: 'emprestimo',
         institutionId: 'nao-e-uuid',
         initialBalanceCents: '12.5',
         initialBalanceDate: '2026-02-30',
@@ -64,6 +81,10 @@ describe('parseAccountForm', () => {
         institutionId: 'nao-e-uuid',
         initialBalanceCents: 12.5,
         initialBalanceDate: '2026-02-30',
+        closingDay: '',
+        dueDay: '',
+        limitCents: null,
+        defaultPaymentAccountId: '',
       },
     });
   });

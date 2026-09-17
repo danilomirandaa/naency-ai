@@ -99,6 +99,7 @@ describe('contas: CRUD', () => {
         initialBalanceDate: '2026-09-01',
         balanceCents: 150_075,
         archived: false,
+        card: null,
       },
     ]);
   });

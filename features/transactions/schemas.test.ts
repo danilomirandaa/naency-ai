@@ -29,6 +29,7 @@ describe('parseTransactionForm', () => {
         notes: null,
         accountId: A,
         categoryId: B,
+        installments: 1,
       },
     });
   });

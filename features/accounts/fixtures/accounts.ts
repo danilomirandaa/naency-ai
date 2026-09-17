@@ -22,6 +22,7 @@ export const accountsFixture: AccountSummary[] = [
     initialBalanceDate: '2026-09-01',
     balanceCents: 432_190,
     archived: false,
+    card: null,
   },
   {
     id: '0000000a-0000-4000-8000-000000000002',
@@ -36,6 +37,7 @@ export const accountsFixture: AccountSummary[] = [
     initialBalanceDate: '2026-09-01',
     balanceCents: 2_500_000,
     archived: false,
+    card: null,
   },
   {
     id: '0000000a-0000-4000-8000-000000000003',
@@ -46,6 +48,7 @@ export const accountsFixture: AccountSummary[] = [
     initialBalanceDate: '2026-09-10',
     balanceCents: -1_550,
     archived: false,
+    card: null,
   },
   {
     id: '0000000a-0000-4000-8000-000000000004',
@@ -56,5 +59,6 @@ export const accountsFixture: AccountSummary[] = [
     initialBalanceDate: '2025-01-01',
     balanceCents: 0,
     archived: true,
+    card: null,
   },
 ];

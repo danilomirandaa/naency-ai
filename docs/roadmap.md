@@ -53,10 +53,10 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 
 ## Fase 2 · Cartões
 
-- [ ] Detalhes do cartão (fechamento, vencimento, limite)
-- [ ] Faturas: atribuição da compra pela data de fechamento e total calculado
-- [ ] Compras parceladas
-- [ ] Pagamento de fatura como transferência
+- [x] Cartão como tipo de conta: fechamento, vencimento, limite e conta de pagamento; tipo cartão não muda depois
+- [x] Faturas criadas sob demanda pela data de fechamento, total calculado, status derivado; páginas /cartoes e /cartoes/[id]
+- [x] Compras parceladas (até 48x, sobra na 1ª parcela, uma por fatura; excluir remove a compra inteira)
+- [x] Pagamento de fatura como transferência, com desfazer
 
 ## Fase 3 · Importação e onboarding
 

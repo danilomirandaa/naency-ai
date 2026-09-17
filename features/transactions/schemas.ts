@@ -36,6 +36,13 @@ export const transactionInputSchema = z.discriminatedUnion(
       kind: z.enum(['expense', 'income']),
       ...common,
       categoryId: z.preprocess(emptyToNull, z.uuid({ error: 'Categoria inválida.' }).nullable()),
+      /** Parcelas (só despesa em cartão de crédito). O valor é o total da compra. */
+      installments: z
+        .preprocess(
+          (value) => (value === '' || value == null ? 1 : Number(value)),
+          z.number().int('Parcelas inválidas.').min(1, 'Parcelas inválidas.').max(48, 'No máximo 48 parcelas.'),
+        )
+        .default(1),
     }),
     z
       .object({
@@ -52,6 +59,7 @@ export const transactionInputSchema = z.discriminatedUnion(
 );
 
 export type TransactionInput = z.infer<typeof transactionInputSchema>;
+export type TransactionInputRaw = z.input<typeof transactionInputSchema>;
 
 export type TransactionFormValues = {
   kind: string;
@@ -63,6 +71,7 @@ export type TransactionFormValues = {
   accountId: string;
   toAccountId: string;
   categoryId: string;
+  installments: string;
 };
 
 export type TransactionFieldName = keyof TransactionFormValues;
@@ -89,6 +98,7 @@ const FIELDS: TransactionFieldName[] = [
   'accountId',
   'toAccountId',
   'categoryId',
+  'installments',
 ];
 
 function text(formData: FormData, key: string) {
@@ -108,6 +118,7 @@ export function readTransactionForm(formData: FormData): TransactionFormValues {
     accountId: text(formData, 'accountId'),
     toAccountId: text(formData, 'toAccountId'),
     categoryId: text(formData, 'categoryId'),
+    installments: text(formData, 'installments'),
   };
 }
 

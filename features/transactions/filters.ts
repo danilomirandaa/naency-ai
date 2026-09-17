@@ -10,6 +10,8 @@ export type TransactionFilters = {
   kind: TransactionKind | null;
   search: string;
   page: number;
+  /** Só na página do cartão. */
+  invoiceId?: string | null;
 };
 
 export const TRANSACTIONS_PAGE_SIZE = 50;
@@ -35,6 +37,7 @@ export function filtersFromSearchParams(
   const categoryId = params.get('categoria');
   const kindParam = params.get('tipo');
   const page = Number(params.get('pagina'));
+  const invoiceId = params.get('fatura');
   const parsedKind =
     (Object.entries(KIND_PARAM).find(([, value]) => value === kindParam)?.[0] as TransactionKind | undefined) ??
     null;
@@ -46,6 +49,7 @@ export function filtersFromSearchParams(
     kind: kind ?? parsedKind,
     search: (params.get('busca') ?? '').trim().slice(0, 80),
     page: Number.isSafeInteger(page) && page >= 1 ? page : 1,
+    invoiceId: invoiceId && uuid.safeParse(invoiceId).success ? invoiceId : null,
   };
 }
 
@@ -69,6 +73,9 @@ export function filtersToSearchParams(
   }
   if (filters.search) {
     params.set('busca', filters.search);
+  }
+  if (filters.invoiceId) {
+    params.set('fatura', filters.invoiceId);
   }
   if (filters.page > 1) {
     params.set('pagina', String(filters.page));

@@ -43,6 +43,13 @@
       "when": 1789618321871,
       "tag": "0005_transactions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789623680450,
+      "tag": "0006_cards",
+      "breakpoints": true
     }
   ]
 }

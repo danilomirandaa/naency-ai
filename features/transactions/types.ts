@@ -28,6 +28,10 @@ export type TransactionItem = {
   /** Em transferência: a outra conta. */
   transfer: { counterpartAccountId: string; counterpartAccountName: string } | null;
   createdByName: string;
+  /** Compra parcelada: "3 de 10". */
+  installment: { number: number; total: number } | null;
+  /** Fatura do cartão ("2026-10"), em lançamentos de cartão. */
+  invoiceMonth: string | null;
 };
 
 export type TransactionsPage = {

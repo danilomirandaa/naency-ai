@@ -19,4 +19,11 @@ export type AccountSummary = {
   /** Saldo calculado (docs/domain.md). Sem lançamentos ainda, é o saldo inicial. */
   balanceCents: number;
   archived: boolean;
+  /** Só em cartão de crédito. */
+  card: {
+    closingDay: number;
+    dueDay: number;
+    limitCents: number | null;
+    defaultPaymentAccountId: string | null;
+  } | null;
 };

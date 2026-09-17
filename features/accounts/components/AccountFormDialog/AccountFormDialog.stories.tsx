@@ -21,6 +21,9 @@ async function fakeSave(_state: AccountFormState, formData: FormData): Promise<A
       values: {
         ...parsed.data,
         institutionId: parsed.data.institutionId ?? '',
+        closingDay: String(parsed.data.closingDay ?? ''),
+        dueDay: String(parsed.data.dueDay ?? ''),
+        defaultPaymentAccountId: parsed.data.defaultPaymentAccountId ?? '',
       },
     };
   }
@@ -51,7 +54,7 @@ export default meta;
 
 type Story = StoryObj<typeof AccountFormDialog>;
 
-async function choose(dialog: ReturnType<typeof within>, label: string, option: string) {
+async function choose(dialog: ReturnType<typeof within>, label: string, option: string | RegExp) {
   await userEvent.click(dialog.getByLabelText(label));
   const listbox = within(await screen.findByRole('listbox'));
   await userEvent.click(listbox.getByRole('option', { name: option }));
@@ -164,6 +167,43 @@ export const ReopensClean: Story = {
 
     dialog = await openDialog(canvasElement, 'Nova conta');
     await expect(dialog.getByLabelText('Nome')).toHaveValue('');
+    await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  },
+};
+
+export const CreateCard: Story = {
+  args: { defaultType: 'credit_card', paymentAccounts: accountsFixture },
+  play: async ({ canvasElement, args }) => {
+    const dialog = await openDialog(canvasElement, 'Novo cartão');
+    await expect(dialog.queryByLabelText('Saldo inicial')).toBeNull();
+    await userEvent.type(dialog.getByLabelText('Nome'), 'Nubank Roxinho');
+    await choose(dialog, 'Fechamento', 'Dia 25');
+    await choose(dialog, 'Vencimento', 'Dia 5');
+    await userEvent.type(dialog.getByLabelText('Limite'), '800000');
+    await choose(dialog, 'Pagar a fatura com', /Nubank/);
+    await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(Object.fromEntries(lastFormData(args.action))).toMatchObject({
+      type: 'credit_card',
+      closingDay: '25',
+      dueDay: '5',
+      limitCents: '800000',
+      defaultPaymentAccountId: accountsFixture[0]?.id,
+      initialBalanceCents: '0',
+    });
+  },
+};
+
+export const CardRequiresDays: Story = {
+  args: { defaultType: 'credit_card' },
+  play: async ({ canvasElement }) => {
+    const dialog = await openDialog(canvasElement, 'Novo cartão');
+    await userEvent.type(dialog.getByLabelText('Nome'), 'Cartão');
+    await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
+    await expect(await dialog.findByRole('alert')).toHaveTextContent('Revise os campos destacados.');
+    await expect(dialog.getByLabelText('Fechamento')).toHaveAccessibleDescription('Informe o dia de fechamento (1 a 31).');
     await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   },

@@ -39,6 +39,8 @@ export const transactionsFixture: TransactionItem[] = [
     category: category('Moradia/Energia'),
     transfer: null,
     createdByName: 'Danilo',
+    installment: null,
+    invoiceMonth: null,
   },
   {
     id: id(2),
@@ -52,6 +54,8 @@ export const transactionsFixture: TransactionItem[] = [
     category: category('Mercado'),
     transfer: null,
     createdByName: 'Ana',
+    installment: null,
+    invoiceMonth: null,
   },
   {
     id: id(3),
@@ -65,6 +69,8 @@ export const transactionsFixture: TransactionItem[] = [
     category: null,
     transfer: { counterpartAccountId: reserva.id, counterpartAccountName: reserva.name },
     createdByName: 'Danilo',
+    installment: null,
+    invoiceMonth: null,
   },
   {
     id: id(4),
@@ -78,6 +84,8 @@ export const transactionsFixture: TransactionItem[] = [
     category: null,
     transfer: null,
     createdByName: 'Danilo',
+    installment: null,
+    invoiceMonth: null,
   },
   {
     id: id(5),
@@ -91,5 +99,7 @@ export const transactionsFixture: TransactionItem[] = [
     category: category('Salário', 'income'),
     transfer: null,
     createdByName: 'Danilo',
+    installment: null,
+    invoiceMonth: null,
   },
 ];

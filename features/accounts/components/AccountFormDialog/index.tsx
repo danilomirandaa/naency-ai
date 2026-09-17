@@ -3,6 +3,7 @@
 import { MoneyInput } from '@/components/finance/MoneyInput';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { AccountSelect, type AccountOption } from '@/components/finance/AccountSelect';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Field, type FieldControlProps, Input } from '@/components/ui/Input';
@@ -14,7 +15,7 @@ import {
   initialAccountFormState,
 } from '@/features/accounts/schemas';
 import type { AccountSummary, InstitutionSummary } from '@/features/accounts/types';
-import { ACCOUNT_TYPE_LABELS, CREATABLE_ACCOUNT_TYPES } from '@/lib/accounts';
+import { ACCOUNT_TYPE_LABELS, type AccountType, CREATABLE_ACCOUNT_TYPES } from '@/lib/accounts';
 import * as React from 'react';
 
 export type AccountFormAction = (
@@ -33,6 +34,10 @@ export type AccountFormDialogProps = {
   onSaved?: (accountId: string) => void;
   /** Data sugerida para o saldo inicial e limite do campo ("AAAA-MM-DD"). */
   today: string;
+  /** Tipo sugerido ao criar (ex.: "Novo cartão"). */
+  defaultType?: AccountType;
+  /** Contas que podem pagar a fatura de um cartão. */
+  paymentAccounts?: AccountOption[];
 };
 
 const FORM_ID = 'account-form';
@@ -61,6 +66,8 @@ function AccountFormDialogContent({
   action,
   onSaved,
   today,
+  defaultType,
+  paymentAccounts = [],
 }: AccountFormDialogProps) {
   const [state, formAction, isPending] = React.useActionState(action, initialAccountFormState);
   const isEdit = Boolean(account);
@@ -86,87 +93,35 @@ function AccountFormDialogContent({
   const error = state.status === 'error' ? state : null;
   const values: AccountFormValues = error?.values ?? {
     name: account?.name ?? '',
-    type: account && account.type !== 'credit_card' ? account.type : '',
+    type: account?.type ?? defaultType ?? '',
     institutionId: account?.institution?.id ?? '',
     initialBalanceCents: account ? account.initialBalanceCents : null,
     initialBalanceDate: account?.initialBalanceDate ?? today,
+    closingDay: account?.card ? String(account.card.closingDay) : '',
+    dueDay: account?.card ? String(account.card.dueDay) : '',
+    limitCents: account?.card?.limitCents ?? null,
+    defaultPaymentAccountId: account?.card?.defaultPaymentAccountId ?? '',
   };
   const fieldErrors = error?.fieldErrors ?? {};
 
   return makeResponsiveDialog({
-    title: isEdit ? 'Editar conta' : 'Nova conta',
-    description: isEdit ? undefined : 'Onde o dinheiro fica: banco, corretora ou carteira.',
+    title: isEdit ? 'Editar conta' : values.type === 'credit_card' ? 'Novo cartão' : 'Nova conta',
+    description: isEdit ? undefined : 'Onde o dinheiro fica: banco, cartão, corretora ou carteira.',
     open,
     onOpenChange,
     contentProps: { className: 'max-w-[480px]' },
     children: (
-      <form key={formKey} id={FORM_ID} action={formAction} className="flex flex-col gap-4" noValidate>
-        <Field label="Nome" error={fieldErrors.name}>
-          {(control) => (
-            <Input
-              {...control}
-              name="name"
-              autoComplete="off"
-              placeholder="Ex.: Nubank, Carteira"
-              defaultValue={values.name}
-              maxLength={60}
-              required
-            />
-          )}
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Tipo" error={fieldErrors.type}>
-            {(control) => (
-              <Select.Root name="type" defaultValue={values.type || undefined}>
-                <Select.Trigger {...control}>
-                  <Select.Value placeholder="Escolha…" />
-                </Select.Trigger>
-                <Select.Content>
-                  {CREATABLE_ACCOUNT_TYPES.map((type) => (
-                    <Select.Item key={type} value={type}>
-                      {ACCOUNT_TYPE_LABELS[type]}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            )}
-          </Field>
-          <Field label="Instituição" error={fieldErrors.institutionId}>
-            {(control) => <InstitutionSelect control={control} institutions={institutions} defaultValue={values.institutionId} />}
-          </Field>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Saldo inicial" error={fieldErrors.initialBalanceCents}>
-            {(control) => (
-              <MoneyInput
-                {...control}
-                name="initialBalanceCents"
-                defaultValue={values.initialBalanceCents}
-                allowNegative
-                placeholder="0,00"
-              />
-            )}
-          </Field>
-          <Field label="Data do saldo" error={fieldErrors.initialBalanceDate}>
-            {(control) => (
-              <DatePicker
-                {...control}
-                name="initialBalanceDate"
-                defaultValue={values.initialBalanceDate || null}
-                max={today}
-              />
-            )}
-          </Field>
-        </div>
-        <Panel.Callout variant="neutral" icon="info-icon" className="mt-0">
-          O saldo da conta parte deste valor, somando os lançamentos a partir da data.
-        </Panel.Callout>
-        {error && (
-          <Panel.Callout variant="critical" icon="alert-circle" role="alert" className="mt-0">
-            {error.message}
-          </Panel.Callout>
-        )}
-      </form>
+      <AccountFormFields
+        key={formKey}
+        formAction={formAction}
+        values={values}
+        fieldErrors={fieldErrors}
+        message={error?.message}
+        institutions={institutions}
+        paymentAccounts={paymentAccounts.filter((item) => item.id !== account?.id)}
+        today={today}
+        lockedType={account ? (account.type === 'credit_card' ? 'card' : 'not-card') : null}
+      />
     ),
     footer: (
       <>
@@ -212,5 +167,169 @@ function InstitutionSelect({
       </Select.Root>
       <input type="hidden" name="institutionId" value={institutionId} />
     </>
+  );
+}
+
+const DAYS = Array.from({ length: 31 }, (_, index) => String(index + 1));
+
+function DaySelect({
+  control,
+  name,
+  defaultValue,
+}: {
+  control: FieldControlProps;
+  name: string;
+  defaultValue: string;
+}) {
+  return (
+    <Select.Root name={name} defaultValue={defaultValue || undefined}>
+      <Select.Trigger {...control}>
+        <Select.Value placeholder="Dia" />
+      </Select.Trigger>
+      <Select.Content className="max-h-64">
+        {DAYS.map((day) => (
+          <Select.Item key={day} value={day}>
+            Dia {day}
+          </Select.Item>
+        ))}
+      </Select.Content>
+    </Select.Root>
+  );
+}
+
+function AccountFormFields({
+  formAction,
+  values,
+  fieldErrors,
+  message,
+  institutions,
+  paymentAccounts,
+  today,
+  lockedType,
+}: {
+  formAction: (formData: FormData) => void;
+  values: AccountFormValues;
+  fieldErrors: Partial<Record<string, string>>;
+  message?: string;
+  institutions: InstitutionSummary[];
+  paymentAccounts: AccountOption[];
+  today: string;
+  /** Na edição, cartão não vira conta comum nem o contrário. */
+  lockedType: 'card' | 'not-card' | null;
+}) {
+  const [type, setType] = React.useState<string>(values.type);
+  const isCard = type === 'credit_card';
+  const typeOptions = CREATABLE_ACCOUNT_TYPES.filter((option) =>
+    lockedType === 'not-card' ? option !== 'credit_card' : lockedType === 'card' ? option === 'credit_card' : true,
+  );
+
+  return (
+    <form id={FORM_ID} action={formAction} className="flex flex-col gap-4" noValidate>
+      <Field label="Nome" error={fieldErrors.name}>
+        {(control) => (
+          <Input
+            {...control}
+            name="name"
+            autoComplete="off"
+            placeholder={isCard ? 'Ex.: Nubank Roxinho' : 'Ex.: Nubank, Carteira'}
+            defaultValue={values.name}
+            maxLength={60}
+            required
+          />
+        )}
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Tipo" error={fieldErrors.type}>
+          {(control) => (
+            <Select.Root name="type" value={type || undefined} onValueChange={setType} disabled={lockedType === 'card'}>
+              <Select.Trigger {...control}>
+                <Select.Value placeholder="Escolha…" />
+              </Select.Trigger>
+              <Select.Content>
+                {typeOptions.map((option) => (
+                  <Select.Item key={option} value={option}>
+                    {ACCOUNT_TYPE_LABELS[option]}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        </Field>
+        <Field label="Instituição" error={fieldErrors.institutionId}>
+          {(control) => <InstitutionSelect control={control} institutions={institutions} defaultValue={values.institutionId} />}
+        </Field>
+      </div>
+      {/* Tipo desabilitado não entra no FormData. */}
+      {lockedType === 'card' && <input type="hidden" name="type" value="credit_card" />}
+      {isCard ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Fechamento" error={fieldErrors.closingDay}>
+              {(control) => <DaySelect control={control} name="closingDay" defaultValue={values.closingDay} />}
+            </Field>
+            <Field label="Vencimento" error={fieldErrors.dueDay}>
+              {(control) => <DaySelect control={control} name="dueDay" defaultValue={values.dueDay} />}
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Limite" description="Opcional." error={fieldErrors.limitCents}>
+              {(control) => (
+                <MoneyInput {...control} name="limitCents" defaultValue={values.limitCents} placeholder="0,00" />
+              )}
+            </Field>
+            <Field label="Pagar a fatura com" error={fieldErrors.defaultPaymentAccountId}>
+              {(control) => (
+                <AccountSelect
+                  {...control}
+                  name="defaultPaymentAccountId"
+                  accounts={paymentAccounts.filter((item) => item.type !== 'credit_card')}
+                  allLabel="Escolher na hora"
+                  defaultValue={values.defaultPaymentAccountId || null}
+                />
+              )}
+            </Field>
+          </div>
+          <input type="hidden" name="initialBalanceCents" value="0" />
+          <input type="hidden" name="initialBalanceDate" value={values.initialBalanceDate || today} />
+          <Panel.Callout variant="neutral" icon="info-icon" className="mt-0">
+            Compras até o dia do fechamento entram na fatura que vence no mês; depois, na seguinte.
+          </Panel.Callout>
+        </>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Saldo inicial" error={fieldErrors.initialBalanceCents}>
+              {(control) => (
+                <MoneyInput
+                  {...control}
+                  name="initialBalanceCents"
+                  defaultValue={values.initialBalanceCents}
+                  allowNegative
+                  placeholder="0,00"
+                />
+              )}
+            </Field>
+            <Field label="Data do saldo" error={fieldErrors.initialBalanceDate}>
+              {(control) => (
+                <DatePicker
+                  {...control}
+                  name="initialBalanceDate"
+                  defaultValue={values.initialBalanceDate || null}
+                  max={today}
+                />
+              )}
+            </Field>
+          </div>
+          <Panel.Callout variant="neutral" icon="info-icon" className="mt-0">
+            O saldo da conta parte deste valor, somando os lançamentos a partir da data.
+          </Panel.Callout>
+        </>
+      )}
+      {message && (
+        <Panel.Callout variant="critical" icon="alert-circle" role="alert" className="mt-0">
+          {message}
+        </Panel.Callout>
+      )}
+    </form>
   );
 }

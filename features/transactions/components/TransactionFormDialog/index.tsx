@@ -8,6 +8,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Field, Input } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
+import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs } from '@/components/ui/Tabs';
@@ -78,6 +79,7 @@ function valuesFromTransaction(
       accountId: defaultAccountId ?? '',
       toAccountId: '',
       categoryId: '',
+      installments: '1',
     };
   }
   const isIncomingLeg = transaction.kind === 'transfer' && transaction.amountCents > 0;
@@ -97,6 +99,7 @@ function valuesFromTransaction(
           ? transaction.account.id
           : (transaction.transfer?.counterpartAccountId ?? ''),
     categoryId: transaction.category?.id ?? '',
+    installments: '1',
   };
 }
 
@@ -149,6 +152,7 @@ function TransactionFormDialogContent({
         accounts={accounts}
         categories={categories}
         today={today}
+        isEdit={isEdit}
       />
     ),
     footer: (
@@ -177,7 +181,9 @@ function TransactionFormFields({
   accounts,
   categories,
   today,
+  isEdit,
 }: {
+  isEdit: boolean;
   formAction: (formData: FormData) => void;
   values: TransactionFormValues;
   fieldErrors: Partial<Record<TransactionFieldName, string>>;
@@ -189,6 +195,9 @@ function TransactionFormFields({
   const [kind, setKind] = React.useState<TransactionKind>(isKind(values.kind) ? values.kind : 'expense');
   const [accountId, setAccountId] = React.useState<string | null>(values.accountId || null);
   const [cleared, setCleared] = React.useState(values.status !== 'planned');
+  const [installments, setInstallments] = React.useState(values.installments || '1');
+  const selectedAccount = accounts.find((account) => account.id === accountId);
+  const canSplit = !isEdit && kind === 'expense' && selectedAccount?.type === 'credit_card';
   const statusId = React.useId();
   const isTransfer = kind === 'transfer';
 
@@ -207,7 +216,7 @@ function TransactionFormFields({
       </Tabs.Root>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Valor" error={fieldErrors.amountCents}>
+        <Field label={canSplit && installments !== '1' ? 'Valor total' : 'Valor'} error={fieldErrors.amountCents}>
           {(control) => (
             <MoneyInput {...control} name="amountCents" defaultValue={values.amountCents} placeholder="0,00" autoFocus />
           )}
@@ -270,6 +279,30 @@ function TransactionFormFields({
           </Field>
         )}
       </div>
+
+      {canSplit && (
+        <Field
+          label="Parcelas"
+          error={fieldErrors.installments}
+          description={installments !== '1' ? 'Cada parcela entra na fatura do seu mês.' : undefined}
+        >
+          {(control) => (
+            <Select.Root value={installments} onValueChange={setInstallments}>
+              <Select.Trigger {...control}>
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content className="max-h-72">
+                {Array.from({ length: 24 }, (_, index) => String(index + 1)).map((count) => (
+                  <Select.Item key={count} value={count}>
+                    {count === '1' ? 'À vista' : `${count}x`}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        </Field>
+      )}
+      <input type="hidden" name="installments" value={canSplit ? installments : '1'} />
 
       <div className="flex items-center justify-between gap-3 rounded-control border border-border-neutral-subtle px-3 py-2">
         <label htmlFor={statusId} className="flex flex-col">

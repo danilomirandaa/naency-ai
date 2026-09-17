@@ -1,10 +1,10 @@
 import 'server-only';
-import { type AccountInput, accountInputSchema } from '@/features/accounts/schemas';
+import { type AccountInputRaw, accountInputSchema } from '@/features/accounts/schemas';
 import type { AccountSummary, InstitutionSummary } from '@/features/accounts/types';
 import { requireMembership } from '@/server/auth/membership';
 import { accountMovementSql } from '@/server/dal/transactions';
 import { getDb } from '@/server/db/client';
-import { accounts, institutions } from '@/server/db/schema';
+import { accounts, creditCardDetails, institutions } from '@/server/db/schema';
 import { and, asc, eq, isNull, or } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -12,7 +12,7 @@ const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
 
 export class AccountError extends Error {
   constructor(
-    public readonly code: 'not-found' | 'invalid-institution',
+    public readonly code: 'not-found' | 'invalid-institution' | 'invalid-payment-account' | 'type-change',
     message: string,
   ) {
     super(message);
@@ -56,9 +56,14 @@ export async function listAccounts(
       institutionName: institutions.name,
       institutionColor: institutions.color,
       movementCents: accountMovementSql(),
+      closingDay: creditCardDetails.closingDay,
+      dueDay: creditCardDetails.dueDay,
+      limitCents: creditCardDetails.limitCents,
+      defaultPaymentAccountId: creditCardDetails.defaultPaymentAccountId,
     })
     .from(accounts)
     .leftJoin(institutions, eq(institutions.id, accounts.institutionId))
+    .leftJoin(creditCardDetails, eq(creditCardDetails.accountId, accounts.id))
     .where(
       and(
         eq(accounts.workspaceId, workspaceId),
@@ -80,6 +85,15 @@ export async function listAccounts(
     initialBalanceDate: row.initialBalanceDate,
     balanceCents: row.initialBalanceCents + Number(row.movementCents),
     archived: row.archivedAt !== null,
+    card:
+      row.type === 'credit_card' && row.closingDay !== null && row.dueDay !== null
+        ? {
+            closingDay: row.closingDay,
+            dueDay: row.dueDay,
+            limitCents: row.limitCents,
+            defaultPaymentAccountId: row.defaultPaymentAccountId,
+          }
+        : null,
   }));
 }
 
@@ -97,35 +111,97 @@ async function assertInstitutionVisible(workspaceId: string, institutionId: stri
   }
 }
 
-export async function createAccount(workspaceId: string, input: AccountInput) {
-  const { user } = await requireMembership(workspaceId, 'finance.write');
-  const data = accountInputSchema.parse(input);
-  await assertInstitutionVisible(workspaceId, data.institutionId);
+type ParsedAccount = ReturnType<typeof accountInputSchema.parse>;
 
-  const [account] = await getDb()
-    .insert(accounts)
-    .values({ ...data, workspaceId, createdBy: user.id, updatedBy: user.id })
-    .returning({ id: accounts.id });
-  if (!account) {
-    throw new Error('Falha ao criar a conta.');
-  }
-  return account;
+function accountColumns(data: ParsedAccount) {
+  const { closingDay, dueDay, limitCents, defaultPaymentAccountId, ...columns } = data;
+  void closingDay;
+  void dueDay;
+  void limitCents;
+  void defaultPaymentAccountId;
+  return columns;
 }
 
-export async function updateAccount(workspaceId: string, accountId: string, input: AccountInput) {
+/** Conta de pagamento do cartão: do mesmo espaço, não é cartão e não é o próprio cartão. */
+async function assertPaymentAccount(workspaceId: string, data: ParsedAccount, selfId?: string) {
+  if (data.type !== 'credit_card' || !data.defaultPaymentAccountId) {
+    return;
+  }
+  const [found] = await getDb()
+    .select({ id: accounts.id, type: accounts.type })
+    .from(accounts)
+    .where(and(eq(accounts.id, data.defaultPaymentAccountId), eq(accounts.workspaceId, workspaceId)));
+  if (!found || found.type === 'credit_card' || found.id === selfId) {
+    throw new AccountError('invalid-payment-account', 'Escolha uma conta que não seja cartão para pagar a fatura.');
+  }
+}
+
+type AccountsTx = Parameters<Parameters<ReturnType<typeof getDb>['transaction']>[0]>[0];
+
+async function saveCardDetails(tx: AccountsTx, accountId: string, data: ParsedAccount) {
+  if (data.type !== 'credit_card' || data.closingDay === null || data.dueDay === null) {
+    return;
+  }
+  const details = {
+    closingDay: data.closingDay,
+    dueDay: data.dueDay,
+    limitCents: data.limitCents,
+    defaultPaymentAccountId: data.defaultPaymentAccountId,
+  };
+  await tx
+    .insert(creditCardDetails)
+    .values({ accountId, ...details })
+    .onConflictDoUpdate({ target: creditCardDetails.accountId, set: details });
+}
+
+export async function createAccount(workspaceId: string, input: AccountInputRaw) {
   const { user } = await requireMembership(workspaceId, 'finance.write');
   const data = accountInputSchema.parse(input);
   await assertInstitutionVisible(workspaceId, data.institutionId);
+  await assertPaymentAccount(workspaceId, data);
 
-  const [account] = await getDb()
-    .update(accounts)
-    .set({ ...data, updatedBy: user.id })
-    .where(accountInWorkspace(workspaceId, accountId))
-    .returning({ id: accounts.id });
-  if (!account) {
-    throw new AccountError('not-found', 'Conta não encontrada.');
-  }
-  return account;
+  return getDb().transaction(async (tx) => {
+    const [account] = await tx
+      .insert(accounts)
+      .values({ ...accountColumns(data), workspaceId, createdBy: user.id, updatedBy: user.id })
+      .returning({ id: accounts.id });
+    if (!account) {
+      throw new Error('Falha ao criar a conta.');
+    }
+    await saveCardDetails(tx, account.id, data);
+    return account;
+  });
+}
+
+export async function updateAccount(workspaceId: string, accountId: string, input: AccountInputRaw) {
+  const { user } = await requireMembership(workspaceId, 'finance.write');
+  const data = accountInputSchema.parse(input);
+  await assertInstitutionVisible(workspaceId, data.institutionId);
+  await assertPaymentAccount(workspaceId, data, accountId);
+
+  return getDb().transaction(async (tx) => {
+    const [current] = await tx
+      .select({ type: accounts.type })
+      .from(accounts)
+      .where(accountInWorkspace(workspaceId, accountId));
+    if (!current) {
+      throw new AccountError('not-found', 'Conta não encontrada.');
+    }
+    // Cartão tem faturas; virar ou deixar de ser cartão quebraria o histórico.
+    if ((current.type === 'credit_card') !== (data.type === 'credit_card')) {
+      throw new AccountError('type-change', 'Uma conta não pode virar cartão de crédito, nem o contrário.');
+    }
+    const [account] = await tx
+      .update(accounts)
+      .set({ ...accountColumns(data), updatedBy: user.id })
+      .where(accountInWorkspace(workspaceId, accountId))
+      .returning({ id: accounts.id });
+    if (!account) {
+      throw new AccountError('not-found', 'Conta não encontrada.');
+    }
+    await saveCardDetails(tx, account.id, data);
+    return account;
+  });
 }
 
 /** Arquivar esconde a conta das listas; o histórico continua (docs/domain.md). */
