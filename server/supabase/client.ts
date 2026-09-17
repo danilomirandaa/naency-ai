@@ -8,8 +8,11 @@ import { cookies } from 'next/headers';
  * Crie um por requisição. Uso restrito a autenticação; dados passam pelo DAL.
  */
 export async function createSupabaseServerClient() {
-  const { url, publishableKey } = getSupabasePublicEnv();
+  // cookies() primeiro: marca a rota como dinâmica antes de qualquer validação.
+  // Na ordem inversa, o build tenta pré-renderizar a página e falha onde não há
+  // variáveis de ambiente (CI).
   const cookieStore = await cookies();
+  const { url, publishableKey } = getSupabasePublicEnv();
 
   return createServerClient(url, publishableKey, {
     cookies: {
