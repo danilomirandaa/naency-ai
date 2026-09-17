@@ -1,7 +1,7 @@
 import { ImportSummary } from '@/features/imports/components/ImportSummary';
 import { importBatchFixture } from '@/features/imports/fixtures/imports';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 
 const meta: Meta<typeof ImportSummary> = {
   title: 'Features/Imports/ImportSummary',
@@ -24,8 +24,17 @@ export const Reviewing: Story = {
     await expect(canvas.getByText(/2 lançamentos a importar de 3 · 1 duplicado · 1 sem categoria/)).toBeInTheDocument();
     await userEvent.click(canvas.getByRole('button', { name: 'Importar 2' }));
     await expect(args.onCommit).toHaveBeenCalledOnce();
+    // Descartar pede confirmação: cancelar não descarta.
     await userEvent.click(canvas.getByRole('button', { name: 'Descartar' }));
+    let dialog = await screen.findByRole('dialog', { name: 'Descartar importação' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(args.onDiscard).not.toHaveBeenCalled();
+    await userEvent.click(canvas.getByRole('button', { name: 'Descartar' }));
+    dialog = await screen.findByRole('dialog', { name: 'Descartar importação' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Descartar' }));
     await expect(args.onDiscard).toHaveBeenCalledOnce();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };

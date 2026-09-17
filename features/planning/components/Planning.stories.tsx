@@ -58,6 +58,31 @@ export const EditBudget: Story = {
   },
 };
 
+const onRemove = fn(async () => ({ ok: true as const }));
+
+export const RemoveBudget: Story = {
+  render: function Render() {
+    const [line, setLine] = React.useState<BudgetLine | null>(null);
+    return (
+      <>
+        <Button onClick={() => setLine(budgetsFixture[0] as BudgetLine)}>Abrir</Button>
+        <BudgetDialog line={line} onOpenChange={(open) => !open && setLine(null)} onSave={onRemove} />
+      </>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Abrir' }));
+    const budget = within(await screen.findByRole('dialog', { name: 'Orçamento de Moradia' }));
+    await userEvent.click(budget.getByRole('button', { name: 'Remover' }));
+    // Remover pede confirmação antes de apagar o orçamento.
+    const confirm = within(await screen.findByRole('dialog', { name: 'Remover orçamento' }));
+    await expect(onRemove).not.toHaveBeenCalled();
+    await userEvent.click(confirm.getByRole('button', { name: 'Remover' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await expect(onRemove).toHaveBeenCalledWith(budgetsFixture[0], null);
+  },
+};
+
 const goalHandlers = { onCreate: fn(), onEdit: fn(), onDelete: fn() };
 
 export const Goals: Story = {

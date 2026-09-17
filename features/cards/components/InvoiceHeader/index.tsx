@@ -2,6 +2,7 @@
 
 import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Button } from '@/components/ui/Button';
+import { DeleteDialog } from '@/components/ui/DeleteDialog';
 import { Icon } from '@/components/ui/Icon';
 import { Panel } from '@/components/ui/Panel';
 import { Spinner } from '@/components/ui/Spinner';
@@ -10,7 +11,7 @@ import { INVOICE_STATUS_BADGE } from '@/features/cards/components/CardsList';
 import type { InvoiceSummary } from '@/features/cards/types';
 import { INVOICE_STATUS_LABELS } from '@/lib/cards';
 import { formatIsoDate, formatMonth } from '@/lib/dates';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 
 export type InvoiceHeaderProps = {
   /** Faturas do cartão, da mais recente para a mais antiga. */
@@ -25,6 +26,7 @@ export type InvoiceHeaderProps = {
 /** Navegação entre faturas, total, datas, status e pagamento. */
 export function InvoiceHeader({ invoices, selected, onSelect, canEdit, onPay, onUnpay }: InvoiceHeaderProps) {
   const [isUnpaying, startUnpay] = useTransition();
+  const [confirmingUnpay, setConfirmingUnpay] = useState(false);
   const index = invoices.findIndex((invoice) => invoice.referenceMonth === selected.referenceMonth);
   const newer = index > 0 ? invoices[index - 1] : undefined;
   const older = index >= 0 && index < invoices.length - 1 ? invoices[index + 1] : undefined;
@@ -82,7 +84,7 @@ export function InvoiceHeader({ invoices, selected, onSelect, canEdit, onPay, on
               </Button>
             )}
             {selected.status === 'paid' && (
-              <Button variant="outline" disabled={isUnpaying} onClick={() => startUnpay(onUnpay)}>
+              <Button variant="outline" disabled={isUnpaying} onClick={() => setConfirmingUnpay(true)}>
                 {isUnpaying ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="return" data-icon="inline-start" />}
                 Desfazer pagamento
               </Button>
@@ -90,6 +92,19 @@ export function InvoiceHeader({ invoices, selected, onSelect, canEdit, onPay, on
           </div>
         )}
       </div>
+      <DeleteDialog
+        open={confirmingUnpay}
+        onClose={() => setConfirmingUnpay(false)}
+        title="Desfazer pagamento"
+        subtitle={`O pagamento da fatura de ${formatMonth(selected.referenceMonth).toLowerCase()} será excluído.`}
+        warnText="A transferência some das duas contas e a fatura volta a ficar em aberto."
+        deleteButtonText="Desfazer pagamento"
+        deleteButtonIcon="return"
+        onConfirm={async () => {
+          setConfirmingUnpay(false);
+          startUnpay(onUnpay);
+        }}
+      />
     </Panel.Root>
   );
 }

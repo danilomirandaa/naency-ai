@@ -2,6 +2,7 @@
 
 import { MoneyInput } from '@/components/finance/MoneyInput';
 import { Button } from '@/components/ui/Button';
+import { DeleteDialog } from '@/components/ui/DeleteDialog';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Field } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
@@ -24,6 +25,7 @@ function BudgetDialogContent({ line, onOpenChange, onSave }: BudgetDialogProps) 
   const [amount, setAmount] = React.useState<number | null>(line?.budgetCents ?? null);
   const [error, setError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
+  const [confirmingRemove, setConfirmingRemove] = React.useState(false);
 
   const save = (value: number | null) =>
     startTransition(async () => {
@@ -38,7 +40,7 @@ function BudgetDialogContent({ line, onOpenChange, onSave }: BudgetDialogProps) 
       }
     });
 
-  return makeResponsiveDialog({
+  const dialog = makeResponsiveDialog({
     title: line ? `Orçamento de ${line.name}` : 'Orçamento',
     description: 'Quanto você quer gastar por mês nesta categoria, subcategorias incluídas.',
     open: line !== null,
@@ -70,7 +72,7 @@ function BudgetDialogContent({ line, onOpenChange, onSave }: BudgetDialogProps) 
     footer: (
       <>
         {line?.budgetCents !== null && line?.budgetCents !== undefined && (
-          <Button variant="destructive" className="mr-auto" disabled={isPending} onClick={() => save(null)}>
+          <Button variant="destructive" className="mr-auto" disabled={isPending} onClick={() => setConfirmingRemove(true)}>
             Remover
           </Button>
         )}
@@ -84,4 +86,22 @@ function BudgetDialogContent({ line, onOpenChange, onSave }: BudgetDialogProps) 
       </>
     ),
   });
+
+  return (
+    <>
+      {dialog}
+      <DeleteDialog
+        open={confirmingRemove}
+        onClose={() => setConfirmingRemove(false)}
+        title="Remover orçamento"
+        subtitle={`O orçamento de ${line?.name ?? ''} deixa de existir.`}
+        warnText="Os lançamentos continuam iguais; só o limite mensal é removido."
+        deleteButtonText="Remover"
+        onConfirm={async () => {
+          setConfirmingRemove(false);
+          save(null);
+        }}
+      />
+    </>
+  );
 }

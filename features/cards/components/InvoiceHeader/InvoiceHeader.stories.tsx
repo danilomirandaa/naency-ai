@@ -2,7 +2,7 @@ import { InvoiceHeader } from '@/features/cards/components/InvoiceHeader';
 import { invoicesFixture } from '@/features/cards/fixtures/cards';
 import type { InvoiceSummary } from '@/features/cards/types';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 
 const [november, october, september, august] = invoicesFixture as [
   InvoiceSummary,
@@ -56,8 +56,13 @@ export const PaidInvoice: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText('Paga')).toBeInTheDocument();
     await expect(canvas.queryByRole('button', { name: 'Pagar fatura' })).toBeNull();
+    // Desfazer pede confirmação antes de excluir o pagamento.
     await userEvent.click(canvas.getByRole('button', { name: 'Desfazer pagamento' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Desfazer pagamento' });
+    await expect(args.onUnpay).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Desfazer pagamento' }));
     await expect(args.onUnpay).toHaveBeenCalledOnce();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };

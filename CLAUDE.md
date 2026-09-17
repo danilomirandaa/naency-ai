@@ -22,6 +22,9 @@ Não são recomendações. Nenhuma entrega está pronta sem elas.
    camada que toca (unit, stories como teste, regressão visual, integração do DAL
    por papel, E2E), provando que funciona e que nada existente mudou.
 
+3. **Excluir pede confirmação**: toda ação que apaga dado abre o `DeleteDialog`
+   antes de executar ([docs/components.md](docs/components.md), regra 8).
+
 **Definição de pronto**: componentes com story + testes da camada + regressão
 visual sem diferença não intencional + docs atualizados + CI verde.
 

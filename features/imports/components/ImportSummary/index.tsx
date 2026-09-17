@@ -3,12 +3,13 @@
 import { AccountAvatar } from '@/components/finance/AccountAvatar';
 import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Button } from '@/components/ui/Button';
+import { DeleteDialog } from '@/components/ui/DeleteDialog';
 import { Icon } from '@/components/ui/Icon';
 import { Panel } from '@/components/ui/Panel';
 import { Spinner } from '@/components/ui/Spinner';
 import { Text } from '@/components/ui/Text';
 import type { ImportBatchDetail } from '@/features/imports/types';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 
 export type ImportSummaryProps = {
   batch: ImportBatchDetail;
@@ -27,6 +28,7 @@ function plural(count: number, one: string, many: string) {
 export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }: ImportSummaryProps) {
   const [isCommitting, startCommit] = useTransition();
   const [isDiscarding, startDiscard] = useTransition();
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isSuggesting, startSuggest] = useTransition();
   const { summary } = batch;
   const busy = isCommitting || isDiscarding || isSuggesting;
@@ -69,7 +71,7 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
                   {isSuggesting ? 'Sugerindo…' : 'Sugerir com AI'}
                 </Button>
               )}
-              <Button variant="outline" disabled={busy} onClick={() => startDiscard(onDiscard)}>
+              <Button variant="outline" disabled={busy} onClick={() => setConfirmingDiscard(true)}>
                 {isDiscarding ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="close" data-icon="inline-start" />}
                 Descartar
               </Button>
@@ -81,6 +83,18 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
           )
         )}
       </div>
+      <DeleteDialog
+        open={confirmingDiscard}
+        onClose={() => setConfirmingDiscard(false)}
+        title="Descartar importação"
+        subtitle={`As ${summary.total} linhas lidas de "${batch.fileName}" serão descartadas.`}
+        warnText="Nada entra nos lançamentos. Para importar depois, envie o arquivo de novo."
+        deleteButtonText="Descartar"
+        onConfirm={async () => {
+          setConfirmingDiscard(false);
+          startDiscard(onDiscard);
+        }}
+      />
     </Panel.Root>
   );
 }

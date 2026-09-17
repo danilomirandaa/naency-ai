@@ -36,6 +36,14 @@ para `components/finance/`.
    story** cobrindo variantes, estados e dark mode. A story é o contrato visual e
    também o teste ([testes](./testing.md)).
 7. **Valores em dinheiro só aparecem via `MoneyValue`/`MoneyInput`**, nunca formatados à mão.
+8. **Toda ação destrutiva pede confirmação em modal (`DeleteDialog`).** Excluir,
+   remover, descartar ou desfazer algo que apaga dado nunca roda no primeiro
+   clique: o botão abre o `DeleteDialog`, que diz o que some e se dá para
+   desfazer, e só o botão de confirmação executa. A confirmação fica no próprio
+   componente que tem o botão (ex.: `ImportSummary`, `InvoiceHeader`,
+   `BudgetDialog`) ou no container que recebe `onDelete` (ex.:
+   `TransactionsManager`). A story prova que nada acontece antes de confirmar.
+   Arquivar não é exclusão (volta com um clique) e dispensa o modal.
 
 ## Onde fica cada coisa
 
