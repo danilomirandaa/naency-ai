@@ -6,16 +6,25 @@ import * as React from 'react';
 
 export type InputProps = React.ComponentProps<'input'>;
 
+/**
+ * Visual dos controles de formulário (borda, foco, inválido, desabilitado).
+ * Compartilhado por Input, Select e DatePicker para ficarem idênticos.
+ */
+export const inputControlClassName = classMerge(
+  'h-9 w-full min-w-0 rounded-control border border-border-neutral-rest bg-background-neutral-000 px-3 text-sm text-typography-neutral-primary shadow-input outline-hidden transition-[color,box-shadow,border-color]',
+  'hover:border-border-neutral-hover',
+  'focus-visible:border-border-neutral-hover focus-visible:ring-3 focus-visible:ring-ring/40',
+  'aria-invalid:border-border-status-critical-rest aria-invalid:focus-visible:ring-destructive/30',
+  'disabled:cursor-not-allowed disabled:bg-background-neutral-disabled disabled:opacity-60',
+);
+
 export function Input({ className, ...props }: InputProps) {
   return (
     <input
       data-slot="input"
       className={classMerge(
-        'h-9 w-full min-w-0 rounded-control border border-border-neutral-rest bg-background-neutral-000 px-3 text-sm text-typography-neutral-primary shadow-input outline-hidden transition-[color,box-shadow,border-color]',
-        'placeholder:text-typography-neutral-tertiary hover:border-border-neutral-hover',
-        'focus-visible:border-border-neutral-hover focus-visible:ring-3 focus-visible:ring-ring/40',
-        'aria-invalid:border-border-status-critical-rest aria-invalid:focus-visible:ring-destructive/30',
-        'disabled:cursor-not-allowed disabled:bg-background-neutral-disabled disabled:opacity-60',
+        inputControlClassName,
+        'placeholder:text-typography-neutral-tertiary',
         className,
       )}
       {...props}

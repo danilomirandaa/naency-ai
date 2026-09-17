@@ -51,6 +51,13 @@ export default meta;
 
 type Story = StoryObj<typeof AccountFormDialog>;
 
+async function choose(dialog: ReturnType<typeof within>, label: string, option: string) {
+  await userEvent.click(dialog.getByLabelText(label));
+  const listbox = within(await screen.findByRole('listbox'));
+  await userEvent.click(listbox.getByRole('option', { name: option }));
+  await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull());
+}
+
 async function openDialog(canvasElement: HTMLElement, name: string) {
   await userEvent.click(within(canvasElement).getByRole('button', { name: 'Abrir' }));
   return within(await screen.findByRole('dialog', { name }));
@@ -64,12 +71,13 @@ function lastFormData(action: unknown) {
 export const Create: Story = {
   play: async ({ canvasElement, args }) => {
     const dialog = await openDialog(canvasElement, 'Nova conta');
-    await expect(dialog.getByLabelText('Data do saldo')).toHaveValue('2026-09-16');
+    await expect(dialog.getByLabelText('Data do saldo')).toHaveTextContent('16/09/2026');
 
     await userEvent.type(dialog.getByLabelText('Nome'), 'Nubank');
-    await userEvent.selectOptions(dialog.getByLabelText('Tipo'), 'checking');
-    await userEvent.selectOptions(dialog.getByLabelText('Instituição'), 'Nubank');
-    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '-1.500,75');
+    await choose(dialog, 'Tipo', 'Conta corrente');
+    await choose(dialog, 'Instituição', 'Nubank');
+    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '-150075');
+    await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('-1.500,75');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -88,12 +96,12 @@ export const Create: Story = {
 export const ValidationKeepsValues: Story = {
   play: async ({ canvasElement, args }) => {
     const dialog = await openDialog(canvasElement, 'Nova conta');
-    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '10');
+    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '1000');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await expect(await dialog.findByRole('alert')).toHaveTextContent('Revise os campos destacados.');
     await expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription('Dê um nome à conta.');
-    await expect(dialog.getByLabelText('Tipo')).toBeInvalid();
+    await expect(dialog.getByLabelText('Tipo')).toHaveAttribute('aria-invalid', 'true');
     // O React limpa o formulário depois da action; os valores voltam do estado.
     await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('10,00');
     await expect(args.onSaved).not.toHaveBeenCalled();
@@ -106,14 +114,14 @@ export const ServerError: Story = {
   play: async ({ canvasElement }) => {
     const dialog = await openDialog(canvasElement, 'Nova conta');
     await userEvent.type(dialog.getByLabelText('Nome'), 'Proibida');
-    await userEvent.selectOptions(dialog.getByLabelText('Tipo'), 'cash');
+    await choose(dialog, 'Tipo', 'Dinheiro');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await expect(await dialog.findByRole('alert')).toHaveTextContent(
       'Seu papel neste espaço não permite editar contas.',
     );
     await expect(dialog.getByLabelText('Nome')).toHaveValue('Proibida');
-    await expect(dialog.getByLabelText('Tipo')).toHaveValue('cash');
+    await expect(dialog.getByLabelText('Tipo')).toHaveTextContent('Dinheiro');
     await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   },
@@ -124,16 +132,26 @@ export const Edit: Story = {
   play: async ({ canvasElement, args }) => {
     const dialog = await openDialog(canvasElement, 'Editar conta');
     await expect(dialog.getByLabelText('Nome')).toHaveValue('Reserva de emergência');
-    await expect(dialog.getByLabelText('Tipo')).toHaveValue('investment');
-    await expect(dialog.getByLabelText('Instituição')).toHaveValue(
-      '33333333-3333-4333-8333-333333333333',
-    );
+    await expect(dialog.getByLabelText('Tipo')).toHaveTextContent('Investimentos');
+    await expect(dialog.getByLabelText('Instituição')).toHaveTextContent('XP Investimentos');
     await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('25.000,00');
-    await expect(dialog.getByLabelText('Data do saldo')).toHaveValue('2026-09-01');
+    await expect(dialog.getByLabelText('Data do saldo')).toHaveTextContent('01/09/2026');
+
+    await choose(dialog, 'Instituição', 'Nenhuma');
+    await userEvent.click(dialog.getByLabelText('Data do saldo'));
+    const calendar = within(await screen.findByRole('dialog', { name: '' }));
+    await userEvent.click(calendar.getByRole('button', { name: /15 de setembro de 2026/ }));
+    await expect(dialog.getByLabelText('Data do saldo')).toHaveTextContent('15/09/2026');
 
     await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    await expect(lastFormData(args.action).get('initialBalanceCents')).toBe('2500000');
+    await expect(Object.fromEntries(lastFormData(args.action))).toEqual({
+      name: 'Reserva de emergência',
+      type: 'investment',
+      institutionId: '',
+      initialBalanceCents: '2500000',
+      initialBalanceDate: '2026-09-15',
+    });
   },
 };
 

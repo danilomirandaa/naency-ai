@@ -11,7 +11,7 @@ Cada camada só importa das camadas de cima desta tabela:
 | Camada | O que é | Exemplos |
 | --- | --- | --- |
 | `components/ui/` | Design system genérico, sem conhecer o domínio | Button, Panel, Sidebar, Dialog, Tabs |
-| `components/finance/` | **Peças de domínio reutilizáveis entre features** | `MoneyValue` (valor formatado e colorido por tipo), `MoneyInput`, `DateInput`, `PeriodPicker`, `CategoryBadge`, `CategorySelect`, `AccountSelect`, `InstitutionLogo`, `TransactionKindIcon`, `MemberAvatar` |
+| `components/finance/` | **Peças de domínio reutilizáveis entre features** | `MoneyValue` (valor formatado e colorido por tipo), `MoneyInput`, `PeriodPicker`, `CategoryBadge`, `CategorySelect`, `AccountSelect`, `InstitutionLogo`, `TransactionKindIcon`, `MemberAvatar` |
 | `components/layout/` | Casca do app | AppSidebar, AppHeader, ThemeToggle |
 | `features/<feature>/components/` | Composições de uma feature | `TransactionForm`, `TransactionTable`, `ImportReviewTable`, `InvoiceCard` |
 | `app/**/page.tsx` | **Só compõe**: busca ou faz prefetch dos dados e monta componentes, sem markup de UI próprio | |
@@ -26,7 +26,7 @@ para `components/finance/`.
    por uma, fica em `features/<feature>/components/`.
 3. **Formulários são montados por campos reutilizáveis.** O mesmo `TransactionForm`
    serve para criar, editar e corrigir uma linha na revisão da importação, e todos
-   usam `MoneyInput`, `DateInput`, `CategorySelect`, `AccountSelect`.
+   usam `MoneyInput`, `DatePicker`, `CategorySelect`, `AccountSelect`.
 4. **Componentes recebem dados por props e não buscam dados.** Quem busca é um
    container da feature (hook do TanStack Query) ou a página. Assim todo componente
    pode ser testado isolado e ter story com dados de exemplo.
@@ -45,7 +45,8 @@ components/ui/<Nome>/<Nome>.stories.tsx   story (obrigatória)
 components/ui/Icon/icons.ts               registro único de ícones (Devigner, família Solar)
 components/ui/Input/                      Input e Field (rótulo, descrição e erro acessíveis)
 components/ui/List/                       linhas de lista (mídia, texto que trunca, ações)
-components/ui/NativeSelect/               <select> nativo com o visual do Input
+components/ui/Select, Popover, Calendar    portados do shadcn/ui (new-york-v4) com os tokens do Naency
+components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
 components/layout/navigation.ts           itens do menu e trilha do breadcrumb

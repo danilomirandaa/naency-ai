@@ -108,3 +108,34 @@ export function parseMoneyInput(text: string): number | null {
   }
   return cents === 0 ? 0 : sign * cents;
 }
+
+/** 13 dígitos = até R$ 100 bilhões; mais que isso é dedo escorregando. */
+const MAX_MASK_DIGITS = 13;
+
+export type MoneyMaskResult = { text: string; cents: number | null };
+
+/**
+ * Máscara de valor enquanto a pessoa digita, como em app de banco: os dígitos
+ * entram pelos centavos ("1" → "0,01", "123" → "1,23", "123456" → "1.234,56").
+ * Apagar até sobrar só zero limpa o campo. Com `allowNegative`, cada "-" digitado
+ * inverte o sinal.
+ */
+export function maskMoneyInput(
+  text: string,
+  { allowNegative = false }: { allowNegative?: boolean } = {},
+): MoneyMaskResult {
+  const minusCount = text.split('-').length - 1;
+  const negative = allowNegative && minusCount % 2 === 1;
+  const rawDigits = text.replace(/\D/g, '');
+
+  // "0" sozinho é um zero digitado; zeros que sobraram de apagar esvaziam o campo.
+  if (rawDigits === '' || (/^0+$/.test(rawDigits) && rawDigits !== '0')) {
+    return { text: negative ? '-' : '', cents: null };
+  }
+
+  const digits = rawDigits.replace(/^0+(?=\d)/, '').slice(0, MAX_MASK_DIGITS);
+  const absolute = Number(digits);
+  const cents = negative && absolute !== 0 ? -absolute : absolute;
+  const formatted = formatMoneyInput(Math.abs(cents));
+  return { text: negative ? `-${formatted}` : formatted, cents };
+}

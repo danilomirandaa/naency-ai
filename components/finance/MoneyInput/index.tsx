@@ -1,7 +1,7 @@
 'use client';
 
 import { Input, type InputProps } from '@/components/ui/Input';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money';
+import { formatMoneyInput, maskMoneyInput, parseMoneyInput } from '@/lib/money';
 import { classMerge } from '@/lib/utils';
 import * as React from 'react';
 
@@ -14,13 +14,21 @@ export type MoneyInputProps = Omit<
   /** Centavos iniciais (não controlado). */
   defaultValue?: number | null;
   onValueChange?: (cents: number | null) => void;
-  /** Permite valor negativo digitado com "-". */
+  /** Permite valor negativo: "-" inverte o sinal. */
   allowNegative?: boolean;
 };
 
+function textFor(cents: number | null) {
+  if (cents == null) {
+    return '';
+  }
+  return cents < 0 ? `-${formatMoneyInput(-cents)}` : formatMoneyInput(cents);
+}
+
 /**
- * Campo de valor em reais. Aceita "1.234,56", "1234,5", "R$ 12"; formata ao sair
- * do campo. Com `name`, envia centavos no formulário por um input escondido.
+ * Campo de valor em reais formatado enquanto se digita ("123456" → "1.234,56").
+ * Colar "R$ 1.234,56" ou "12,5" interpreta o valor inteiro. Com `name`, envia
+ * centavos no formulário por um input escondido.
  */
 export function MoneyInput({
   value,
@@ -29,31 +37,45 @@ export function MoneyInput({
   allowNegative = false,
   name,
   className,
-  onBlur,
+  onPaste,
   ...props
 }: MoneyInputProps) {
   const isControlled = value !== undefined;
   const [internalCents, setInternalCents] = React.useState<number | null>(defaultValue);
   const cents = isControlled ? value : internalCents;
-  const [text, setText] = React.useState(() => (cents == null ? '' : formatMoneyInput(cents)));
+  const [text, setText] = React.useState(() => textFor(cents));
 
-  const commit = (next: number | null) => {
-    if (!isControlled) {
-      setInternalCents(next);
+  // Valor controlado mudado por fora (ex.: limpar o formulário) atualiza o texto.
+  const [syncedCents, setSyncedCents] = React.useState(cents);
+  if (cents !== syncedCents) {
+    setSyncedCents(cents);
+    if (maskMoneyInput(text, { allowNegative }).cents !== cents) {
+      setText(textFor(cents));
     }
-    onValueChange?.(next);
+  }
+
+  const apply = (next: { text: string; cents: number | null }) => {
+    setText(next.text);
+    setSyncedCents(next.cents);
+    if (!isControlled) {
+      setInternalCents(next.cents);
+    }
+    onValueChange?.(next.cents);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextText = event.target.value;
-    setText(nextText);
-    const parsed = parseMoneyInput(nextText);
-    commit(parsed != null && !allowNegative && parsed < 0 ? null : parsed);
+    apply(maskMoneyInput(event.target.value, { allowNegative }));
   };
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    setText(cents == null ? (parseMoneyInput(text) == null ? text : '') : formatMoneyInput(cents));
-    onBlur?.(event);
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    onPaste?.(event);
+    const pasted = parseMoneyInput(event.clipboardData.getData('text'));
+    if (event.defaultPrevented || pasted == null || (!allowNegative && pasted < 0)) {
+      return;
+    }
+    // Valor colado completo: substitui o campo em vez de passar pela máscara.
+    event.preventDefault();
+    apply({ text: textFor(pasted), cents: pasted });
   };
 
   return (
@@ -67,12 +89,11 @@ export function MoneyInput({
       <Input
         {...props}
         type="text"
-        inputMode="decimal"
+        inputMode={allowNegative ? 'text' : 'numeric'}
         autoComplete="off"
         value={text}
         onChange={handleChange}
-        onBlur={handleBlur}
-        aria-invalid={props['aria-invalid'] ?? (text.trim() !== '' && cents == null ? true : undefined)}
+        onPaste={handlePaste}
         className={classMerge('pl-9 text-right tabular-nums', className)}
       />
       {name && <input type="hidden" name={name} value={cents ?? ''} />}

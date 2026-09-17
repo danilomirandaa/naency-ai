@@ -4,6 +4,8 @@ import {
   formatIsoDate,
   formatRelativeDays,
   isIsoDate,
+  isoDateToLocalDate,
+  localDateToIsoDate,
   todayIsoDate,
 } from './dates';
 
@@ -61,5 +63,24 @@ describe('formatIsoDate', () => {
 
   it('lança para data inválida', () => {
     expect(() => formatIsoDate('2026-02-30')).toThrow(RangeError);
+  });
+});
+
+describe('isoDateToLocalDate / localDateToIsoDate', () => {
+  it('ida e volta preservam o dia', () => {
+    for (const value of ['2026-01-01', '2026-02-28', '2024-02-29', '2026-12-31']) {
+      expect(localDateToIsoDate(isoDateToLocalDate(value))).toBe(value);
+    }
+  });
+
+  it('usa meia-noite local', () => {
+    const date = isoDateToLocalDate('2026-09-16');
+    expect([date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()]).toEqual([
+      2026, 8, 16, 0,
+    ]);
+  });
+
+  it('lança para data inválida', () => {
+    expect(() => isoDateToLocalDate('2026-02-30')).toThrow(RangeError);
   });
 });

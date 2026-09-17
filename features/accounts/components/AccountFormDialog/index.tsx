@@ -1,12 +1,12 @@
 'use client';
 
-import { DateInput } from '@/components/finance/DateInput';
 import { MoneyInput } from '@/components/finance/MoneyInput';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
-import { Field, Input } from '@/components/ui/Input';
-import { NativeSelect } from '@/components/ui/NativeSelect';
+import { Field, type FieldControlProps, Input } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
+import { Select } from '@/components/ui/Select';
 import {
   type AccountFormState,
   type AccountFormValues,
@@ -35,6 +35,8 @@ export type AccountFormDialogProps = {
 };
 
 const FORM_ID = 'account-form';
+/** O Radix Select não aceita valor vazio num item; "Nenhuma" usa este e vira "" no form. */
+const NO_INSTITUTION = 'none';
 
 /** Criar e editar conta usam o mesmo formulário (docs/components.md, regra 3). */
 export function AccountFormDialog(props: AccountFormDialogProps) {
@@ -114,29 +116,22 @@ function AccountFormDialogContent({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Tipo" error={fieldErrors.type}>
             {(control) => (
-              <NativeSelect {...control} name="type" defaultValue={values.type} required>
-                <option value="" disabled>
-                  Escolha…
-                </option>
-                {CREATABLE_ACCOUNT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {ACCOUNT_TYPE_LABELS[type]}
-                  </option>
-                ))}
-              </NativeSelect>
+              <Select.Root name="type" defaultValue={values.type || undefined}>
+                <Select.Trigger {...control}>
+                  <Select.Value placeholder="Escolha…" />
+                </Select.Trigger>
+                <Select.Content>
+                  {CREATABLE_ACCOUNT_TYPES.map((type) => (
+                    <Select.Item key={type} value={type}>
+                      {ACCOUNT_TYPE_LABELS[type]}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
             )}
           </Field>
           <Field label="Instituição" error={fieldErrors.institutionId}>
-            {(control) => (
-              <NativeSelect {...control} name="institutionId" defaultValue={values.institutionId}>
-                <option value="">Nenhuma</option>
-                {institutions.map((institution) => (
-                  <option key={institution.id} value={institution.id}>
-                    {institution.name}
-                  </option>
-                ))}
-              </NativeSelect>
-            )}
+            {(control) => <InstitutionSelect control={control} institutions={institutions} defaultValue={values.institutionId} />}
           </Field>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -153,12 +148,11 @@ function AccountFormDialogContent({
           </Field>
           <Field label="Data do saldo" error={fieldErrors.initialBalanceDate}>
             {(control) => (
-              <DateInput
+              <DatePicker
                 {...control}
                 name="initialBalanceDate"
-                defaultValue={values.initialBalanceDate}
+                defaultValue={values.initialBalanceDate || null}
                 max={today}
-                required
               />
             )}
           </Field>
@@ -184,4 +178,37 @@ function AccountFormDialogContent({
       </>
     ),
   });
+}
+
+function InstitutionSelect({
+  control,
+  institutions,
+  defaultValue,
+}: {
+  control: FieldControlProps;
+  institutions: InstitutionSummary[];
+  defaultValue: string;
+}) {
+  const [institutionId, setInstitutionId] = React.useState(defaultValue);
+  return (
+    <>
+      <Select.Root
+        value={institutionId || NO_INSTITUTION}
+        onValueChange={(next) => setInstitutionId(next === NO_INSTITUTION ? '' : next)}
+      >
+        <Select.Trigger {...control}>
+          <Select.Value />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value={NO_INSTITUTION}>Nenhuma</Select.Item>
+          {institutions.map((institution) => (
+            <Select.Item key={institution.id} value={institution.id}>
+              {institution.name}
+            </Select.Item>
+          ))}
+        </Select.Content>
+      </Select.Root>
+      <input type="hidden" name="institutionId" value={institutionId} />
+    </>
+  );
 }

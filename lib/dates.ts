@@ -64,3 +64,20 @@ export function formatIsoDate(value: string) {
   const [year, month, day] = value.split('-');
   return `${day}/${month}/${year}`;
 }
+
+/** "2026-09-16" → Date à meia-noite local (o que o calendário usa). */
+export function isoDateToLocalDate(value: string) {
+  if (!isIsoDate(value)) {
+    throw new RangeError(`Data inválida: ${value}`);
+  }
+  const [year, month, day] = value.split('-').map(Number) as [number, number, number];
+  return new Date(year, month - 1, day);
+}
+
+/** Date do calendário → "2026-09-16", pelos campos locais (sem converter fuso). */
+export function localDateToIsoDate(date: Date) {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
