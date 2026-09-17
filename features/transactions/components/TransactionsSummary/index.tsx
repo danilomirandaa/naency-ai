@@ -1,30 +1,27 @@
-import {
-  MoneyValue,
-  type MoneyValueProps,
-} from "@/components/finance/MoneyValue";
-import { Icon, type Icons } from "@/components/ui/Icon";
-import { Panel } from "@/components/ui/Panel";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { Text } from "@/components/ui/Text";
-import type { TransactionsPage } from "@/features/transactions/types";
-import type { TransactionKind } from "@/lib/transactions";
-import { classMerge } from "@/lib/utils";
+import { MoneyValue, type MoneyValueProps } from '@/components/finance/MoneyValue';
+import { Icon, type Icons } from '@/components/ui/Icon';
+import { Panel } from '@/components/ui/Panel';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Text } from '@/components/ui/Text';
+import type { TransactionsPage } from '@/features/transactions/types';
+import type { TransactionKind } from '@/lib/transactions';
+import { classMerge } from '@/lib/utils';
 
 export type TransactionsSummaryProps = {
   /** Página de despesas ou receitas mostra por situação; sem tipo, receitas × despesas. */
   kind: TransactionKind | null;
-  totals: TransactionsPage["totals"];
+  totals: TransactionsPage['totals'];
   isLoading?: boolean;
 };
 
-type Tone = "warning" | "income" | "expense" | "neutral";
+type Tone = 'warning' | 'income' | 'expense' | 'neutral';
 
 // Cor sutil: fundo do ícone com 12% da cor.
 const TONE_CLASSES: Record<Tone, string> = {
-  warning: "bg-icon-status-warning-rest/12 text-icon-status-warning-rest",
-  income: "bg-icon-finance-income/12 text-icon-finance-income",
-  expense: "bg-icon-finance-expense/12 text-icon-finance-expense",
-  neutral: "bg-background-neutral-100 text-icon-neutral-rest",
+  warning: 'bg-icon-status-warning-rest/12 text-icon-status-warning-rest',
+  income: 'bg-icon-finance-income/12 text-icon-finance-income',
+  expense: 'bg-icon-finance-expense/12 text-icon-finance-expense',
+  neutral: 'bg-background-neutral-100 text-icon-neutral-rest',
 };
 
 type Card = {
@@ -32,7 +29,9 @@ type Card = {
   icon: Icons;
   tone: Tone;
   cents: number;
-  moneyKind: MoneyValueProps["kind"];
+  moneyKind: MoneyValueProps['kind'];
+  /** Cor do valor quando não é a do tipo (ex.: pendente em amarelo). */
+  valueClassName?: string;
   showPlusSign?: boolean;
   detail?: string;
 };
@@ -41,90 +40,89 @@ function plural(count: number, one: string, many: string) {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-function cardsFor(
-  kind: TransactionKind | null,
-  totals: TransactionsPage["totals"],
-): Card[] {
+function cardsFor(kind: TransactionKind | null, totals: TransactionsPage['totals']): Card[] {
   const { pending, paid } = totals;
   const all = pending.count + paid.count;
-  if (kind === "expense") {
+  if (kind === 'expense') {
     return [
       {
-        label: "A pagar",
-        icon: "clock",
-        tone: "warning",
+        label: 'A pagar',
+        icon: 'clock',
+        tone: 'warning',
         cents: Math.abs(pending.cents),
-        moneyKind: "neutral",
-        detail: plural(pending.count, "despesa pendente", "despesas pendentes"),
+        moneyKind: 'neutral',
+        valueClassName: 'text-typography-status-warning-rest',
+        detail: plural(pending.count, 'despesa pendente', 'despesas pendentes'),
       },
       {
-        label: "Pagas",
-        icon: "check",
-        tone: "income",
+        label: 'Pagas',
+        icon: 'check',
+        tone: 'income',
         cents: Math.abs(paid.cents),
-        moneyKind: "neutral",
-        detail: plural(paid.count, "despesa paga", "despesas pagas"),
+        moneyKind: 'income',
+        detail: plural(paid.count, 'despesa paga', 'despesas pagas'),
       },
       {
-        label: "Total de despesas",
-        icon: "expense",
-        tone: "expense",
+        label: 'Total de despesas',
+        icon: 'expense',
+        tone: 'expense',
         cents: Math.abs(pending.cents + paid.cents),
-        moneyKind: "neutral",
-        detail: plural(all, "despesa no período", "despesas no período"),
+        moneyKind: 'expense',
+        detail: plural(all, 'despesa no período', 'despesas no período'),
       },
     ];
   }
-  if (kind === "income") {
+  if (kind === 'income') {
     return [
       {
-        label: "A receber",
-        icon: "clock",
-        tone: "warning",
+        label: 'A receber',
+        icon: 'clock',
+        tone: 'warning',
         cents: pending.cents,
-        moneyKind: "neutral",
-        detail: plural(pending.count, "receita pendente", "receitas pendentes"),
+        moneyKind: 'neutral',
+        valueClassName: 'text-typography-status-warning-rest',
+        detail: plural(pending.count, 'receita pendente', 'receitas pendentes'),
       },
       {
-        label: "Recebidas",
-        icon: "check",
-        tone: "income",
+        label: 'Recebidas',
+        icon: 'check',
+        tone: 'income',
         cents: paid.cents,
-        moneyKind: "neutral",
-        detail: plural(paid.count, "receita recebida", "receitas recebidas"),
+        moneyKind: 'income',
+        detail: plural(paid.count, 'receita recebida', 'receitas recebidas'),
       },
       {
-        label: "Total de receitas",
-        icon: "income",
-        tone: "income",
+        label: 'Total de receitas',
+        icon: 'income',
+        tone: 'income',
         cents: pending.cents + paid.cents,
-        moneyKind: "neutral",
-        detail: plural(all, "receita no período", "receitas no período"),
+        moneyKind: 'income',
+        detail: plural(all, 'receita no período', 'receitas no período'),
       },
     ];
   }
   const result = totals.incomeCents + totals.expenseCents;
   return [
     {
-      label: "Receitas",
-      icon: "income",
-      tone: "income",
+      label: 'Receitas',
+      icon: 'income',
+      tone: 'income',
       cents: totals.incomeCents,
-      moneyKind: "income",
+      moneyKind: 'income',
     },
     {
-      label: "Despesas",
-      icon: "expense",
-      tone: "expense",
+      label: 'Despesas',
+      icon: 'expense',
+      tone: 'expense',
       cents: totals.expenseCents,
-      moneyKind: "expense",
+      moneyKind: 'expense',
     },
     {
-      label: "Resultado",
-      icon: "wallet",
-      tone: "neutral",
+      label: 'Resultado',
+      icon: 'wallet',
+      tone: 'neutral',
       cents: result,
-      moneyKind: result < 0 ? "expense" : "neutral",
+      moneyKind: result < 0 ? 'expense' : 'neutral',
       showPlusSign: result > 0,
     },
   ];
@@ -149,7 +147,7 @@ function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
               showPlusSign={card.showPlusSign}
               size="lg"
               weight="semibold"
-              className="tabular-nums"
+              className={classMerge('tabular-nums', card.valueClassName)}
             />
           )}
           {card.detail && !isLoading && (
@@ -162,7 +160,7 @@ function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
       <span
         aria-hidden
         className={classMerge(
-          "flex size-7 shrink-0 items-center justify-center rounded-full [&_svg]:size-3.5",
+          'flex size-7 shrink-0 items-center justify-center rounded-full [&_svg]:size-3.5',
           TONE_CLASSES[card.tone],
         )}
       >
@@ -177,11 +175,7 @@ function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
  * pagas e total do período, com quantidades; em "Todas": receitas, despesas e
  * resultado. Valores do período inteiro, sem transferências.
  */
-export function TransactionsSummary({
-  kind,
-  totals,
-  isLoading = false,
-}: TransactionsSummaryProps) {
+export function TransactionsSummary({ kind, totals, isLoading = false }: TransactionsSummaryProps) {
   return (
     <Panel.Root>
       <Panel.Body className="grid grid-cols-1 gap-px bg-border-neutral-subtle sm:grid-cols-3">

@@ -28,7 +28,7 @@ Estados: `rest` → `hover` → `pressed` (e `disabled`).
 | ---------------------------- | ---------------------------------------------- |
 | `background`                 | Fundo da página                                |
 | `background-surface-sunken`  | Moldura externa (`Panel.Root`, cabeçalho dos cards, dialogs) e sidebar: `#F8F9FB` claro, `#111112` escuro |
-| `background-neutral-000`     | Cartão interno (`Panel.Body`, `DialogBody`)    |
+| `background-neutral-000`     | Cartão interno (`Panel.Body`, `DialogBody`); mesmo valor do fundo da página |
 | `background-neutral-100/200` | Hover, trilhos (lista de tabs), skeleton       |
 | `background-neutral-300`     | Controles desligados (Switch off)              |
 
@@ -78,6 +78,9 @@ principal: `primary` → `brand-primary`, `destructive` → `status-critical`,
 `border-neutral-subtle`, `icon-income`/`text-positive` → `finance-income`,
 `text-unique` → `finance-single`.
 
+Superfícies e bordas do claro (`neutral-100/200/300`, `border-neutral-*`) usam os
+valores do design system de origem do Panel (Centrii Portal).
+
 ## Nomes do shadcn (só para código de registry)
 
 O código instalado de registries (`components/evilcharts`) usa classes do shadcn.
@@ -94,3 +97,4 @@ esses nomes nos nossos componentes.
 | Fundo padrão da página | `#FFFFFF` | `#151618` | `background` |
 | Sidebar | `#F8F9FB` | `#111112` | `background-surface-sunken` |
 | Cabeçalho dos cards (`Panel.Root`) | `#F8F9FB` | `#111112` | `background-surface-sunken` |
+| Corpo dos cards (`Panel.Body`, tabelas) | `#FFFFFF` | `#151618` | `background-neutral-000` (igual ao fundo da página) |

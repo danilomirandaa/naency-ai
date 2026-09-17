@@ -1,21 +1,15 @@
-"use client";
+'use client';
 
-import {
-  AccountSelect,
-  type AccountOption,
-} from "@/components/finance/AccountSelect";
-import {
-  CategorySelect,
-  type CategoryOption,
-} from "@/components/finance/CategorySelect";
-import { Button } from "@/components/ui/Button";
-import { Tabs } from "@/components/ui/Tabs";
-import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/Input";
-import type { TransactionFilters } from "@/features/transactions/filters";
-import type { CategoryKind } from "@/lib/categories";
-import type { TransactionKind, TransactionSituation } from "@/lib/transactions";
-import * as React from "react";
+import { AccountSelect, type AccountOption } from '@/components/finance/AccountSelect';
+import { CategorySelect, type CategoryOption } from '@/components/finance/CategorySelect';
+import { Button } from '@/components/ui/Button';
+import { Tabs } from '@/components/ui/Tabs';
+import { Icon } from '@/components/ui/Icon';
+import { Input } from '@/components/ui/Input';
+import type { TransactionFilters } from '@/features/transactions/filters';
+import type { CategoryKind } from '@/lib/categories';
+import type { TransactionKind, TransactionSituation } from '@/lib/transactions';
+import * as React from 'react';
 
 export type TransactionsFiltersProps = {
   filters: TransactionFilters;
@@ -27,16 +21,13 @@ export type TransactionsFiltersProps = {
 };
 
 /** Valor da aba "Todas" (o Radix não aceita valor vazio). */
-const ALL = "todas";
+const ALL = 'todas';
 
-const SITUATION_CHIPS: Record<
-  TransactionKind | "all",
-  [pending: string, paid: string]
-> = {
-  expense: ["A pagar", "Pagas"],
-  income: ["A receber", "Recebidas"],
-  transfer: ["Previstas", "Efetivadas"],
-  all: ["Pendentes", "Efetivadas"],
+const SITUATION_CHIPS: Record<TransactionKind | 'all', [pending: string, paid: string]> = {
+  expense: ['A pagar', 'Pagas'],
+  income: ['A receber', 'Recebidas'],
+  transfer: ['Previstas', 'Efetivadas'],
+  all: ['Pendentes', 'Efetivadas'],
 };
 
 /** Situação, conta, categoria e busca (o período fica no header). Mudar um filtro volta para a página 1. */
@@ -54,21 +45,14 @@ export function TransactionsFilters({
     setSearch(filters.search);
   }
   const categoryKind: CategoryKind | null =
-    filters.kind === "income" || filters.kind === "expense"
-      ? filters.kind
-      : null;
-  const hasExtraFilters = Boolean(
-    filters.accountId ||
-    filters.categoryId ||
-    filters.search ||
-    filters.situation,
-  );
-  const [pendingLabel, paidLabel] = SITUATION_CHIPS[filters.kind ?? "all"];
+    filters.kind === 'income' || filters.kind === 'expense' ? filters.kind : null;
+  const hasExtraFilters = Boolean(filters.accountId || filters.categoryId || filters.search || filters.situation);
+  const [pendingLabel, paidLabel] = SITUATION_CHIPS[filters.kind ?? 'all'];
   const situations: { value: TransactionSituation | null; label: string }[] = [
-    { value: null, label: "Todas" },
-    { value: "overdue", label: "Atrasadas" },
-    { value: "pending", label: pendingLabel },
-    { value: "paid", label: paidLabel },
+    { value: null, label: 'Todas' },
+    { value: 'overdue', label: 'Atrasadas' },
+    { value: 'pending', label: pendingLabel },
+    { value: 'paid', label: paidLabel },
   ];
 
   return (
@@ -91,7 +75,7 @@ export function TransactionsFilters({
                 aria-controls={undefined}
               >
                 {option.label}
-                {option.value === "overdue" && overdueCount > 0 && (
+                {option.value === 'overdue' && overdueCount > 0 && (
                   <span className="rounded-full border border-current px-1.5 text-[11px] leading-4 font-medium text-typography-status-critical-rest tabular-nums">
                     {overdueCount}
                   </span>
@@ -100,10 +84,8 @@ export function TransactionsFilters({
             ))}
           </Tabs.List>
         </Tabs.Root>
-        {filters.situation === "overdue" && (
-          <span className="text-xs text-typography-neutral-secondary">
-            Vencidas e não pagas, de qualquer mês
-          </span>
+        {filters.situation === 'overdue' && (
+          <span className="text-xs text-typography-neutral-secondary">Vencidas e não pagas, de qualquer mês</span>
         )}
       </div>
       <div className="grid flex-1 gap-2 sm:grid-cols-3">
@@ -114,9 +96,9 @@ export function TransactionsFilters({
           value={filters.accountId}
           onValueChange={(accountId) => onChange({ accountId })}
         />
-        {filters.kind !== "transfer" && (
+        {filters.kind !== 'transfer' && (
           <CategorySelect
-            key={categoryKind ?? "todas"}
+            key={categoryKind ?? 'todas'}
             aria-label="Filtrar por categoria"
             categories={categories}
             kind={categoryKind}
@@ -143,10 +125,7 @@ export function TransactionsFilters({
             placeholder="Buscar"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            onBlur={() =>
-              search.trim() !== filters.search &&
-              onChange({ search: search.trim() })
-            }
+            onBlur={() => search.trim() !== filters.search && onChange({ search: search.trim() })}
             className="pl-9"
             maxLength={80}
           />
@@ -160,7 +139,7 @@ export function TransactionsFilters({
             onChange({
               accountId: null,
               categoryId: null,
-              search: "",
+              search: '',
               situation: null,
             })
           }
