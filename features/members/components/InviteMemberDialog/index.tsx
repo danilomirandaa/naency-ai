@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { CopyInput } from '@/components/ui/CopyInput';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Icon } from '@/components/ui/Icon';
@@ -35,7 +36,8 @@ export function InviteMemberDialog({ action }: InviteMemberDialogProps) {
 
   return (
     <>
-      <Button size="large" icon={<Icon icon="add" />} onClick={() => setOpen(true)}>
+      <Button onClick={() => setOpen(true)}>
+        <Icon icon="add" data-icon="inline-start" />
         Convidar pessoa
       </Button>
       <InviteMemberDialogContent
@@ -125,7 +127,8 @@ function InviteMemberDialogContent({
         <DialogClose asChild>
           <Button variant="outline">Cancelar</Button>
         </DialogClose>
-        <Button type="submit" form={FORM_ID} isLoading={isPending}>
+        <Button type="submit" form={FORM_ID} disabled={isPending}>
+          {isPending && <Spinner label={null} data-icon="inline-start" />}
           {isPending ? 'Gerando…' : 'Gerar link de convite'}
         </Button>
       </>

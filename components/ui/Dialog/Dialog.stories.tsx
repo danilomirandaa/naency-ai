@@ -1,5 +1,5 @@
 import { Icon } from '@/components/ui/Icon';
-import { Button, SaveButton } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import {
   DialogClose,
   makeResponsiveDialog,
@@ -17,8 +17,8 @@ export default meta;
 
 type Story = StoryObj;
 
-function ResponsiveDialogDemo() {
-  const [open, setOpen] = useState(false);
+function ResponsiveDialogDemo({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <>
@@ -37,18 +37,15 @@ function ResponsiveDialogDemo() {
         footer: (
           <>
             <DialogClose className="flex-1 xs:flex-none" asChild>
-              <Button
-                variant="outline"
-                className="flex-1 xs:flex-none"
-                icon={<Icon icon="close" />}
-              >
+              <Button variant="outline" className="flex-1 xs:flex-none">
+                <Icon icon="close" data-icon="inline-start" />
                 Cancel
               </Button>
             </DialogClose>
-            <SaveButton
-              className="flex-1 xs:flex-none"
-              onClick={() => setOpen(false)}
-            />
+            <Button className="flex-1 xs:flex-none" onClick={() => setOpen(false)}>
+              <Icon icon="save" data-icon="inline-start" />
+              Salvar
+            </Button>
           </>
         ),
         children: (
@@ -76,6 +73,16 @@ export const Default: Story = {
   },
 };
 
+/** Aberto e sem play: o screenshot cobre cabeçalho, botão de fechar e rodapé. */
+export const Open: Story = {
+  render: () => <ResponsiveDialogDemo defaultOpen />,
+  play: async () => {
+    const dialog = await screen.findByRole('dialog', { name: 'Edit display name' });
+    const close = within(dialog).getByRole('button', { name: 'Fechar' });
+    await expect(close).toHaveAttribute('data-size', 'icon-sm');
+  },
+};
+
 function WithoutCloseButtonDemo() {
   const [open, setOpen] = useState(false);
 
@@ -98,11 +105,8 @@ function WithoutCloseButtonDemo() {
         footer: (
           <>
             <DialogClose className="flex-1 xs:flex-none" asChild>
-              <Button
-                variant="outline"
-                className="flex-1 xs:flex-none"
-                icon={<Icon icon="close" />}
-              >
+              <Button variant="outline" className="flex-1 xs:flex-none">
+                <Icon icon="close" data-icon="inline-start" />
                 Cancel
               </Button>
             </DialogClose>
@@ -195,11 +199,8 @@ function LongContentDemo() {
         footer: (
           <>
             <DialogClose className="flex-1 xs:flex-none" asChild>
-              <Button
-                variant="outline"
-                className="flex-1 xs:flex-none"
-                icon={<Icon icon="close" />}
-              >
+              <Button variant="outline" className="flex-1 xs:flex-none">
+                <Icon icon="close" data-icon="inline-start" />
                 Cancel
               </Button>
             </DialogClose>

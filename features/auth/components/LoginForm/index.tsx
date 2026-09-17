@@ -2,6 +2,7 @@
 
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Icon, type Icons } from '@/components/ui/Icon';
 import { Field, Input } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
@@ -86,7 +87,7 @@ function LoginFormAttempt({
           <Text element="p" size="sm" color="secondary">
             Não chegou? Veja a caixa de spam ou peça outro link.
           </Text>
-          <Button variant="outline" size="large" onClick={onReset}>
+          <Button variant="outline" size="lg" onClick={onReset}>
             Usar outro e-mail
           </Button>
         </div>
@@ -120,13 +121,13 @@ function LoginFormAttempt({
             )}
             <Button
               type="submit"
-              size="large"
-              isLoading={isPending}
-              iconPosition="right"
-              icon={isPending ? undefined : <Icon icon="arrow-right" />}
+              size="lg"
+              disabled={isPending}
               className="w-full"
             >
+              {isPending && <Spinner label={null} data-icon="inline-start" />}
               {isPending ? 'Enviando…' : 'Enviar link de acesso'}
+              {!isPending && <Icon icon="arrow-right" data-icon="inline-end" />}
             </Button>
           </form>
 
@@ -144,11 +145,11 @@ function LoginFormAttempt({
                   <Button
                     key={provider}
                     variant="outline"
-                    size="large"
-                    icon={<Icon icon={providerMeta[provider].icon} />}
+                    size="lg"
                     className="w-full"
                     onClick={() => onProviderSignIn?.(provider)}
                   >
+                    <Icon icon={providerMeta[provider].icon} data-icon="inline-start" />
                     {providerMeta[provider].label}
                   </Button>
                 ))}

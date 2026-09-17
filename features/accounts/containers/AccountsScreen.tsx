@@ -84,7 +84,8 @@ export function AccountsScreen({
         description={`Onde fica o dinheiro de ${workspaceName}.`}
         actions={
           canEdit ? (
-            <Button size="large" icon={<Icon icon="add" />} onClick={() => setDialog({ mode: 'create' })}>
+            <Button onClick={() => setDialog({ mode: 'create' })}>
+              <Icon icon="add" data-icon="inline-start" />
               Nova conta
             </Button>
           ) : undefined

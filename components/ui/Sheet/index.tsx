@@ -53,13 +53,10 @@ export function SheetContent({
         {children}
         {!hideClose && (
           <SheetPrimitive.Close asChild>
-            <Button
-              title="Fechar"
-              variant="standalone"
-              size="icon"
-              icon={<Icon icon="close" />}
-              className="absolute top-4 right-4"
-            />
+            <Button title="Fechar" variant="ghost" size="icon-sm" className="absolute top-3.5 right-3.5 [&_svg]:size-5">
+              <Icon icon="close" />
+              <span className="sr-only">Fechar</span>
+            </Button>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Content>

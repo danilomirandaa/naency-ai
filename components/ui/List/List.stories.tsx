@@ -28,7 +28,7 @@ export const InPanel: StoryObj = {
                     Descrição
                   </Text>
                 </List.ItemText>
-                <Button variant="outline" size="medium">
+                <Button variant="outline" size="sm">
                   Ação
                 </Button>
               </List.Item>

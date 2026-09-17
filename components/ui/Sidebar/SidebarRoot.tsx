@@ -124,17 +124,18 @@ export function SidebarTrigger({ className, onClick, ...props }: ButtonProps) {
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
-      variant="standalone"
-      size="icon"
+      variant="ghost"
+      size="icon-sm"
       title="Alternar menu (⌘B)"
-      icon={<Icon icon="sidebar" />}
       className={classMerge('size-7', className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
-    />
+    >
+      <Icon icon="sidebar" />
+    </Button>
   );
 }
 SidebarTrigger.displayName = 'Sidebar.Trigger';

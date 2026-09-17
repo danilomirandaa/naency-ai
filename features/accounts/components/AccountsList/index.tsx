@@ -3,6 +3,7 @@
 import { AccountAvatar } from '@/components/finance/AccountAvatar';
 import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Icon } from '@/components/ui/Icon';
 import { List } from '@/components/ui/List';
 import { Panel } from '@/components/ui/Panel';
@@ -37,11 +38,12 @@ function ArchiveButton({
     <Button
       variant="outline"
       size="icon-sm"
-      isLoading={isPending}
+      disabled={isPending}
       aria-label={`${archive ? 'Arquivar' : 'Desarquivar'} ${account.name}`}
-      icon={<Icon icon={archive ? 'archive' : 'unarchive'} />}
       onClick={() => startTransition(() => onArchiveChange(account, archive))}
-    />
+    >
+      {isPending ? <Spinner label={null} /> : <Icon icon={archive ? 'archive' : 'unarchive'} />}
+    </Button>
   );
 }
 
@@ -77,9 +79,10 @@ function AccountRows({
                   variant="outline"
                   size="icon-sm"
                   aria-label={`Editar ${account.name}`}
-                  icon={<Icon icon="edit" />}
                   onClick={() => onEdit(account)}
-                />
+                >
+                  <Icon icon="edit" />
+                </Button>
               )}
               <ArchiveButton account={account} onArchiveChange={onArchiveChange} />
             </div>
@@ -147,7 +150,8 @@ export function AccountsList({
             }
             emptyAction={
               canEdit && (
-                <Button icon={<Icon icon="add" />} onClick={onCreate}>
+                <Button onClick={onCreate}>
+                  <Icon icon="add" data-icon="inline-start" />
                   Nova conta
                 </Button>
               )

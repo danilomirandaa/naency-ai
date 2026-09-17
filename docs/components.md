@@ -45,7 +45,8 @@ components/ui/<Nome>/<Nome>.stories.tsx   story (obrigatória)
 components/ui/Icon/icons.ts               registro único de ícones (Devigner, família Solar)
 components/ui/Input/                      Input e Field (rótulo, descrição e erro acessíveis)
 components/ui/List/                       linhas de lista (mídia, texto que trunca, ações)
-components/ui/Select, Popover, Calendar    portados do shadcn/ui (new-york-v4) com os tokens do Naency
+components/ui/Button, Select, Popover,     portados do shadcn/ui com os tokens do Naency (Button no estilo radix-vega:
+  Calendar, Spinner                       ícone como filho com data-icon, carregando = disabled + Spinner)
 components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle

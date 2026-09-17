@@ -2,6 +2,7 @@
 
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Icon } from '@/components/ui/Icon';
 import { Field, Input } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
@@ -63,16 +64,16 @@ export function CreateWorkspaceForm({ action, backHref }: CreateWorkspaceFormPro
         )}
         <Button
           type="submit"
-          size="large"
-          isLoading={isPending}
-          iconPosition="right"
-          icon={isPending ? undefined : <Icon icon="arrow-right" />}
+          size="lg"
+          disabled={isPending}
           className="w-full"
         >
+          {isPending && <Spinner label={null} data-icon="inline-start" />}
           {isPending ? 'Criando…' : 'Criar espaço'}
+          {!isPending && <Icon icon="arrow-right" data-icon="inline-end" />}
         </Button>
         {backHref && (
-          <Button variant="standalone" size="large" isChild className="w-full">
+          <Button variant="ghost" size="lg" asChild className="w-full">
             <Link href={backHref}>Voltar</Link>
           </Button>
         )}

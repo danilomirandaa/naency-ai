@@ -25,7 +25,7 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="standalone" size="icon" title="Tema" className="size-7">
+        <Button variant="ghost" size="icon-sm" title="Tema" className="size-7">
           {/* O ícone segue a classe .dark (já aplicada no <head>), sem depender da hidratação. */}
           <Icon icon="theme-light" className="dark:hidden" />
           <Icon icon="theme-dark" className="hidden dark:block" />

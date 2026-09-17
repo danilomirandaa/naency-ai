@@ -238,7 +238,7 @@ export const QueryState: Story = {
               emptyMessage: 'No data available',
               emptyDescription: 'New entries will appear here.',
               emptyAction: (
-                <Button variant="outline" size="small">
+                <Button variant="outline" size="xs">
                   New entry
                 </Button>
               ),

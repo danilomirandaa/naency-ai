@@ -2,6 +2,7 @@
 
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Icon } from '@/components/ui/Icon';
 import { Panel } from '@/components/ui/Panel';
 import { Text } from '@/components/ui/Text';
@@ -62,13 +63,13 @@ export function AcceptInvitation({ view, acceptAction, signOutAction }: AcceptIn
           <form action={formAction}>
             <Button
               type="submit"
-              size="large"
-              isLoading={isPending}
-              iconPosition="right"
-              icon={isPending ? undefined : <Icon icon="arrow-right" />}
+              size="lg"
+              disabled={isPending}
               className="w-full"
             >
+              {isPending && <Spinner label={null} data-icon="inline-start" />}
               {isPending ? 'Entrando…' : 'Aceitar convite'}
+              {!isPending && <Icon icon="arrow-right" data-icon="inline-end" />}
             </Button>
           </form>
         </div>
@@ -79,7 +80,7 @@ export function AcceptInvitation({ view, acceptAction, signOutAction }: AcceptIn
           <Heading title="Você já está neste espaço">
             Você já faz parte de {view.workspaceName}.
           </Heading>
-          <Button size="large" isChild className="w-full">
+          <Button size="lg" asChild className="w-full">
             <Link href="/">Ir para o Naency</Link>
           </Button>
         </div>
@@ -93,7 +94,7 @@ export function AcceptInvitation({ view, acceptAction, signOutAction }: AcceptIn
             e-mail convidado para aceitar.
           </Heading>
           <form action={signOutAction}>
-            <Button type="submit" variant="outline" size="large" className="w-full">
+            <Button type="submit" variant="outline" size="lg" className="w-full">
               Sair e entrar com outro e-mail
             </Button>
           </form>
@@ -117,7 +118,7 @@ export function AcceptInvitation({ view, acceptAction, signOutAction }: AcceptIn
                 ? 'Este link já foi aceito. Se foi você, é só entrar no Naency.'
                 : 'Confira se o link está completo ou peça um novo para quem convidou você.'}
           </Heading>
-          <Button variant="outline" size="large" isChild className="w-full">
+          <Button variant="outline" size="lg" asChild className="w-full">
             <Link href="/">Ir para o Naency</Link>
           </Button>
         </div>

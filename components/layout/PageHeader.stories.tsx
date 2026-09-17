@@ -17,7 +17,8 @@ export const WithActions: Story = {
     title: 'Membros',
     description: 'Quem tem acesso a Finanças da casa.',
     actions: (
-      <Button size="large" icon={<Icon icon="add" />}>
+      <Button>
+        <Icon icon="add" data-icon="inline-start" />
         Convidar pessoa
       </Button>
     ),

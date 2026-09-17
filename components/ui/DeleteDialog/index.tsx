@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, DeleteButton } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Icon, type Icons } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
@@ -50,23 +51,24 @@ export function DeleteDialog({
     footer: (
       <>
         <DialogClose className="flex-1 xs:flex-none" asChild>
-          <Button
-            variant="outline"
-            className="flex-1 xs:flex-none"
-            icon={<Icon icon="close" />}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" className="flex-1 xs:flex-none" disabled={isSubmitting}>
+            <Icon icon="close" data-icon="inline-start" />
             Cancelar
           </Button>
         </DialogClose>
-        <DeleteButton
-          isLoading={isSubmitting}
+        <Button
+          variant="destructive"
+          disabled={isSubmitting}
           onClick={handleConfirm}
           className="flex-1 xs:flex-none"
-          icon={<Icon icon={deleteButtonIcon} />}
         >
+          {isSubmitting ? (
+            <Spinner label={null} data-icon="inline-start" />
+          ) : (
+            <Icon icon={deleteButtonIcon} data-icon="inline-start" />
+          )}
           {deleteButtonText}
-        </DeleteButton>
+        </Button>
       </>
     ),
     children: (

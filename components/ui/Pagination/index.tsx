@@ -56,7 +56,7 @@ function PaginationLink({
       data-active={isActive}
       className={classMerge(
         buttonVariants({
-          variant: isActive ? 'outline' : 'standalone',
+          variant: isActive ? 'outline' : 'ghost',
           size,
         }),
         className,

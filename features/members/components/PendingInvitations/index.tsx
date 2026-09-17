@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Icon } from '@/components/ui/Icon';
 import { List } from '@/components/ui/List';
 import { Panel } from '@/components/ui/Panel';
@@ -33,13 +34,13 @@ function RevokeButton({
   const [isPending, startTransition] = useTransition();
   return (
     <Button
-      variant="standalone"
-      colors="standalone-critical"
-      size="medium"
-      isLoading={isPending}
+      variant="destructive"
+      size="sm"
+      disabled={isPending}
       aria-label={`Cancelar convite de ${email}`}
       onClick={() => startTransition(onRevoke)}
     >
+      {isPending && <Spinner label={null} data-icon="inline-start" />}
       Cancelar
     </Button>
   );

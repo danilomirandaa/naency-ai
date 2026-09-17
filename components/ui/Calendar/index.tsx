@@ -136,8 +136,8 @@ function CalendarDayButton({
   return (
     <Button
       ref={ref}
-      variant="standalone"
-      size="no-padding"
+      variant="ghost"
+      size="icon-sm"
       data-day={day.isoDate}
       data-selected-single={modifiers.selected}
       className={classMerge(

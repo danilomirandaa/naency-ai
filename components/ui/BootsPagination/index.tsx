@@ -90,7 +90,7 @@ export function BootsPagination({
                   type="button"
                   aria-label="Show more pages"
                   className={classMerge(
-                    buttonVariants({ variant: 'standalone', size: 'icon' }),
+                    buttonVariants({ variant: 'ghost', size: 'icon-sm' }),
                     'h-8 w-8',
                   )}
                 >
@@ -137,7 +137,7 @@ export function BootsPagination({
                   type="button"
                   aria-label="Show more pages"
                   className={classMerge(
-                    buttonVariants({ variant: 'standalone', size: 'icon' }),
+                    buttonVariants({ variant: 'ghost', size: 'icon-sm' }),
                     'h-8 w-8',
                   )}
                 >

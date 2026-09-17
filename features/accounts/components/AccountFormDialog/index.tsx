@@ -2,6 +2,7 @@
 
 import { MoneyInput } from '@/components/finance/MoneyInput';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Field, type FieldControlProps, Input } from '@/components/ui/Input';
@@ -172,7 +173,8 @@ function AccountFormDialogContent({
         <DialogClose asChild>
           <Button variant="outline">Cancelar</Button>
         </DialogClose>
-        <Button type="submit" form={FORM_ID} isLoading={isPending}>
+        <Button type="submit" form={FORM_ID} disabled={isPending}>
+          {isPending && <Spinner label={null} data-icon="inline-start" />}
           {isPending ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar conta'}
         </Button>
       </>

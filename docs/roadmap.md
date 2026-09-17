@@ -39,6 +39,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] `components/finance`: `MoneyValue`, `MoneyInput`, `MemberAvatar`, com stories e testes
 - [x] `InstitutionLogo`, `AccountAvatar`; `ui/List`, `ui/Select`, `ui/Popover`, `ui/Calendar` e `ui/DatePicker` (shadcn)
 - [x] `MoneyInput` formatando enquanto digita (`maskMoneyInput`)
+- [x] `Button` e `Spinner` do shadcn (efeito ao pressionar), com story
 - [ ] Gerenciar papéis: trocar papel, remover membro, regra do último admin
 
 ## Fase 1 · Núcleo financeiro

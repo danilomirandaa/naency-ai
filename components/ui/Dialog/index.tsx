@@ -139,16 +139,16 @@ export const DialogContent = React.forwardRef<
         {!hideClose && (
           <DialogPrimitive.Close asChild>
             <Button
-              title="Close"
-              type="button"
-              variant="standalone"
-              size="icon"
-              icon={<Icon className="size-4" icon="close" />}
+              variant="ghost"
+              size="icon-sm"
               className={classMerge(
-                'absolute top-5 right-4 flex h-6 w-6 items-center justify-center rounded-[8px] text-typography-neutral-secondary hover:bg-background-neutral-100',
+                'absolute top-3.5 right-3.5 [&_svg]:size-5 [&_svg]:text-icon-neutral-rest hover:[&_svg]:text-icon-neutral-hover',
                 closeClassName,
               )}
-            />
+            >
+              <Icon icon="close" />
+              <span className="sr-only">Fechar</span>
+            </Button>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

@@ -45,6 +45,11 @@ for (const story of stories) {
       // play, e dialogs devolvem o foco ao fechar: tira o foco para o screenshot
       // ser determinístico.
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      // O ruído atrás de dialogs é gerado com Math.random: sem ele, o screenshot
+      // de um dialog aberto não varia entre execuções.
+      await page.addStyleTag({
+        content: '[data-noise-layer] { background-image: none !important; }',
+      });
 
       await expect(page).toHaveScreenshot(`${story.id}--${theme}.png`, {
         fullPage: true,

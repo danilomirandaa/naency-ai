@@ -48,14 +48,8 @@ export function CopyInput({
         onFocus={(event) => event.currentTarget.select()}
         className="font-mono text-xs"
       />
-      <Button
-        type="button"
-        variant="outline"
-        size="large"
-        onClick={copy}
-        icon={<Icon icon={status === 'copied' ? 'check' : 'copy'} />}
-        aria-live="polite"
-      >
+      <Button variant="outline" onClick={copy} aria-live="polite">
+        <Icon icon={status === 'copied' ? 'check' : 'copy'} data-icon="inline-start" />
         {status === 'copied' ? copiedLabel : status === 'failed' ? 'Selecione e copie' : copyLabel}
       </Button>
     </div>
