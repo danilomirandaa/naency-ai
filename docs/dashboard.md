@@ -29,6 +29,15 @@ Entidades em [domínio](./domain.md).
   A página só compõe os blocos.
 - Cada bloco é uma query própria, para carregar e falhar de forma independente.
 
+## Implementação
+
+- `features/dashboard/components`: um componente por bloco, todos sobre `DashboardCard`
+  (título + estados). Stories em `DashboardBlocks.stories.tsx`.
+- `server/dal/dashboard.ts`: uma função por bloco; `/api/workspaces/[id]/dashboard/[bloco]?mes=`.
+- Gráficos em CSS (barras), sem biblioteca: determinísticos nos screenshots e com
+  tabela para leitores de tela. Trocar por biblioteca só se surgir um gráfico que
+  CSS não resolva.
+
 ## Visualização
 
 Ao implementar os gráficos, carregar a skill `dataviz` e usar os tokens `chart-*`

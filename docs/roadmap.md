@@ -63,7 +63,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 **Precisa do usuário**: extratos reais do Nubank (conta e cartão), XP e pelo menos
 mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
-- [ ] Onboarding (criar espaço, convidar, escolher bancos, importar, revisar)
+- [x] Onboarding como checklist no dashboard (contas → importar → convidar), retomável
 - [x] `import_batches`/`import_rows`: o arquivo é lido no navegador e revisado antes de virar lançamento (Storage fica para PDF)
 - [x] Leitores OFX (1.x SGML e 2.x XML) e CSV (Nubank conta, Nubank cartão, genérico com valor ou débito/crédito), Windows-1252, com testes
 - [ ] Mapeamento de CSV desconhecido e extração de PDF com AI — precisa de `ANTHROPIC_API_KEY` e extratos reais
@@ -76,8 +76,9 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
 ## Fase 4 · Dashboard e atividade
 
-- [ ] Blocos do [dashboard](./dashboard.md)
-- [ ] Feed de atividade entre membros
+- [x] Blocos do [dashboard](./dashboard.md): resultado do mês com comparação, categorias (com subcategorias), evolução de 6 meses, saldos e dívida de cartões, a vencer (previstos e faturas), últimos lançamentos e checklist de configuração; seletor de mês na URL; uma query por bloco
+- [x] "O que mudou": últimos lançamentos com quem lançou
+- [ ] `activity_log` para ações além de lançamentos (importações, convites, pagamentos)
 
 ## Fase 5 · Planejamento e assistente
 
