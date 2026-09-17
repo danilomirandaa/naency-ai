@@ -81,3 +81,64 @@ export function localDateToIsoDate(date: Date) {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+/** "2026-09" válido. */
+export function isMonth(value: unknown): value is string {
+  return typeof value === 'string' && MONTH.test(value);
+}
+
+/** Mês atual ("2026-09") no fuso de negócio. */
+export function currentMonth(now: Date = new Date()) {
+  return todayIsoDate(now).slice(0, 7);
+}
+
+/** Primeiro e último dia do mês: "2026-02" → 2026-02-01 a 2026-02-28. */
+export function monthRange(month: string) {
+  if (!isMonth(month)) {
+    throw new RangeError(`Mês inválido: ${month}`);
+  }
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  return { from: `${month}-01`, to: `${month}-${String(lastDay).padStart(2, '0')}` };
+}
+
+/** "2026-01" com -1 → "2025-12". */
+export function shiftMonth(month: string, delta: number) {
+  if (!isMonth(month)) {
+    throw new RangeError(`Mês inválido: ${month}`);
+  }
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const date = new Date(Date.UTC(year, monthNumber - 1 + delta, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+const monthFormatter = new Intl.DateTimeFormat('pt-BR', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** "2026-09" → "Setembro de 2026". */
+export function formatMonth(month: string) {
+  const { from } = monthRange(month);
+  const text = monthFormatter.format(new Date(`${from}T00:00:00Z`));
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+const dayFormatter = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+});
+
+/** "2026-09-16" → "Quarta-feira, 16 de setembro". */
+export function formatDayHeading(value: string) {
+  if (!isIsoDate(value)) {
+    throw new RangeError(`Data inválida: ${value}`);
+  }
+  const text = dayFormatter.format(new Date(`${value}T00:00:00Z`));
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

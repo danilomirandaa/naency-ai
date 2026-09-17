@@ -70,3 +70,18 @@ export const WithoutNoneOption: Story = {
     await expect(within(canvasElement).getByLabelText('Categoria')).toHaveTextContent('Escolha a categoria');
   },
 };
+
+export const BothKindsForFilters: Story = {
+  args: { kind: null, noneLabel: 'Todas as categorias' },
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByLabelText('Categoria');
+    await expect(trigger).toHaveTextContent('Todas as categorias');
+    await userEvent.click(trigger);
+    const listbox = within(await screen.findByRole('listbox'));
+    await expect(listbox.getByRole('option', { name: 'Salário' })).toBeInTheDocument();
+    await expect(listbox.getByRole('option', { name: 'Mercado' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull());
+    (document.activeElement as HTMLElement | null)?.blur();
+  },
+};

@@ -152,6 +152,12 @@ Regras:
   `active`): gera lançamentos `planned` (contas a vencer). Confirmar o pagamento os
   torna `cleared`.
 - **`planned`** não entra no saldo atual; entra na projeção.
+- **Listagem**: sem filtro de conta, a transferência aparece uma vez (pela perna de
+  saída); filtrando por conta, aparece a perna daquela conta.
+- **Trocar o tipo** entre transferência e receita/despesa substitui as linhas numa
+  transação só (as antigas ficam com `deleted_at`).
+- Conta ou categoria arquivada não recebe lançamento novo, mas o lançamento que já
+  a usa continua editável.
 - **`fingerprint`** = hash de (conta, data, valor, descrição normalizada, ordem da
   ocorrência no dia). Serve para deduplicar importações.
 

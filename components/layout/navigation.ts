@@ -21,6 +21,7 @@ export const navMain: NavItem[] = [
       { title: 'Todas', url: '/transacoes' },
       { title: 'Receitas', url: '/transacoes/receitas' },
       { title: 'Despesas', url: '/transacoes/despesas' },
+      { title: 'Transferências', url: '/transacoes/transferencias' },
       { title: 'Recorrentes', url: '/transacoes/recorrentes' },
     ],
   },

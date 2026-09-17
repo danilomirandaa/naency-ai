@@ -2,6 +2,7 @@ import 'server-only';
 import { type AccountInput, accountInputSchema } from '@/features/accounts/schemas';
 import type { AccountSummary, InstitutionSummary } from '@/features/accounts/types';
 import { requireMembership } from '@/server/auth/membership';
+import { accountMovementSql } from '@/server/dal/transactions';
 import { getDb } from '@/server/db/client';
 import { accounts, institutions } from '@/server/db/schema';
 import { and, asc, eq, isNull, or } from 'drizzle-orm';
@@ -54,6 +55,7 @@ export async function listAccounts(
       institutionId: institutions.id,
       institutionName: institutions.name,
       institutionColor: institutions.color,
+      movementCents: accountMovementSql(),
     })
     .from(accounts)
     .leftJoin(institutions, eq(institutions.id, accounts.institutionId))
@@ -76,8 +78,7 @@ export async function listAccounts(
         : null,
     initialBalanceCents: row.initialBalanceCents,
     initialBalanceDate: row.initialBalanceDate,
-    // Lançamentos entram na soma quando existirem (Fase 1, lançamentos).
-    balanceCents: row.initialBalanceCents,
+    balanceCents: row.initialBalanceCents + Number(row.movementCents),
     archived: row.archivedAt !== null,
   }));
 }

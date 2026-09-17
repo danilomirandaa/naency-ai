@@ -14,7 +14,7 @@ export const institutionsFixture: InstitutionSummary[] = [
 
 export const accountsFixture: AccountSummary[] = [
   {
-    id: 'a1',
+    id: '0000000a-0000-4000-8000-000000000001',
     name: 'Nubank',
     type: 'checking',
     institution: { id: '22222222-2222-4222-8222-222222222222', name: 'Nubank', color: '#820AD1' },
@@ -24,7 +24,7 @@ export const accountsFixture: AccountSummary[] = [
     archived: false,
   },
   {
-    id: 'a2',
+    id: '0000000a-0000-4000-8000-000000000002',
     name: 'Reserva de emergência',
     type: 'investment',
     institution: {
@@ -38,7 +38,7 @@ export const accountsFixture: AccountSummary[] = [
     archived: false,
   },
   {
-    id: 'a3',
+    id: '0000000a-0000-4000-8000-000000000003',
     name: 'Carteira',
     type: 'cash',
     institution: null,
@@ -48,7 +48,7 @@ export const accountsFixture: AccountSummary[] = [
     archived: false,
   },
   {
-    id: 'a4',
+    id: '0000000a-0000-4000-8000-000000000004',
     name: 'Conta antiga',
     type: 'savings',
     institution: null,

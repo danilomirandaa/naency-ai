@@ -1,0 +1,95 @@
+import { accountsFixture } from '@/features/accounts/fixtures/accounts';
+import { categoriesFixture, categoryFixtureId } from '@/features/categories/fixtures/categories';
+import type { TransactionItem } from '@/features/transactions/types';
+
+const [nubank, reserva, carteira] = accountsFixture as [
+  (typeof accountsFixture)[number],
+  (typeof accountsFixture)[number],
+  (typeof accountsFixture)[number],
+];
+
+function account(source: typeof nubank) {
+  return { id: source.id, name: source.name, type: source.type, institution: source.institution };
+}
+
+function category(path: string, kind: 'expense' | 'income' = 'expense') {
+  const found = categoriesFixture.find((item) => item.id === categoryFixtureId(path, kind));
+  if (!found) {
+    throw new Error(`Categoria de exemplo ${path} não existe`);
+  }
+  const parent = found.parentId ? categoriesFixture.find((item) => item.id === found.parentId) : null;
+  return { id: found.id, name: found.name, icon: found.icon, color: found.color, parentName: parent?.name ?? null };
+}
+
+function id(n: number) {
+  return `0000000t-0000-4000-8000-${String(n).padStart(12, '0')}`.replace('t', '1');
+}
+
+/** Lançamentos de setembro de 2026, já na ordem da lista (mais recentes primeiro). */
+export const transactionsFixture: TransactionItem[] = [
+  {
+    id: id(1),
+    kind: 'expense',
+    amountCents: -18_990,
+    date: '2026-09-16',
+    description: 'Conta de luz',
+    notes: null,
+    status: 'planned',
+    account: account(nubank),
+    category: category('Moradia/Energia'),
+    transfer: null,
+    createdByName: 'Danilo',
+  },
+  {
+    id: id(2),
+    kind: 'expense',
+    amountCents: -32_450,
+    date: '2026-09-15',
+    description: 'Supermercado',
+    notes: 'Compra do mês',
+    status: 'cleared',
+    account: account(nubank),
+    category: category('Mercado'),
+    transfer: null,
+    createdByName: 'Ana',
+  },
+  {
+    id: id(3),
+    kind: 'transfer',
+    amountCents: -100_000,
+    date: '2026-09-15',
+    description: 'Reserva do mês',
+    notes: null,
+    status: 'cleared',
+    account: account(nubank),
+    category: null,
+    transfer: { counterpartAccountId: reserva.id, counterpartAccountName: reserva.name },
+    createdByName: 'Danilo',
+  },
+  {
+    id: id(4),
+    kind: 'expense',
+    amountCents: -1_550,
+    date: '2026-09-12',
+    description: 'Padaria',
+    notes: null,
+    status: 'cleared',
+    account: account(carteira),
+    category: null,
+    transfer: null,
+    createdByName: 'Danilo',
+  },
+  {
+    id: id(5),
+    kind: 'income',
+    amountCents: 850_000,
+    date: '2026-09-05',
+    description: 'Salário',
+    notes: null,
+    status: 'cleared',
+    account: account(nubank),
+    category: category('Salário', 'income'),
+    transfer: null,
+    createdByName: 'Danilo',
+  },
+];

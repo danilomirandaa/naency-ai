@@ -36,6 +36,13 @@
       "when": 1789617750324,
       "tag": "0004_seed_default_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789618321871,
+      "tag": "0005_transactions",
+      "breakpoints": true
     }
   ]
 }

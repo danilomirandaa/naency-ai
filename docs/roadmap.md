@@ -44,10 +44,10 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 
 - [x] Catálogo de instituições (seed na migration `0002`; formatos e instruções de exportação na Fase 3)
 - [x] Contas: criar, editar, arquivar, página `/contas` e contas reais na sidebar, com testes por papel
-- [ ] Saldo somando os lançamentos (entra com os lançamentos)
+- [x] Saldo somando os lançamentos efetivados a partir da data do saldo inicial
 - [x] Categorias: conjunto padrão (espaços novos e existentes), CRUD em dois níveis, arquivar, `CategoryIcon` e `CategorySelect`
-- [ ] Lançamentos: CRUD de receita, despesa e transferência
-- [ ] Página de Transações (filtros por período, conta, categoria, tipo)
+- [x] Lançamentos: receita, despesa e transferência (duas pernas), previsto/efetivado, exclusão lógica
+- [x] Página de Transações: filtros na URL (mês, conta, categoria com subcategorias, busca), rotas por tipo, resumo do período, paginação
 - [x] Convite de membro por link, aceite e página de membros
 - [ ] Gestão de papéis (mudar papel, remover membro, regra do último admin)
 

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   calendarDayDiff,
+  currentMonth,
+  formatDayHeading,
+  formatMonth,
+  isMonth,
+  monthRange,
+  shiftMonth,
   formatIsoDate,
   formatRelativeDays,
   isIsoDate,
@@ -82,5 +88,43 @@ describe('isoDateToLocalDate / localDateToIsoDate', () => {
 
   it('lança para data inválida', () => {
     expect(() => isoDateToLocalDate('2026-02-30')).toThrow(RangeError);
+  });
+});
+
+describe('meses', () => {
+  it('valida "AAAA-MM"', () => {
+    expect(isMonth('2026-09')).toBe(true);
+    for (const value of ['2026-13', '2026-9', '2026-09-01', null]) {
+      expect(isMonth(value)).toBe(false);
+    }
+  });
+
+  it('mês atual no fuso de São Paulo', () => {
+    expect(currentMonth(new Date('2026-10-01T02:00:00Z'))).toBe('2026-09');
+  });
+
+  it.each([
+    ['2026-02', '2026-02-01', '2026-02-28'],
+    ['2024-02', '2024-02-01', '2024-02-29'],
+    ['2026-12', '2026-12-01', '2026-12-31'],
+  ])('intervalo de %s', (month, from, to) => {
+    expect(monthRange(month)).toEqual({ from, to });
+  });
+
+  it('desloca meses atravessando o ano', () => {
+    expect(shiftMonth('2026-01', -1)).toBe('2025-12');
+    expect(shiftMonth('2026-12', 1)).toBe('2027-01');
+    expect(shiftMonth('2026-09', 0)).toBe('2026-09');
+  });
+
+  it('formata em pt-BR com inicial maiúscula', () => {
+    expect(formatMonth('2026-09')).toBe('Setembro de 2026');
+    expect(formatDayHeading('2026-09-16')).toBe('Quarta-feira, 16 de setembro');
+  });
+
+  it('lança para entradas inválidas', () => {
+    expect(() => monthRange('2026-13')).toThrow(RangeError);
+    expect(() => shiftMonth('x', 1)).toThrow(RangeError);
+    expect(() => formatDayHeading('2026-02-30')).toThrow(RangeError);
   });
 });
