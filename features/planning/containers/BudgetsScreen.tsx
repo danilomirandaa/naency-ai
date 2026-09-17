@@ -1,25 +1,31 @@
 'use client';
 
-import { MonthPicker } from '@/components/finance/MonthPicker';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { setBudgetAction } from '@/features/planning/actions';
 import { planningQuery } from '@/features/planning/api/planning.queries';
 import { BudgetDialog } from '@/features/planning/components/BudgetDialog';
 import { BudgetsList } from '@/features/planning/components/BudgetsList';
 import type { BudgetLine } from '@/features/planning/types';
-import { currentMonth, isMonth } from '@/lib/dates';
+import { formatMonth } from '@/lib/dates';
+import { resolveRange } from '@/lib/periods';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import * as React from 'react';
 
-/** Container: orçamentos do mês escolhido (?mes=). */
-export function BudgetsScreen({ workspaceId, canEdit }: { workspaceId: string; canEdit: boolean }) {
-  const router = useRouter();
-  const pathname = usePathname();
+/** Container: orçamentos do mês do período do header. */
+export function BudgetsScreen({
+  workspaceId,
+  canEdit,
+  periodCookie,
+}: {
+  workspaceId: string;
+  canEdit: boolean;
+  periodCookie: string | null;
+}) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const requested = searchParams.get('mes');
-  const month = isMonth(requested) ? requested : currentMonth();
+  // Orçamento é mensal: vale o mês de início do período do header.
+  const month = resolveRange(searchParams, periodCookie).from.slice(0, 7);
   const budgets = useQuery(planningQuery.budgets(workspaceId, month));
   const [editing, setEditing] = React.useState<BudgetLine | null>(null);
 
@@ -27,13 +33,7 @@ export function BudgetsScreen({ workspaceId, canEdit }: { workspaceId: string; c
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <PageHeader
         title="Orçamentos"
-        description="Quanto gastar por mês em cada categoria."
-        actions={
-          <MonthPicker
-            value={month}
-            onValueChange={(next) => router.replace(next === currentMonth() ? pathname : `${pathname}?mes=${next}`, { scroll: false })}
-          />
-        }
+        description={`Quanto gastar por mês em cada categoria · ${formatMonth(month)}`}
       />
       <BudgetsList
         lines={budgets.data ?? []}

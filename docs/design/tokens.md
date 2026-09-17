@@ -27,7 +27,7 @@ Estados: `rest` → `hover` → `pressed` (e `disabled`).
 | Token                        | Papel                                          |
 | ---------------------------- | ---------------------------------------------- |
 | `background`                 | Fundo da página                                |
-| `background-surface-sunken`  | Moldura externa (`Panel.Root`, dialogs)        |
+| `background-surface-sunken`  | Moldura externa (`Panel.Root`, cabeçalho dos cards, dialogs) e sidebar: `#F8F9FB` claro, `#111112` escuro |
 | `background-neutral-000`     | Cartão interno (`Panel.Body`, `DialogBody`)    |
 | `background-neutral-100/200` | Hover, trilhos (lista de tabs), skeleton       |
 | `background-neutral-300`     | Controles desligados (Switch off)              |
@@ -77,3 +77,11 @@ principal: `primary` → `brand-primary`, `destructive` → `status-critical`,
 `muted-foreground` → `typography-neutral-secondary`, `border` →
 `border-neutral-subtle`, `icon-income`/`text-positive` → `finance-income`,
 `text-unique` → `finance-single`.
+
+## Fundos do app (definidos pelo produto)
+
+| Onde | Claro | Escuro | Token |
+|---|---|---|---|
+| Fundo padrão da página | `#FFFFFF` | `#151618` | `background` |
+| Sidebar | `#F8F9FB` | `#111112` | `background-surface-sunken` |
+| Cabeçalho dos cards (`Panel.Root`) | `#F8F9FB` | `#111112` | `background-surface-sunken` |

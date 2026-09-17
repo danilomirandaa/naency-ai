@@ -2,7 +2,6 @@
 
 import { AccountSelect, type AccountOption } from '@/components/finance/AccountSelect';
 import { CategorySelect, type CategoryOption } from '@/components/finance/CategorySelect';
-import { PeriodPicker } from '@/components/finance/PeriodPicker';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Input } from '@/components/ui/Input';
@@ -15,12 +14,10 @@ export type TransactionsFiltersProps = {
   onChange: (changes: Partial<TransactionFilters>) => void;
   accounts: AccountOption[];
   categories: CategoryOption[];
-  /** "AAAA-MM-DD" de hoje, para os atalhos de período. */
-  today: string;
 };
 
-/** Período, conta, categoria e busca. Mudar qualquer filtro volta para a página 1. */
-export function TransactionsFilters({ filters, onChange, accounts, categories, today }: TransactionsFiltersProps) {
+/** Conta, categoria e busca (o período fica no header). Mudar um filtro volta para a página 1. */
+export function TransactionsFilters({ filters, onChange, accounts, categories }: TransactionsFiltersProps) {
   const [search, setSearch] = React.useState(filters.search);
   const [syncedSearch, setSyncedSearch] = React.useState(filters.search);
   if (filters.search !== syncedSearch) {
@@ -33,7 +30,6 @@ export function TransactionsFilters({ filters, onChange, accounts, categories, t
 
   return (
     <div className="flex flex-col gap-3">
-      <PeriodPicker value={filters} today={today} onValueChange={(range) => onChange(range)} />
       <div className="grid flex-1 gap-2 sm:grid-cols-3">
         <AccountSelect
           aria-label="Filtrar por conta"

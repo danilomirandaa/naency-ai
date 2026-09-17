@@ -24,14 +24,16 @@ export type TransactionsScreenProps = {
   kind: TransactionKind | null;
   title: string;
   today: string;
+  /** Cookie do período global (header). */
+  periodCookie: string | null;
 };
 
 /** Container: filtros na URL em volta do TransactionsManager. */
-export function TransactionsScreen({ workspaceId, canEdit, kind, title, today }: TransactionsScreenProps) {
+export function TransactionsScreen({ workspaceId, canEdit, kind, title, today, periodCookie }: TransactionsScreenProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const filters = filtersFromSearchParams(searchParams, { kind });
+  const filters = filtersFromSearchParams(searchParams, { kind, periodCookie });
   const accounts = useQuery(accountsQuery.options(workspaceId, { includeArchived: true }));
   const categories = useQuery(categoriesQuery.options(workspaceId, { includeArchived: false }));
 
@@ -71,7 +73,6 @@ export function TransactionsScreen({ workspaceId, canEdit, kind, title, today }:
               onChange={changeFilters}
               accounts={accounts.data ?? []}
               categories={categories.data ?? []}
-              today={today}
             />
             {kind !== 'transfer' && (
               <TransactionsSummary

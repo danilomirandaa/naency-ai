@@ -196,3 +196,12 @@ Nomes:
 | `SUPABASE_SECRET_KEY` | Storage e administração, só no servidor |
 | `ANTHROPIC_API_KEY` | Claude API |
 | `AI_MODEL_EXTRACT`, `AI_MODEL_ENRICH` | Modelo por tarefa (padrão `claude-opus-5`) |
+
+## Período global
+
+O período fica no header (`HeaderPeriodPicker`), nas telas que dependem dele
+(`isPeriodPath`: Visão geral, Transações, Relatórios, Orçamentos). A regra é a mesma
+no servidor e no cliente (`resolveRange` em `lib/periods.ts`): URL (`?de=&ate=` ou
+`?mes=`) → cookie `naency_periodo` (último período escolhido) → mês atual. Ao mudar,
+o header grava o cookie e troca os parâmetros da página atual. Páginas do servidor
+usam `getPagePeriod` (`server/period.ts`) e passam o cookie para o container.

@@ -211,7 +211,8 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
+  /* Fundo padrão (claro): #FFFFFF. */
+  --background: #ffffff;
   --ring: oklch(0.854 0.129 174.692);
   --destructive: oklch(0.6189 0.2069 23.39);
   --text-link: oklch(0.51 0.14 242);
@@ -222,7 +223,8 @@
   --background-neutral-300: oklch(0.9 0.004 286);
   --background-neutral-disabled: oklch(0.967 0.001 286.375);
   --background-neutral-inverse: oklch(0.21 0.006 285.885);
-  --background-surface-sunken: oklch(0.975 0.001 286);
+  /* Sidebar e cabeçalho dos cards (claro). */
+  --background-surface-sunken: #f8f9fb;
   --background-brand-primary-rest: oklch(0.854 0.129 174.692);
   --background-brand-primary-hover: oklch(0.8 0.13 174.7);
   --background-status-critical-rest: oklch(0.6189 0.2069 23.39);
@@ -299,7 +301,8 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  /* Fundo padrão (escuro). */
+  --background: #151618;
   --ring: oklch(0.8034 0.129 174.69);
   --destructive: oklch(0.6189 0.2069 23.39);
   --text-link: oklch(0.75 0.14 233);
@@ -310,7 +313,8 @@
   --background-neutral-300: oklch(0.37 0.008 286);
   --background-neutral-disabled: oklch(0.24 0.006 286);
   --background-neutral-inverse: oklch(0.985 0 0);
-  --background-surface-sunken: oklch(0.175 0.005 286);
+  /* Sidebar e cabeçalho dos cards (escuro). */
+  --background-surface-sunken: #111112;
   --background-brand-primary-rest: oklch(0.8034 0.129 174.69);
   --background-brand-primary-hover: oklch(0.75 0.129 174.69);
   --background-status-critical-rest: oklch(0.6189 0.2069 23.39);

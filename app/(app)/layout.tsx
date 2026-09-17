@@ -6,6 +6,8 @@ import { can } from '@/lib/permissions';
 import { requireUser } from '@/server/auth/current-user';
 import { listAccounts } from '@/server/dal/accounts';
 import { materializeRecurring } from '@/server/dal/recurring';
+import { todayIsoDate } from '@/lib/dates';
+import { PERIOD_COOKIE } from '@/lib/periods';
 import { defaultProfileName, getProfile } from '@/server/dal/profiles';
 import { getActiveWorkspace } from '@/server/dal/workspaces';
 import { redirect } from 'next/navigation';
@@ -49,7 +51,7 @@ export default async function AppLayout({
           canCreateAccount={can(active.role, 'finance.write')}
         />
         <Sidebar.Inset>
-          <AppHeader />
+          <AppHeader periodCookie={cookieStore.get(PERIOD_COOKIE)?.value ?? null} today={todayIsoDate()} />
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
         </Sidebar.Inset>
       </Sidebar.Provider>

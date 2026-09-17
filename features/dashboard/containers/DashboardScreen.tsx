@@ -1,6 +1,5 @@
 'use client';
 
-import { MonthPicker } from '@/components/finance/MonthPicker';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { dashboardQuery } from '@/features/dashboard/api/dashboard.queries';
 import { BalanceOverview } from '@/features/dashboard/components/BalanceOverview';
@@ -10,25 +9,24 @@ import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvoluti
 import { RecentTransactions } from '@/features/dashboard/components/RecentTransactions';
 import { SetupChecklist } from '@/features/dashboard/components/SetupChecklist';
 import { UpcomingBills } from '@/features/dashboard/components/UpcomingBills';
-import { currentMonth, isMonth, monthRange } from '@/lib/dates';
+import { rangeParams, resolveRange } from '@/lib/periods';
 import { useQuery } from '@tanstack/react-query';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 export type DashboardScreenProps = {
   workspaceId: string;
   workspaceName: string;
   canEdit: boolean;
   today: string;
+  /** Cookie do período global (header). */
+  periodCookie: string | null;
 };
 
-/** Container: seletor de mês na URL e uma query por bloco. */
-export function DashboardScreen({ workspaceId, workspaceName, canEdit, today }: DashboardScreenProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+/** Container: período do header (URL ou cookie) e uma query por bloco. */
+export function DashboardScreen({ workspaceId, workspaceName, canEdit, today, periodCookie }: DashboardScreenProps) {
   const searchParams = useSearchParams();
-  const requested = searchParams.get('mes');
-  const month = isMonth(requested) ? requested : currentMonth();
-  const range = monthRange(month);
+  const range = resolveRange(searchParams, periodCookie);
+  const periodQuery = new URLSearchParams(rangeParams(range)).toString();
 
   const result = useQuery(dashboardQuery.block(workspaceId, 'resultado', range));
   const categories = useQuery(dashboardQuery.block(workspaceId, 'categorias', range));
@@ -38,16 +36,12 @@ export function DashboardScreen({ workspaceId, workspaceName, canEdit, today }: 
   const recent = useQuery(dashboardQuery.block(workspaceId, 'recentes', range));
   const setup = useQuery(dashboardQuery.block(workspaceId, 'configuracao', range));
 
-  const changeMonth = (next: string) => {
-    router.replace(next === currentMonth() ? pathname : `${pathname}?mes=${next}`, { scroll: false });
-  };
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
       <PageHeader
         title="Visão geral"
         description={workspaceName}
-        actions={<MonthPicker value={month} onValueChange={changeMonth} />}
       />
       <SetupChecklist progress={setup.data} canEdit={canEdit} />
       <div className="grid gap-4 lg:grid-cols-3">
@@ -60,8 +54,8 @@ export function DashboardScreen({ workspaceId, workspaceName, canEdit, today }: 
               isError={categories.isError}
               transactionsHref={(categoryId) =>
                 categoryId
-                  ? `/transacoes/despesas?mes=${month}&categoria=${categoryId}`
-                  : `/transacoes/despesas?mes=${month}`
+                  ? `/transacoes/despesas?${periodQuery}&categoria=${categoryId}`
+                  : `/transacoes/despesas?${periodQuery}`
               }
             />
             <MonthlyEvolution data={evolution.data} isLoading={evolution.isPending} isError={evolution.isError} />

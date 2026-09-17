@@ -25,7 +25,6 @@ function Demo({ initial }: { initial: TransactionFilters }) {
       filters={filters}
       accounts={accountsFixture}
       categories={categoriesFixture}
-      today="2026-09-16"
       onChange={(changes) => {
         onChange(changes);
         setFilters((current) => ({ ...current, ...changes, page: 1 }));
@@ -49,8 +48,6 @@ export const ChangeFilters: Story = {
   render: () => <Demo initial={base} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole('button', { name: 'Mês anterior' }));
-    await expect(onChange).toHaveBeenLastCalledWith({ from: '2026-08-01', to: '2026-08-31' });
 
     await userEvent.click(canvas.getByLabelText('Filtrar por categoria'));
     await userEvent.click(within(await screen.findByRole('listbox')).getByRole('option', { name: 'Mercado' }));
@@ -63,7 +60,6 @@ export const ChangeFilters: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Limpar filtros' }));
     await expect(onChange).toHaveBeenLastCalledWith({ accountId: null, categoryId: null, search: '' });
     await expect(canvas.getByLabelText('Buscar na descrição')).toHaveValue('');
-    await userEvent.click(canvas.getByRole('button', { name: 'Próximo mês' }));
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };

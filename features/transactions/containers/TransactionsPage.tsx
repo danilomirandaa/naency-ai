@@ -11,6 +11,7 @@ import { listAccounts } from '@/server/dal/accounts';
 import { listCategories } from '@/server/dal/categories';
 import { listTransactions } from '@/server/dal/transactions';
 import { getActiveWorkspace } from '@/server/dal/workspaces';
+import { getPeriodCookie } from '@/server/period';
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { redirect } from 'next/navigation';
 
@@ -26,7 +27,7 @@ export async function TransactionsPage({
   title: string;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ active }, rawParams] = await Promise.all([getActiveWorkspace(), searchParams]);
+  const [{ active }, rawParams, periodCookie] = await Promise.all([getActiveWorkspace(), searchParams, getPeriodCookie()]);
   if (!active) {
     redirect('/comecar');
   }
@@ -35,7 +36,7 @@ export async function TransactionsPage({
       typeof value === 'string' ? [[key, value]] : [],
     ),
   );
-  const filters = filtersFromSearchParams(params, { kind });
+  const filters = filtersFromSearchParams(params, { kind, periodCookie });
 
   const queryClient = makeQueryClient();
   await Promise.all([
@@ -61,6 +62,7 @@ export async function TransactionsPage({
         kind={kind}
         title={title}
         today={todayIsoDate()}
+        periodCookie={periodCookie}
       />
     </HydrationBoundary>
   );

@@ -1,4 +1,4 @@
-import { formatIsoDate, formatMonth, isIsoDate, monthRange } from '@/lib/dates';
+import { currentMonth, formatIsoDate, formatMonth, isIsoDate, isMonth, monthRange } from '@/lib/dates';
 
 /** Intervalo de datas de calendário, inclusive ("AAAA-MM-DD"). */
 export type DateRange = { from: string; to: string };
@@ -120,4 +120,48 @@ export function previousRange(range: DateRange): DateRange {
   const days = (Date.parse(`${range.to}T00:00:00Z`) - Date.parse(`${range.from}T00:00:00Z`)) / 86_400_000;
   const to = addDays(range.from, -1);
   return { from: addDays(to, -days), to };
+}
+
+/** Cookie com o último período escolhido no header (vale ao trocar de página). */
+export const PERIOD_COOKIE = 'naency_periodo';
+
+export function serializeRange(range: DateRange) {
+  return `${range.from}_${range.to}`;
+}
+
+export function parseRangeCookie(value: string | null | undefined): DateRange | null {
+  const [from, to] = (value ?? '').split('_');
+  const range = { from, to };
+  return isValidRange(range) ? range : null;
+}
+
+type ParamsLike = { get(name: string): string | null };
+
+/** Período da tela: URL (?de=&ate= ou ?mes=) → cookie → mês atual. */
+export function resolveRange(params: ParamsLike, cookieValue: string | null | undefined, now: Date = new Date()): DateRange {
+  const custom = { from: params.get('de'), to: params.get('ate') };
+  if (isValidRange(custom)) {
+    return custom;
+  }
+  const month = params.get('mes');
+  if (isMonth(month)) {
+    return monthRange(month);
+  }
+  return parseRangeCookie(cookieValue) ?? monthRange(currentMonth(now));
+}
+
+/** Parâmetros de URL do período: ?mes= para mês inteiro, ?de=&ate= para o resto. */
+export function rangeParams(range: DateRange): Record<string, string> {
+  const month = wholeMonthOf(range);
+  return month ? { mes: month } : { de: range.from, ate: range.to };
+}
+
+/** Rotas que usam o período do header. */
+export function isPeriodPath(pathname: string) {
+  return (
+    pathname === '/' ||
+    pathname === '/relatorios' ||
+    pathname === '/planejamento/orcamentos' ||
+    ['/transacoes', '/transacoes/receitas', '/transacoes/despesas', '/transacoes/transferencias'].includes(pathname)
+  );
 }

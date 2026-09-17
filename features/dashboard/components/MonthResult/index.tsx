@@ -36,7 +36,7 @@ export function MonthResult({ data, isLoading, isError }: MonthResultProps) {
 
   return (
     <DashboardCard
-      title="Resultado do mês"
+      title="Resultado do período"
       description={data ? `${formatRange(data.range)} · comparado a ${lowerFirst(formatRange(data.previousRange))}` : undefined}
       isLoading={isLoading}
       isError={isError}

@@ -1,6 +1,7 @@
 'use client';
 
 import { getBreadcrumb } from '@/components/layout/navigation';
+import { HeaderPeriodPicker } from '@/components/layout/HeaderPeriodPicker';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Separator } from '@/components/ui/Separator';
@@ -9,7 +10,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Fragment } from 'react';
 
-export function AppHeader() {
+export type AppHeaderProps = {
+  /** Cookie do período global (lido no layout). */
+  periodCookie?: string | null;
+  /** "AAAA-MM-DD" de hoje, para os atalhos de período. */
+  today: string;
+};
+
+export function AppHeader({ periodCookie = null, today }: AppHeaderProps) {
   const pathname = usePathname();
   const trail = getBreadcrumb(pathname);
 
@@ -43,7 +51,10 @@ export function AppHeader() {
           })}
         </Breadcrumb.List>
       </Breadcrumb.Root>
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex min-w-0 items-center gap-2">
+        <div className="hidden overflow-x-auto md:block">
+          <HeaderPeriodPicker periodCookie={periodCookie} today={today} />
+        </div>
         <ThemeToggle />
       </div>
     </header>

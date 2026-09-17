@@ -1,5 +1,5 @@
-import { currentMonth, isMonth, monthRange } from '@/lib/dates';
-import { type DateRange, isValidRange, wholeMonthOf } from '@/lib/periods';
+import { monthRange } from '@/lib/dates';
+import { type DateRange, rangeParams, resolveRange } from '@/lib/periods';
 import type { TransactionKind } from '@/lib/transactions';
 import { z } from 'zod';
 
@@ -34,10 +34,13 @@ export function monthFilters(month: string, overrides: Partial<TransactionFilter
 /** Lê filtros da URL; valor inválido vira o padrão, nunca erro. */
 export function filtersFromSearchParams(
   params: ParamsLike,
-  { now = new Date(), kind = null }: { now?: Date; kind?: TransactionKind | null } = {},
+  {
+    now = new Date(),
+    kind = null,
+    periodCookie = null,
+  }: { now?: Date; kind?: TransactionKind | null; periodCookie?: string | null } = {},
 ): TransactionFilters {
-  const month = params.get('mes');
-  const range = { from: params.get('de'), to: params.get('ate') };
+
   const accountId = params.get('conta');
   const categoryId = params.get('categoria');
   const kindParam = params.get('tipo');
@@ -48,8 +51,8 @@ export function filtersFromSearchParams(
     null;
 
   return {
-    // Intervalo explícito (?de=&ate=) vence o mês (?mes=); sem nada, o mês atual.
-    ...(isValidRange(range) ? range : monthRange(isMonth(month) ? month : currentMonth(now))),
+    // Período global: URL (?de=&ate= ou ?mes=) → cookie do header → mês atual.
+    ...resolveRange(params, periodCookie, now),
     accountId: accountId && uuid.safeParse(accountId).success ? accountId : null,
     categoryId: categoryId && uuid.safeParse(categoryId).success ? categoryId : null,
     kind: kind ?? parsedKind,
@@ -62,17 +65,12 @@ export function filtersFromSearchParams(
 /** Só grava na URL o que foge do padrão, para links curtos. */
 export function filtersToSearchParams(
   filters: TransactionFilters,
-  { now = new Date(), omitKind = false }: { now?: Date; omitKind?: boolean } = {},
+  { omitKind = false }: { omitKind?: boolean } = {},
 ) {
   const params = new URLSearchParams();
-  const month = wholeMonthOf(filters);
-  if (month) {
-    if (month !== currentMonth(now)) {
-      params.set('mes', month);
-    }
-  } else {
-    params.set('de', filters.from);
-    params.set('ate', filters.to);
+  // Período sempre explícito: sem ele, a página cairia no cookie, que pode ser outro.
+  for (const [key, value] of Object.entries(rangeParams(filters))) {
+    params.set(key, value);
   }
   if (filters.accountId) {
     params.set('conta', filters.accountId);
