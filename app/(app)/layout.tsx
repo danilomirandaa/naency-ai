@@ -2,13 +2,16 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { signOutAction } from '@/features/auth/actions';
 import { selectWorkspaceAction } from '@/features/workspaces/actions';
+import { can } from '@/lib/permissions';
 import { requireUser } from '@/server/auth/current-user';
+import { listAccounts } from '@/server/dal/accounts';
 import { defaultProfileName, getProfile } from '@/server/dal/profiles';
 import { getActiveWorkspace } from '@/server/dal/workspaces';
 import { redirect } from 'next/navigation';
 import { SIDEBAR_COOKIE_NAME, Sidebar } from '@/components/ui/Sidebar';
 import { cookies } from 'next/headers';
 import type * as React from 'react';
+import { Providers } from './providers';
 
 export default async function AppLayout({
   children,
@@ -24,25 +27,29 @@ export default async function AppLayout({
   if (!active) {
     redirect('/comecar');
   }
-  const cookieStore = await cookies();
+  const [accounts, cookieStore] = await Promise.all([listAccounts(active.id), cookies()]);
   const defaultOpen = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== 'false';
 
   return (
-    <Sidebar.Provider defaultOpen={defaultOpen}>
-      <AppSidebar
-        user={{
-          name: profile?.name ?? defaultProfileName(user.email),
-          description: user.email ?? 'Conta pessoal',
-        }}
-        signOutAction={signOutAction}
-        workspaces={workspaces}
-        activeWorkspaceId={active.id}
-        selectWorkspaceAction={selectWorkspaceAction}
-      />
-      <Sidebar.Inset>
-        <AppHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
-      </Sidebar.Inset>
-    </Sidebar.Provider>
+    <Providers>
+      <Sidebar.Provider defaultOpen={defaultOpen}>
+        <AppSidebar
+          user={{
+            name: profile?.name ?? defaultProfileName(user.email),
+            description: user.email ?? 'Conta pessoal',
+          }}
+          signOutAction={signOutAction}
+          workspaces={workspaces}
+          activeWorkspaceId={active.id}
+          selectWorkspaceAction={selectWorkspaceAction}
+          accounts={accounts}
+          canCreateAccount={can(active.role, 'finance.write')}
+        />
+        <Sidebar.Inset>
+          <AppHeader />
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        </Sidebar.Inset>
+      </Sidebar.Provider>
+    </Providers>
   );
 }

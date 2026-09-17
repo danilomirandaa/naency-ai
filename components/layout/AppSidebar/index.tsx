@@ -7,17 +7,12 @@ import { NavSecondary } from './NavSecondary';
 import { type NavUserData, NavUser } from './NavUser';
 import { type WorkspaceSwitcherProps, WorkspaceSwitcher } from './WorkspaceSwitcher';
 
-// Dados fixos até existir a camada de dados (contas e usuário reais).
-const accounts: NavAccount[] = [
-  { name: 'Conta corrente', url: '/contas/conta-corrente', icon: 'bank' },
-  { name: 'Poupança', url: '/contas/poupanca', icon: 'wallet' },
-  { name: 'Carteira', url: '/contas/carteira', icon: 'wallet' },
-];
-
 export type AppSidebarProps = React.ComponentProps<typeof Sidebar.Root> &
   Omit<WorkspaceSwitcherProps, 'newWorkspaceHref'> & {
     user: NavUserData;
     signOutAction: () => Promise<void>;
+    accounts: NavAccount[];
+    canCreateAccount: boolean;
   };
 
 export function AppSidebar({
@@ -26,6 +21,8 @@ export function AppSidebar({
   workspaces,
   activeWorkspaceId,
   selectWorkspaceAction,
+  accounts,
+  canCreateAccount,
   ...props
 }: AppSidebarProps) {
   return (
@@ -40,7 +37,7 @@ export function AppSidebar({
       </Sidebar.Header>
       <Sidebar.Content>
         <NavMain items={navMain} />
-        <NavAccounts accounts={accounts} />
+        <NavAccounts accounts={accounts} canCreate={canCreateAccount} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </Sidebar.Content>
       <Sidebar.Footer>

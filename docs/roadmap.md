@@ -33,16 +33,18 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] `requireUser` e `requireMembership` com testes por papel (unitários e integração)
 - [x] Testes de integração do DAL com PGlite (sem Docker) e cobertura mínima na CI
 - [ ] Login com Google (ativar o provedor no Supabase; a tela já suporta)
-- [ ] Provider do TanStack Query e helper de contrato de query
+- [x] Provider do TanStack Query (`app/(app)/providers.tsx`), `makeQueryClient` e `fetchJson`; primeiro contrato em `features/accounts/api`
 - [x] Criar espaço (`/comecar`), espaço ativo em cookie e seletor de espaços na sidebar
 - [x] `lib/money.ts` e `lib/dates.ts` com testes unitários
 - [x] `components/finance`: `MoneyValue`, `MoneyInput`, `MemberAvatar`, com stories e testes
-- [ ] `DateInput`
+- [x] `DateInput`, `InstitutionLogo`, `AccountAvatar`; `ui/List` e `ui/NativeSelect`
+- [ ] Gerenciar papéis: trocar papel, remover membro, regra do último admin
 
 ## Fase 1 · Núcleo financeiro
 
-- [ ] Catálogo de instituições (seed)
-- [ ] Contas: CRUD e saldo calculado
+- [x] Catálogo de instituições (seed na migration `0002`; formatos e instruções de exportação na Fase 3)
+- [x] Contas: criar, editar, arquivar, página `/contas` e contas reais na sidebar, com testes por papel
+- [ ] Saldo somando os lançamentos (entra com os lançamentos)
 - [ ] Categorias: seed padrão e CRUD
 - [ ] Lançamentos: CRUD de receita, despesa e transferência
 - [ ] Página de Transações (filtros por período, conta, categoria, tipo)

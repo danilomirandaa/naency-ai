@@ -86,12 +86,15 @@ Regras:
 
 ## Instituições
 
-- **`institutions`**: `name`, `compe_code`, `kind` (`bank | broker | wallet`),
+- **`institutions`**: `slug` (identificador estável do catálogo), `name`, `compe_code`, `kind` (`bank | broker | wallet`),
   `color`, `logo`, `import_formats` (ex.: `['csv','ofx','pdf']`),
   `export_instructions` (passo a passo para exportar o extrato naquele banco),
   `workspace_id` (nulo no catálogo global; preenchido quando o espaço cadastra uma instituição própria).
-- Catálogo semeado: Nubank, XP, Itaú, Inter, C6, Banco do Brasil, Caixa, Bradesco,
-  Santander e "Dinheiro/Carteira".
+- Catálogo semeado (migration `0002_seed_institutions.sql`): Nubank, XP, Itaú, Inter,
+  C6, Banco do Brasil, Caixa, Bradesco, Santander e "Dinheiro/Carteira". Formatos de
+  importação e instruções de exportação são preenchidos na Fase 3, com extratos reais.
+- A interface mostra iniciais sobre a cor da instituição, sem logos de terceiros.
+- Uma conta só pode apontar para instituição do catálogo ou do próprio espaço (checado no DAL).
 
 ## Contas
 
@@ -100,6 +103,10 @@ Regras:
   `initial_balance_cents`, `initial_balance_date`, `color`, `archived_at`.
 - **Saldo não é armazenado.** Saldo = `initial_balance_cents` + soma de
   `amount_cents` dos lançamentos efetivados a partir de `initial_balance_date`.
+- Tipos criáveis hoje: corrente, poupança, investimentos e dinheiro. Cartão de crédito
+  entra na Fase 2, com fechamento, vencimento e faturas.
+- Leitor vê as contas; editor e admin criam, editam e arquivam. Não há exclusão:
+  arquivar preserva o histórico.
 - Conta arquivada some das listas, mas seus lançamentos continuam no histórico e nos relatórios.
 
 ## Cartão de crédito

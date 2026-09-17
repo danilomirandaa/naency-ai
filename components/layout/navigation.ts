@@ -43,6 +43,9 @@ export const navSecondary: NavItem[] = [
   { title: 'Configurações', url: '/configuracoes', icon: 'settings' },
 ];
 
+/** Páginas fora do menu (acessadas pela sidebar de contas, por exemplo) que aparecem no breadcrumb. */
+export const pageLinks: NavLink[] = [{ title: 'Contas', url: '/contas' }];
+
 export function isActivePath(pathname: string, url: string) {
   if (url === '/') {
     return pathname === '/';
@@ -52,7 +55,7 @@ export function isActivePath(pathname: string, url: string) {
 
 /** Trilha do breadcrumb a partir da rota atual, usando a navegação acima. */
 export function getBreadcrumb(pathname: string): NavLink[] {
-  for (const item of [...navMain, ...navSecondary]) {
+  for (const item of [...navMain, ...navSecondary, ...pageLinks] as NavItem[]) {
     if (!isActivePath(pathname, item.url)) {
       continue;
     }

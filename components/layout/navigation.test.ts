@@ -36,6 +36,10 @@ describe('getBreadcrumb', () => {
     ]);
   });
 
+  it('páginas fora do menu também geram trilha', () => {
+    expect(getBreadcrumb('/contas')).toEqual([{ title: 'Contas', url: '/contas' }]);
+  });
+
   it('membros fica na navegação secundária', () => {
     expect(getBreadcrumb('/membros')).toEqual([{ title: 'Membros', url: '/membros' }]);
   });

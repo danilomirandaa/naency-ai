@@ -17,7 +17,7 @@ Leia junto: [domínio](./domain.md) · [componentes](./components.md) ·
 | Dados no cliente | **TanStack Query** | Cache, refetch, mutations otimistas e polling de jobs com uma API só | — |
 | Contrato de dados | **Zod** em `features/<feature>/schemas.ts` | Uma definição valida form, Server Action e Route Handler, e gera os tipos | — |
 | RPC (tRPC, GraphQL) | **Não usar** | Os schemas Zod compartilhados já dão tipagem de ponta a ponta | App mobile ou API pública |
-| Formulários | React Hook Form + resolver Zod | Reaproveita os mesmos `schemas.ts` | — |
+| Formulários | `useActionState` + Server Action, validando com os mesmos `schemas.ts` | Funciona sem JS extra e o erro volta com o que foi digitado | Formulário com muitos campos dinâmicos (aí, React Hook Form) |
 | Compartilhamento | **Espaço com papéis** (ver [domínio](./domain.md#identidade-e-compartilhamento)) | Os dados pertencem ao espaço, não à pessoa; cada membro entra com a própria conta | — |
 | AI | **Claude API**, modelo configurável por tarefa | Lê PDF nativamente e tem saída estruturada validada por Zod | Resultado do eval de importação |
 | Hospedagem | **Vercel** | Integração nativa com Next | Limite de duração de função na importação |
@@ -42,7 +42,10 @@ features/<feature>/               accounts, transactions, cards, categories, imp
   api/<feature>.queries.ts        contratos de query (key + options + tag)
   actions.ts                      Server Actions ('use server'), finas, delegam ao DAL
   schemas.ts                      Zod: entrada e saída da feature
-  components/                     composições da feature
+  types.ts                        DTOs (só tipos JSON: passam pela hidratação e pela API)
+  components/                     composições da feature (com story)
+  containers/                     ligam hooks de query e actions aos componentes, sem markup próprio
+  fixtures/                       dados de exemplo para stories
 server/                           tudo aqui importa 'server-only'
   db/client.ts                    conexão Drizzle
   db/schema/*.ts                  tabelas
@@ -102,6 +105,13 @@ Regras:
   e reversíveis (ex.: marcar como pago).
 - Polling (`refetchInterval`) só enquanto houver um job em andamento, como a importação.
 - Componentes não chamam `fetch` direto; usam hooks da feature.
+- O `queryFn` do cliente usa `fetchJson` (`lib/api/fetch-json.ts`). No servidor, a
+  página chama `prefetchQuery` sobrescrevendo o `queryFn` pelo DAL e passa o estado
+  ao `HydrationBoundary` (exemplo: `app/(app)/contas/page.tsx`).
+- Depois de uma escrita, a Server Action chama `revalidatePath('/', 'layout')`
+  (a sidebar também mostra dados) e o container invalida `contrato.all(workspaceId)`.
+- Route Handlers convertem erros do DAL com `errorResponse` (`server/http/errors.ts`):
+  401 sem sessão, 403 sem permissão, e o resto vira 500 sem expor a mensagem.
 
 ### Server Actions e Route Handlers
 

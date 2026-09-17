@@ -19,6 +19,16 @@ const meta: Meta<typeof AppSidebar> = {
     ],
     activeWorkspaceId: 'casa',
     selectWorkspaceAction: fn(async () => {}),
+    accounts: [
+      {
+        id: 'nubank',
+        name: 'Nubank',
+        type: 'checking',
+        institution: { name: 'Nubank', color: '#820AD1' },
+      },
+      { id: 'carteira', name: 'Carteira', type: 'cash', institution: null },
+    ],
+    canCreateAccount: true,
   },
   decorators: [
     (Story) => (
@@ -67,5 +77,29 @@ export const ActiveSubItem: Story = {
 export const Overview: Story = {
   parameters: {
     nextjs: { appDirectory: true, navigation: { pathname: '/' } },
+  },
+};
+
+export const Accounts: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/contas');
+    await expect(canvas.getByRole('link', { name: 'Nubank' })).toHaveAttribute(
+      'href',
+      '/contas#conta-nubank',
+    );
+    await expect(canvas.getByRole('link', { name: 'Nova conta' })).toHaveAttribute(
+      'href',
+      '/contas?nova=1',
+    );
+  },
+};
+
+export const ViewerWithoutAccounts: Story = {
+  args: { accounts: [], canCreateAccount: false },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('link', { name: 'Contas' })).toBeNull();
+    await expect(canvas.queryByRole('link', { name: 'Nova conta' })).toBeNull();
   },
 };

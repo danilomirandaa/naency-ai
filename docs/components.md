@@ -44,10 +44,13 @@ components/ui/<Nome>/index.tsx            componente do design system
 components/ui/<Nome>/<Nome>.stories.tsx   story (obrigatória)
 components/ui/Icon/icons.ts               registro único de ícones (Devigner, família Solar)
 components/ui/Input/                      Input e Field (rótulo, descrição e erro acessíveis)
+components/ui/List/                       linhas de lista (mídia, texto que trunca, ações)
+components/ui/NativeSelect/               <select> nativo com o visual do Input
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
 components/layout/navigation.ts           itens do menu e trilha do breadcrumb
 features/<feature>/components/            composições da feature
+features/<feature>/containers/            ligam query e actions aos componentes; sem markup próprio, sem story
 hooks/                                    hooks genéricos (useTheme, useIsMobile, usePagination…)
 lib/utils.ts                              classMerge
 lib/theme.ts                              tipos do tema e script anti-flash do <head>
