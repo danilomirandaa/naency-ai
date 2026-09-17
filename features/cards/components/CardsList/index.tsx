@@ -39,7 +39,9 @@ export function CardsList({ cards, canEdit, newCardHref, isLoading = false, isEr
           errorMessage="Não foi possível carregar os cartões"
           emptyIcon="credit-card"
           emptyMessage="Nenhum cartão cadastrado"
-          emptyDescription={canEdit ? 'Cadastre o cartão com os dias de fechamento e vencimento para acompanhar as faturas.' : undefined}
+          emptyDescription={
+            canEdit ? 'Cadastre o cartão com os dias de fechamento e vencimento para acompanhar as faturas.' : undefined
+          }
           emptyAction={
             canEdit && (
               <Button asChild>
@@ -64,46 +66,58 @@ export function CardsList({ cards, canEdit, newCardHref, isLoading = false, isEr
         return (
           <li key={card.id}>
             <Panel.Root className="h-full">
-              <Link
-                href={`/cartoes/${card.id}`}
-                className="flex h-full flex-col gap-4 rounded-[inherit] p-4 outline-hidden transition-colors hover:bg-background-neutral-100 focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <div className="flex items-center gap-3">
-                  {card.institution ? (
-                    <InstitutionLogo name={card.institution.name} color={card.institution.color} />
-                  ) : (
-                    <span aria-hidden className="flex size-8 items-center justify-center rounded-control-sm bg-background-neutral-100 [&_svg]:size-4">
-                      <Icon icon="credit-card" />
-                    </span>
+              {/* O conteúdo fica no Body: o hover pinta a área inteira, com a mesma margem dos quatro lados. */}
+              <Panel.Body className="h-full">
+                <Link
+                  href={`/cartoes/${card.id}`}
+                  className="flex h-full flex-col gap-4 rounded-[inherit] p-4 outline-hidden transition-colors hover:bg-background-neutral-100 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <div className="flex items-center gap-3">
+                    {card.institution ? (
+                      <InstitutionLogo name={card.institution.name} color={card.institution.color} />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="flex size-8 items-center justify-center rounded-control-sm bg-background-neutral-100 [&_svg]:size-4"
+                      >
+                        <Icon icon="credit-card" />
+                      </span>
+                    )}
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <Text size="sm" weight="medium" className="truncate">
+                        {card.name}
+                      </Text>
+                      <Text size="xs" color="secondary">
+                        Fecha dia {card.closingDay} · vence dia {card.dueDay}
+                      </Text>
+                    </div>
+                    <Icon icon="chevron-right" className="size-4 text-icon-neutral-rest" />
+                  </div>
+                  <div className="flex items-end justify-between gap-3">
+                    <div className="flex flex-col gap-0.5">
+                      <Text size="xs" color="secondary">
+                        Fatura de {formatMonth(invoice.referenceMonth).toLowerCase()}
+                      </Text>
+                      <MoneyValue
+                        cents={Math.abs(invoice.totalCents)}
+                        size="lg"
+                        weight="semibold"
+                        kind="neutral"
+                        className="tabular-nums"
+                      />
+                      <Text size="xs" color="secondary">
+                        Vence {formatIsoDate(invoice.dueDate)}
+                      </Text>
+                    </div>
+                    <Panel.RowBadge color={INVOICE_STATUS_BADGE[invoice.status]}>
+                      {INVOICE_STATUS_LABELS[invoice.status]}
+                    </Panel.RowBadge>
+                  </div>
+                  {card.limitCents !== null && (
+                    <LimitUsage limitCents={card.limitCents} usedCents={-card.balanceCents} />
                   )}
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <Text size="sm" weight="medium" className="truncate">
-                      {card.name}
-                    </Text>
-                    <Text size="xs" color="secondary">
-                      Fecha dia {card.closingDay} · vence dia {card.dueDay}
-                    </Text>
-                  </div>
-                  <Icon icon="chevron-right" className="size-4 text-icon-neutral-rest" />
-                </div>
-                <div className="flex items-end justify-between gap-3">
-                  <div className="flex flex-col gap-0.5">
-                    <Text size="xs" color="secondary">
-                      Fatura de {formatMonth(invoice.referenceMonth).toLowerCase()}
-                    </Text>
-                    <MoneyValue cents={Math.abs(invoice.totalCents)} size="lg" weight="semibold" kind="neutral" className="tabular-nums" />
-                    <Text size="xs" color="secondary">
-                      Vence {formatIsoDate(invoice.dueDate)}
-                    </Text>
-                  </div>
-                  <Panel.RowBadge color={INVOICE_STATUS_BADGE[invoice.status]}>
-                    {INVOICE_STATUS_LABELS[invoice.status]}
-                  </Panel.RowBadge>
-                </div>
-                {card.limitCents !== null && (
-                  <LimitUsage limitCents={card.limitCents} usedCents={-card.balanceCents} />
-                )}
-              </Link>
+                </Link>
+              </Panel.Body>
             </Panel.Root>
           </li>
         );

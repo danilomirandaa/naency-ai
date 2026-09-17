@@ -1,7 +1,7 @@
 import { CardsList } from '@/features/cards/components/CardsList';
 import { cardsFixture } from '@/features/cards/fixtures/cards';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, within } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 
 const meta: Meta<typeof CardsList> = {
   title: 'Features/Cards/CardsList',
@@ -28,6 +28,20 @@ export const WithCards: Story = {
     await expect(within(nubank).getByText('Vence 05/10/2026')).toBeInTheDocument();
     // Sem limite cadastrado, sem barra.
     await expect(within(canvas.getByRole('link', { name: /Inter Gold/ })).queryByRole('meter')).toBeNull();
+  },
+};
+
+export const Hovered: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nubank = canvas.getByRole('link', { name: /Nubank Roxinho/ });
+    // O fundo do hover cobre o cartão inteiro, sem faixa sobrando na borda.
+    await userEvent.hover(nubank);
+    const card = nubank.parentElement as HTMLElement;
+    const link = nubank.getBoundingClientRect();
+    const body = card.getBoundingClientRect();
+    await expect(Math.round(link.height)).toBe(Math.round(body.height));
+    await expect(Math.round(link.width)).toBe(Math.round(body.width));
   },
 };
 
