@@ -188,7 +188,10 @@ Regras:
 - **`categories`**: `workspace_id`, `parent_id`, `name`, `kind` (`income | expense`),
   `icon`, `color`, `archived_at`.
 - Criar o espaço semeia o conjunto padrão em pt-BR (`lib/categories.ts`,
-  `DEFAULT_CATEGORIES`); a migration `0004` semeou os espaços que já existiam.
+  `DEFAULT_CATEGORIES`), que junta as categorias do Naency antigo sem duplicatas
+  (ex.: "Luz" = Energia, "Táxi/Uber" = Aplicativos, streaming em Assinaturas).
+  As migrations `0004` e `0010` completam os espaços que já existiam, sem apagar nem
+  sobrescrever o que a pessoa criou.
 - Nome único por espaço, tipo e nível, sem diferenciar maiúsculas.
 - O tipo (receita/despesa) não muda depois de criada. A principal só vira
   subcategoria se não tiver subcategorias; o pai precisa ser do mesmo tipo.

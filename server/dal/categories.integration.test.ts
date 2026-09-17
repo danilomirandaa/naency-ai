@@ -17,7 +17,7 @@ let admin: User;
 let workspaceId: string;
 
 const input = {
-  name: 'Academia',
+  name: 'Crossfit',
   kind: 'expense' as const,
   parentId: null,
   icon: 'category-fitness' as const,
@@ -64,7 +64,7 @@ describe('categorias padrão', () => {
 
   it('lista em ordem alfabética de pt-BR (acentos junto da letra)', async () => {
     const names = (await listCategories(workspaceId)).map((category) => category.name);
-    expect(names.slice(0, 3)).toEqual(['Água', 'Alimentação', 'Aluguel']);
+    expect(names.slice(0, 3)).toEqual(['Academia', 'Açougue', 'Água']);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'pt-BR')));
   });
 
@@ -72,7 +72,7 @@ describe('categorias padrão', () => {
     const { id: other } = await createWorkspace({ name: 'Empresa' });
     await createCategory(other, input);
     const names = (await listCategories(workspaceId)).map((category) => category.name);
-    expect(names).not.toContain('Academia');
+    expect(names).not.toContain('Crossfit');
   });
 });
 
@@ -82,7 +82,7 @@ describe('categorias: CRUD e regras', () => {
     const saude = await byName('Saúde');
     await createCategory(workspaceId, { ...input, name: 'Dentista', parentId: saude.id });
 
-    expect(await byName('Academia')).toMatchObject({ id, parentId: null, archived: false });
+    expect(await byName('Crossfit')).toMatchObject({ id, parentId: null, archived: false });
     expect(await byName('Dentista')).toMatchObject({ parentId: saude.id });
   });
 

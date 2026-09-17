@@ -71,6 +71,13 @@
       "when": 1789626765011,
       "tag": "0009_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789636937050,
+      "tag": "0010_seed_default_subcategories",
+      "breakpoints": true
     }
   ]
 }

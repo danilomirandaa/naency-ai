@@ -85,3 +85,32 @@ export const BothKindsForFilters: Story = {
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };
+
+/** Lista aberta e sem play: o screenshot cobre o alinhamento de ícone, nome e subcategorias. */
+export const OpenList: Story = {
+  args: { defaultOpen: true },
+  parameters: {
+    // Falsos positivos do estado aberto do Radix, só nesta story: o resto da página
+    // fica aria-hidden com o foco preso na lista, e a lista rola com as setas
+    // (roving focus), não com Tab.
+    a11y: {
+      config: {
+        rules: [
+          { id: 'aria-hidden-focus', enabled: false },
+          { id: 'scrollable-region-focusable', enabled: false },
+        ],
+      },
+    },
+  },
+  play: async () => {
+    const listbox = within(await screen.findByRole('listbox'));
+    const option = listbox.getByRole('option', { name: 'Alimentação' });
+    const icon = option.querySelector('[data-slot="category-icon"]');
+    const label = [...option.querySelectorAll('span')].find((node) => node.textContent === 'Alimentação');
+    // Ícone e nome na mesma linha.
+    await expect(icon?.getBoundingClientRect().top).toBeLessThan(label?.getBoundingClientRect().bottom ?? 0);
+    await expect(
+      Math.abs((icon?.getBoundingClientRect().top ?? 0) - (option.getBoundingClientRect().top ?? 0)),
+    ).toBeLessThan(12);
+  },
+};

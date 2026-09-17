@@ -64,14 +64,31 @@ export type CategoryDefinition = {
   children?: string[];
 };
 
-/** Conjunto semeado em todo espaço novo (e nos existentes, pela migration 0004). */
+/**
+ * Conjunto semeado em todo espaço novo. Espaços existentes receberam pelas migrations
+ * `seed_default_categories` (0004) e `seed_default_subcategories` (0010).
+ */
 export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   {
     name: 'Moradia',
     kind: 'expense',
     icon: 'category-home',
     color: '#6366F1',
-    children: ['Aluguel', 'Condomínio', 'Energia', 'Água', 'Internet', 'Manutenção'],
+    children: [
+      'Aluguel',
+      'Condomínio',
+      'Energia',
+      'Água',
+      'Internet',
+      'Manutenção',
+      'Gás',
+      'IPTU',
+      'Hipoteca',
+      'Móveis',
+      'Eletrodomésticos',
+      'Reparos',
+      'Taxas',
+    ],
   },
   { name: 'Mercado', kind: 'expense', icon: 'category-market', color: '#16A34A' },
   {
@@ -79,31 +96,69 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
     kind: 'expense',
     icon: 'category-food',
     color: '#EA580C',
-    children: ['Restaurantes', 'Delivery', 'Padaria e café'],
+    children: ['Restaurantes', 'Delivery', 'Padaria e café', 'Açougue', 'Bares', 'Fast food', 'Hortifruti', 'Pescados'],
   },
   {
     name: 'Transporte',
     kind: 'expense',
     icon: 'category-transport',
     color: '#0EA5E9',
-    children: ['Combustível', 'Aplicativos', 'Transporte público', 'Estacionamento', 'Manutenção do carro'],
+    children: [
+      'Combustível',
+      'Aplicativos',
+      'Transporte público',
+      'Estacionamento',
+      'Manutenção do carro',
+      'Consórcio',
+      'IPVA',
+      'Licenciamento',
+      'Seguro do carro',
+      'Multas',
+      'Pedágios',
+      'Lavagem',
+      'Passagens',
+      'Outros transportes',
+    ],
   },
   {
     name: 'Saúde',
     kind: 'expense',
     icon: 'category-health',
     color: '#DC2626',
-    children: ['Plano de saúde', 'Farmácia', 'Consultas e exames'],
+    children: [
+      'Plano de saúde',
+      'Farmácia',
+      'Consultas e exames',
+      'Plano odontológico',
+      'Convênios',
+      'Particular',
+      'Emergências',
+      'Terapias',
+      'Academia',
+      'Barbearia',
+    ],
   },
-  { name: 'Educação', kind: 'expense', icon: 'category-education', color: '#7C3AED' },
+  {
+    name: 'Educação',
+    kind: 'expense',
+    icon: 'category-education',
+    color: '#7C3AED',
+    children: ['Escola', 'Inglês', 'Cursos', 'Faculdade', 'Material escolar'],
+  },
   {
     name: 'Lazer',
     kind: 'expense',
     icon: 'category-leisure',
     color: '#DB2777',
-    children: ['Viagens', 'Passeios', 'Hobbies'],
+    children: ['Viagens', 'Passeios', 'Hobbies', 'Cinema', 'Teatro', 'Shows', 'Festas', 'Festivais', 'Futebol'],
   },
-  { name: 'Assinaturas', kind: 'expense', icon: 'category-subscriptions', color: '#0891B2' },
+  {
+    name: 'Assinaturas',
+    kind: 'expense',
+    icon: 'category-subscriptions',
+    color: '#0891B2',
+    children: ['Netflix', 'Spotify', 'Disney+', 'Prime Video', 'Max', 'Globoplay', 'YouTube Premium'],
+  },
   {
     name: 'Compras',
     kind: 'expense',
@@ -124,6 +179,15 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   { name: 'Rendimentos', kind: 'income', icon: 'category-investments', color: '#0D9488' },
   { name: 'Reembolsos', kind: 'income', icon: 'category-refund', color: '#0EA5E9' },
   { name: 'Outras receitas', kind: 'income', icon: 'category-other', color: '#65A30D' },
+  { name: 'Freelas', kind: 'income', icon: 'category-business', color: '#7C3AED' },
+  { name: 'Renda extra', kind: 'income', icon: 'category-salary', color: '#0891B2' },
+  { name: 'Hora extra', kind: 'income', icon: 'category-salary', color: '#6366F1' },
+  { name: 'Pró-labore', kind: 'income', icon: 'category-business', color: '#475569' },
+  { name: 'Cashback', kind: 'income', icon: 'category-refund', color: '#CA8A04' },
+  { name: 'Resgates', kind: 'income', icon: 'category-investments', color: '#0D9488' },
+  { name: 'FGTS', kind: 'income', icon: 'category-business', color: '#EA580C' },
+  { name: 'Venda de bens', kind: 'income', icon: 'category-shopping', color: '#92400E' },
+  { name: 'Doações recebidas', kind: 'income', icon: 'category-gifts', color: '#DB2777' },
 ];
 
 export type CategoryNode<T extends { id: string; parentId: string | null }> = T & {

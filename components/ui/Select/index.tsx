@@ -112,6 +112,8 @@ function SelectItem({
         'relative flex w-full cursor-default select-none items-center gap-2 rounded-control py-1.5 pr-8 pl-2 text-sm outline-hidden transition-colors',
         'focus:bg-background-neutral-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4',
+        // Texto do item (último span) em linha: ícone e nome lado a lado, como no shadcn.
+        '*:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2',
         className,
       )}
       {...props}

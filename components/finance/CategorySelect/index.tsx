@@ -34,6 +34,8 @@ export type CategorySelectProps = Partial<FieldControlProps> & {
   /** Texto da opção "sem categoria"; `null` esconde a opção. */
   noneLabel?: string | null;
   disabled?: boolean;
+  /** Abre a lista ao montar (stories). */
+  defaultOpen?: boolean;
 };
 
 const NONE = 'none';
@@ -49,6 +51,7 @@ export function CategorySelect({
   placeholder = 'Escolha a categoria',
   noneLabel = 'Sem categoria',
   disabled,
+  defaultOpen,
   ...control
 }: CategorySelectProps) {
   const isControlled = value !== undefined;
@@ -76,6 +79,7 @@ export function CategorySelect({
         value={known ? (selected as string) : noneLabel !== null ? NONE : ''}
         onValueChange={handleChange}
         disabled={disabled}
+        defaultOpen={defaultOpen}
       >
         <Select.Trigger {...control}>
           <Select.Value placeholder={placeholder} />

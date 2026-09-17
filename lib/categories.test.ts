@@ -28,21 +28,26 @@ describe('DEFAULT_CATEGORIES', () => {
     }
   });
 
-  it('a migration que semeia espaços existentes tem exatamente a mesma lista', () => {
+  it('as migrations que semeiam espaços existentes cobrem exatamente a lista padrão', () => {
     const dir = 'server/db/migrations';
-    const file = readdirSync(dir).find((name) => name.includes('seed_default_categories'));
-    expect(file).toBeDefined();
-    const sql = readFileSync(path.join(dir, file ?? ''), 'utf8');
+    const sql = readdirSync(dir)
+      .filter((name) => /seed_default_(sub)?categories/.test(name))
+      .map((name) => readFileSync(path.join(dir, name), 'utf8'))
+      .join('\n');
     const expected = DEFAULT_CATEGORIES.flatMap((category) => [
-      `('${category.name}', '${category.kind}', '${category.icon}', '${category.color}', NULL)`,
-      ...(category.children ?? []).map(
-        (child) => `('${child}', '${category.kind}', '${category.icon}', '${category.color}', '${category.name}')`,
-      ),
-    ]);
-    const found = [...sql.matchAll(/^\s*(\('.*?'\, '.*?', '.*?', '.*?', (?:NULL|'.*?')\))/gm)].map(
-      (match) => match[1],
+      `${category.kind}|${category.name}|`,
+      ...(category.children ?? []).map((child) => `${category.kind}|${child}|${category.name}`),
+    ]).sort();
+    // Linhas com (nome, tipo, ícone, cor, pai|NULL) ou, só nas subcategorias novas, (pai, tipo, nome).
+    const full = [...sql.matchAll(/^\s*\('([^']*)', '(expense|income)', 'category-[a-z-]+', '#[0-9A-F]{6}', (?:NULL|'([^']*)')\),?$/gm)].map(
+      (match) => `${match[2]}|${match[1]}|${match[3] ?? ''}`,
     );
-    expect(found).toEqual(expected);
+    const short = [...sql.matchAll(/^\s*\('([^']*)', '(expense|income)', '([^']*)'\),?$/gm)].map(
+      (match) => `${match[2]}|${match[3]}|${match[1]}`,
+    );
+    const roots = full;
+    const children = short;
+    expect([...roots, ...children].sort()).toEqual(expected);
   });
 });
 

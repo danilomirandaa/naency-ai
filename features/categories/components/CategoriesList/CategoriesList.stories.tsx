@@ -34,7 +34,7 @@ export const ExpensesEditor: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const list = within(canvas.getByRole('list', { name: 'Categorias de despesa' }));
-    await expect(list.getByText('6 subcategorias')).toBeInTheDocument();
+    await expect(list.getByText('13 subcategorias')).toBeInTheDocument();
     await expect(list.queryByText('Salário')).toBeNull();
     await expect(list.queryByText('Pets')).toBeNull();
 
@@ -56,7 +56,7 @@ export const IncomeViewer: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const list = within(canvas.getByRole('list', { name: 'Categorias de receita' }));
-    await expect(list.getAllByRole('listitem')).toHaveLength(4);
+    await expect(list.getAllByRole('listitem')).toHaveLength(13);
     await expect(canvas.queryByRole('button')).toBeNull();
   },
 };
