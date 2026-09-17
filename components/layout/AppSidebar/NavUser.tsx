@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar } from '@/components/ui/Avatar';
+import { MemberAvatar } from '@/components/finance/MemberAvatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,24 +20,10 @@ export type NavUserData = {
   avatarUrl?: string;
 };
 
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('');
-}
-
 function UserSummary({ user }: { user: NavUserData }) {
   return (
     <>
-      <Avatar.Root className="rounded-control-sm">
-        {user.avatarUrl && <Avatar.Image src={user.avatarUrl} alt={user.name} />}
-        <Avatar.Fallback className="rounded-control-sm">
-          {getInitials(user.name)}
-        </Avatar.Fallback>
-      </Avatar.Root>
+      <MemberAvatar name={user.name} avatarUrl={user.avatarUrl} shape="square" />
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{user.name}</span>
         <span className="truncate text-typography-neutral-secondary text-xs">

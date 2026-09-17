@@ -36,6 +36,10 @@ describe('getBreadcrumb', () => {
     ]);
   });
 
+  it('membros fica na navegação secundária', () => {
+    expect(getBreadcrumb('/membros')).toEqual([{ title: 'Membros', url: '/membros' }]);
+  });
+
   it('inclui a navegação secundária', () => {
     expect(getBreadcrumb('/configuracoes')).toEqual([
       { title: 'Configurações', url: '/configuracoes' },

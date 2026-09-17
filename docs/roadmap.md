@@ -45,7 +45,8 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [ ] Categorias: seed padrão e CRUD
 - [ ] Lançamentos: CRUD de receita, despesa e transferência
 - [ ] Página de Transações (filtros por período, conta, categoria, tipo)
-- [ ] Convite de membro, aceite e gestão de papéis
+- [x] Convite de membro por link, aceite e página de membros
+- [ ] Gestão de papéis (mudar papel, remover membro, regra do último admin)
 
 ## Fase 2 · Cartões
 

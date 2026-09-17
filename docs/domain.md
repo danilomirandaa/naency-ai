@@ -72,7 +72,15 @@ Regras:
 
 - Um espaço tem sempre pelo menos um `admin`; o último admin não pode sair nem ser rebaixado.
 - Um usuário pode estar em vários espaços.
-- Convite expira em 7 dias e é de uso único. O token é guardado só como hash.
+- Convite é um **link** (`/convite/<token>`) gerado em `/membros` e enviado por quem
+  convida (WhatsApp, e-mail pessoal). Expira em 7 dias e é de uso único; o banco guarda
+  só o hash SHA-256 do token.
+- Só aceita quem entrar com **o e-mail convidado**: um link vazado não serve para outra
+  pessoa. Quem entra com outro e-mail vê só o e-mail convidado mascarado (`a***@dominio`).
+- Convidar de novo o mesmo e-mail substitui o convite pendente anterior. Não dá para
+  convidar quem já é membro, nem convidar como `admin` (por enquanto).
+- O aceite marca o convite como usado só se ele ainda não foi (duas abas ao mesmo tempo
+  não criam dois aceites). Regras em `server/invitations/evaluate.ts`, com testes.
 - Quem entra por convite **pula o onboarding**, porque o espaço já está configurado.
 - A regra é aplicada no DAL (`requireMembership`) e coberta por testes de integração por papel ([testes](./testing.md)).
 
