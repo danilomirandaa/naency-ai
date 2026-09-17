@@ -571,13 +571,18 @@ export async function setTransactionStatus(
   return { id: transactionId };
 }
 
-/** Soma que entra no saldo de cada conta: efetivados, não excluídos, a partir da data do saldo inicial. */
+/**
+ * Soma que entra no saldo de cada conta: efetivados e não excluídos. Em conta
+ * comum, a partir da data do saldo inicial; em cartão de crédito, tudo, porque
+ * cartão não tem saldo inicial e a fatura importada costuma ser mais antiga que
+ * o cadastro do cartão.
+ */
 export function accountMovementSql() {
   return sql<string>`coalesce((
     select sum(t.amount_cents) from ${transactions} t
     where t.account_id = ${sql.raw('"accounts"."id"')}
       and t.deleted_at is null
       and t.status = 'cleared'
-      and t.date >= ${sql.raw('"accounts"."initial_balance_date"')}
+      and (${sql.raw('"accounts"."type"')} = 'credit_card' or t.date >= ${sql.raw('"accounts"."initial_balance_date"')})
   ), 0)`;
 }

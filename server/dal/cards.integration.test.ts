@@ -127,6 +127,49 @@ describe('cartão: faturas', () => {
     });
   });
 
+  it('compra anterior ao cadastro do cartão conta no limite usado', async () => {
+    // Cartão cadastrado hoje e fatura importada com compras de meses atrás:
+    // cartão não tem saldo inicial, então a data do cadastro não corta nada.
+    const { id: novo } = await createAccount(workspaceId, {
+      ...cardInput,
+      name: 'XP Black',
+      initialBalanceDate: TODAY,
+      defaultPaymentAccountId: null,
+    });
+    await createTransaction(workspaceId, {
+      kind: 'expense',
+      accountId: novo,
+      amountCents: 141_524,
+      date: '2025-12-05',
+      description: 'Compra antiga',
+      categoryId: null,
+      status: 'cleared',
+      notes: null,
+    });
+    const summary = (await listCards(workspaceId, { today: TODAY })).find((item) => item.name === 'XP Black');
+    expect(summary).toMatchObject({ balanceCents: -141_524, availableCents: 358_476 });
+
+    // Conta comum continua ignorando o que é anterior ao saldo inicial.
+    const { id: poupanca } = await createAccount(workspaceId, {
+      name: 'Poupança',
+      type: 'savings',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: TODAY,
+    });
+    await createTransaction(workspaceId, {
+      kind: 'expense',
+      accountId: poupanca,
+      amountCents: 1_000,
+      date: '2025-12-05',
+      description: 'Antiga',
+      categoryId: null,
+      status: 'cleared',
+      notes: null,
+    });
+    expect((await listAccounts(workspaceId)).find((item) => item.name === 'Poupança')?.balanceCents).toBe(0);
+  });
+
   it('cartão sem compra mostra a fatura atual vazia', async () => {
     const invoices = await listCardInvoices(workspaceId, card, { today: TODAY });
     expect(invoices).toEqual([
