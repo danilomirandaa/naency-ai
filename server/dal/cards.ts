@@ -176,6 +176,7 @@ export async function payInvoice(workspaceId: string, invoiceId: string, input: 
       date: data.date,
       description: `Pagamento da fatura de ${formatMonth(invoice.referenceMonth).toLowerCase()}`,
       status: 'cleared' as const,
+      paidAt: data.date,
       transferGroupId,
       createdBy: user.id,
       updatedBy: user.id,

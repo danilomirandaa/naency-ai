@@ -35,6 +35,7 @@ export function CardInvoiceScreen({ workspaceId, card, canEdit, today }: CardInv
   const accounts = useQuery(accountsQuery.options(workspaceId, { includeArchived: false }));
   const [paying, setPaying] = React.useState(false);
   const [page, setPage] = React.useState(1);
+  const [sort, setSort] = React.useState<TransactionFilters['sort']>(null);
   const [unpayFailed, setUnpayFailed] = React.useState(false);
 
   const list = invoices.data ?? [];
@@ -53,6 +54,7 @@ export function CardInvoiceScreen({ workspaceId, card, canEdit, today }: CardInv
     kind: null,
     search: '',
     page,
+    sort,
     // Fatura ainda sem lançamentos: id inexistente para a lista vir vazia.
     invoiceId: selected?.id ?? '00000000-0000-4000-8000-000000000000',
   };
@@ -109,6 +111,11 @@ export function CardInvoiceScreen({ workspaceId, card, canEdit, today }: CardInv
             canEdit={canEdit}
             filters={filters}
             onPageChange={setPage}
+            onSortChange={(next) => {
+              setSort(next);
+              setPage(1);
+            }}
+            hiddenColumns={['situation', 'paymentMethod', 'paidAt']}
             isFiltered={false}
             defaultKind="expense"
             today={today}

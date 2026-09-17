@@ -8,6 +8,7 @@ const meta: Meta<typeof TransactionsList> = {
   component: TransactionsList,
   args: {
     items: transactionsFixture,
+    today: '2026-09-17',
     canEdit: true,
     onEdit: fn(),
     onDelete: fn(),
@@ -40,7 +41,8 @@ export const Editor: Story = {
     await expect(canvas.getByText('Moradia › Energia · Nubank')).toBeInTheDocument();
     await expect(canvas.getByText('Sem categoria · Carteira')).toBeInTheDocument();
     await expect(canvas.getByText('+R$ 8.500,00')).toBeInTheDocument();
-    await expect(canvas.getByText('Previsto')).toBeInTheDocument();
+    // Previsto com data passada aparece como atrasado.
+    await expect(canvas.getByText('Atrasada')).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole('button', { name: 'Marcar Conta de luz como efetivado' }));
     await expect(args.onStatusChange).toHaveBeenCalledWith(transactionsFixture[0], 'cleared');

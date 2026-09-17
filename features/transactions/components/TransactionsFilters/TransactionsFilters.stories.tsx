@@ -18,13 +18,14 @@ const base: TransactionFilters = {
 
 const onChange = fn();
 
-function Demo({ initial }: { initial: TransactionFilters }) {
+function Demo({ initial, overdueCount = 0 }: { initial: TransactionFilters; overdueCount?: number }) {
   const [filters, setFilters] = React.useState(initial);
   return (
     <TransactionsFilters
       filters={filters}
       accounts={accountsFixture}
       categories={categoriesFixture}
+      overdueCount={overdueCount}
       onChange={(changes) => {
         onChange(changes);
         setFilters((current) => ({ ...current, ...changes, page: 1 }));
@@ -58,9 +59,41 @@ export const ChangeFilters: Story = {
     await expect(onChange).toHaveBeenLastCalledWith({ search: 'padaria' });
 
     await userEvent.click(canvas.getByRole('button', { name: 'Limpar filtros' }));
-    await expect(onChange).toHaveBeenLastCalledWith({ accountId: null, categoryId: null, search: '' });
+    await expect(onChange).toHaveBeenLastCalledWith({ accountId: null, categoryId: null, search: '', situation: null });
     await expect(canvas.getByLabelText('Buscar na descrição')).toHaveValue('');
     (document.activeElement as HTMLElement | null)?.blur();
+  },
+};
+
+export const SituationChips: Story = {
+  render: () => <Demo initial={{ ...base, kind: 'expense' }} overdueCount={13} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = within(canvas.getByRole('tablist', { name: 'Situação' }));
+    await expect(group.getByRole('tab', { name: 'Todas' })).toHaveAttribute('aria-selected', 'true');
+    // Atrasadas mostra quantas são, mesmo fora do período.
+    const overdue = group.getByRole('tab', { name: 'Atrasadas 13' });
+    await userEvent.click(overdue);
+    await expect(onChange).toHaveBeenLastCalledWith({ situation: 'overdue' });
+    await expect(overdue).toHaveAttribute('aria-selected', 'true');
+    await expect(canvas.getByText('Vencidas e não pagas, de qualquer mês')).toBeInTheDocument();
+    await userEvent.click(group.getByRole('tab', { name: 'A pagar' }));
+    await expect(onChange).toHaveBeenLastCalledWith({ situation: 'pending' });
+    await userEvent.click(group.getByRole('tab', { name: 'Pagas' }));
+    await expect(onChange).toHaveBeenLastCalledWith({ situation: 'paid' });
+    await userEvent.click(canvas.getByRole('button', { name: 'Limpar filtros' }));
+    await expect(group.getByRole('tab', { name: 'Todas' })).toHaveAttribute('aria-selected', 'true');
+    (document.activeElement as HTMLElement | null)?.blur();
+  },
+};
+
+export const IncomeLabels: Story = {
+  render: () => <Demo initial={{ ...base, kind: 'income' }} />,
+  play: async ({ canvasElement }) => {
+    const group = within(within(canvasElement).getByRole('tablist', { name: 'Situação' }));
+    await expect(group.getByRole('tab', { name: 'A receber' })).toBeInTheDocument();
+    await expect(group.getByRole('tab', { name: 'Recebidas' })).toBeInTheDocument();
+    await expect(group.getByRole('tab', { name: 'Atrasadas' })).toBeInTheDocument();
   },
 };
 

@@ -8,12 +8,15 @@ import { List } from '@/components/ui/List';
 import { Panel } from '@/components/ui/Panel';
 import { Spinner } from '@/components/ui/Spinner';
 import { Text } from '@/components/ui/Text';
+import { TransactionStatusBadge } from '@/features/transactions/components/TransactionStatusBadge';
 import type { TransactionItem } from '@/features/transactions/types';
 import { formatDayHeading } from '@/lib/dates';
 import { useTransition } from 'react';
 
 export type TransactionsListProps = {
   items: TransactionItem[];
+  /** "AAAA-MM-DD" de hoje, para marcar atrasados. */
+  today: string;
   canEdit: boolean;
   onEdit: (transaction: TransactionItem) => void;
   onDelete: (transaction: TransactionItem) => void;
@@ -83,9 +86,10 @@ function ConfirmButton({
   );
 }
 
-/** Lançamentos agrupados por dia, com valor colorido por tipo e ações de quem edita. */
+/** Lançamentos agrupados por dia (visão de celular da tabela), com valor colorido por tipo e ações de quem edita. */
 export function TransactionsList({
   items,
+  today,
   canEdit,
   onEdit,
   onDelete,
@@ -168,9 +172,13 @@ export function TransactionsList({
                         <Text size="sm" weight="medium" className="truncate">
                           {item.description}
                           {item.status === 'planned' && (
-                            <Panel.RowBadge color="gray" className="ml-2 align-middle">
-                              Previsto
-                            </Panel.RowBadge>
+                            <TransactionStatusBadge
+                              kind={item.kind}
+                              status={item.status}
+                              date={item.date}
+                              today={today}
+                              className="ml-2 align-middle"
+                            />
                           )}
                         </Text>
                         <Text size="xs" color="secondary" className="truncate">

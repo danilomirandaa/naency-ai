@@ -1,57 +1,194 @@
-import { MoneyValue } from '@/components/finance/MoneyValue';
-import { Panel } from '@/components/ui/Panel';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { Text } from '@/components/ui/Text';
+import {
+  MoneyValue,
+  type MoneyValueProps,
+} from "@/components/finance/MoneyValue";
+import { Icon, type Icons } from "@/components/ui/Icon";
+import { Panel } from "@/components/ui/Panel";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Text } from "@/components/ui/Text";
+import type { TransactionsPage } from "@/features/transactions/types";
+import type { TransactionKind } from "@/lib/transactions";
+import { classMerge } from "@/lib/utils";
 
 export type TransactionsSummaryProps = {
-  /** Soma das receitas (positiva). */
-  incomeCents: number;
-  /** Soma das despesas (negativa). */
-  expenseCents: number;
+  /** Página de despesas ou receitas mostra por situação; sem tipo, receitas × despesas. */
+  kind: TransactionKind | null;
+  totals: TransactionsPage["totals"];
   isLoading?: boolean;
 };
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
+type Tone = "warning" | "income" | "expense" | "neutral";
+
+// Cor sutil: fundo do ícone com 12% da cor.
+const TONE_CLASSES: Record<Tone, string> = {
+  warning: "bg-icon-status-warning-rest/12 text-icon-status-warning-rest",
+  income: "bg-icon-finance-income/12 text-icon-finance-income",
+  expense: "bg-icon-finance-expense/12 text-icon-finance-expense",
+  neutral: "bg-background-neutral-100 text-icon-neutral-rest",
+};
+
+type Card = {
+  label: string;
+  icon: Icons;
+  tone: Tone;
+  cents: number;
+  moneyKind: MoneyValueProps["kind"];
+  showPlusSign?: boolean;
+  detail?: string;
+};
+
+function plural(count: number, one: string, many: string) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+function cardsFor(
+  kind: TransactionKind | null,
+  totals: TransactionsPage["totals"],
+): Card[] {
+  const { pending, paid } = totals;
+  const all = pending.count + paid.count;
+  if (kind === "expense") {
+    return [
+      {
+        label: "A pagar",
+        icon: "clock",
+        tone: "warning",
+        cents: Math.abs(pending.cents),
+        moneyKind: "neutral",
+        detail: plural(pending.count, "despesa pendente", "despesas pendentes"),
+      },
+      {
+        label: "Pagas",
+        icon: "check",
+        tone: "income",
+        cents: Math.abs(paid.cents),
+        moneyKind: "neutral",
+        detail: plural(paid.count, "despesa paga", "despesas pagas"),
+      },
+      {
+        label: "Total de despesas",
+        icon: "expense",
+        tone: "expense",
+        cents: Math.abs(pending.cents + paid.cents),
+        moneyKind: "neutral",
+        detail: plural(all, "despesa no período", "despesas no período"),
+      },
+    ];
+  }
+  if (kind === "income") {
+    return [
+      {
+        label: "A receber",
+        icon: "clock",
+        tone: "warning",
+        cents: pending.cents,
+        moneyKind: "neutral",
+        detail: plural(pending.count, "receita pendente", "receitas pendentes"),
+      },
+      {
+        label: "Recebidas",
+        icon: "check",
+        tone: "income",
+        cents: paid.cents,
+        moneyKind: "neutral",
+        detail: plural(paid.count, "receita recebida", "receitas recebidas"),
+      },
+      {
+        label: "Total de receitas",
+        icon: "income",
+        tone: "income",
+        cents: pending.cents + paid.cents,
+        moneyKind: "neutral",
+        detail: plural(all, "receita no período", "receitas no período"),
+      },
+    ];
+  }
+  const result = totals.incomeCents + totals.expenseCents;
+  return [
+    {
+      label: "Receitas",
+      icon: "income",
+      tone: "income",
+      cents: totals.incomeCents,
+      moneyKind: "income",
+    },
+    {
+      label: "Despesas",
+      icon: "expense",
+      tone: "expense",
+      cents: totals.expenseCents,
+      moneyKind: "expense",
+    },
+    {
+      label: "Resultado",
+      icon: "wallet",
+      tone: "neutral",
+      cents: result,
+      moneyKind: result < 0 ? "expense" : "neutral",
+      showPlusSign: result > 0,
+    },
+  ];
+}
+
+function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
   return (
-    <div className="flex flex-col gap-1 bg-background-neutral-000 px-4 py-3">
-      <dt>
-        <Text size="xs" color="secondary">
-          {label}
-        </Text>
-      </dt>
-      <dd>{children}</dd>
+    <div className="flex items-start justify-between gap-3 bg-background-neutral-000 px-4 py-3">
+      <dl className="flex min-w-0 flex-col gap-1">
+        <dt>
+          <Text size="xs" color="secondary">
+            {card.label}
+          </Text>
+        </dt>
+        <dd className="flex flex-col gap-0.5">
+          {isLoading ? (
+            <Skeleton className="h-6 w-24" />
+          ) : (
+            <MoneyValue
+              cents={card.cents}
+              kind={card.moneyKind}
+              showPlusSign={card.showPlusSign}
+              size="lg"
+              weight="semibold"
+              className="tabular-nums"
+            />
+          )}
+          {card.detail && !isLoading && (
+            <Text size="xs" color="secondary">
+              {card.detail}
+            </Text>
+          )}
+        </dd>
+      </dl>
+      <span
+        aria-hidden
+        className={classMerge(
+          "flex size-7 shrink-0 items-center justify-center rounded-full [&_svg]:size-3.5",
+          TONE_CLASSES[card.tone],
+        )}
+      >
+        <Icon icon={card.icon} />
+      </span>
     </div>
   );
 }
 
-/** Receitas, despesas e resultado do período filtrado (sem transferências). */
-export function TransactionsSummary({ incomeCents, expenseCents, isLoading = false }: TransactionsSummaryProps) {
-  const result = incomeCents + expenseCents;
-  const value = (content: React.ReactNode) =>
-    isLoading ? <Skeleton className="h-6 w-24" /> : content;
-
+/**
+ * Resumo do topo da página de lançamentos. Em despesas e receitas: pendentes,
+ * pagas e total do período, com quantidades; em "Todas": receitas, despesas e
+ * resultado. Valores do período inteiro, sem transferências.
+ */
+export function TransactionsSummary({
+  kind,
+  totals,
+  isLoading = false,
+}: TransactionsSummaryProps) {
   return (
     <Panel.Root>
-      <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-[inherit] bg-border-neutral-subtle sm:grid-cols-3">
-        <Stat label="Receitas">
-          {value(<MoneyValue cents={incomeCents} kind="income" size="lg" weight="semibold" className="tabular-nums" />)}
-        </Stat>
-        <Stat label="Despesas">
-          {value(<MoneyValue cents={expenseCents} kind="expense" size="lg" weight="semibold" className="tabular-nums" />)}
-        </Stat>
-        <Stat label="Resultado">
-          {value(
-            <MoneyValue
-              cents={result}
-              kind={result < 0 ? 'expense' : 'neutral'}
-              showPlusSign={result > 0}
-              size="lg"
-              weight="semibold"
-              className="tabular-nums"
-            />,
-          )}
-        </Stat>
-      </dl>
+      <Panel.Body className="grid grid-cols-1 gap-px bg-border-neutral-subtle sm:grid-cols-3">
+        {cardsFor(kind, totals).map((card) => (
+          <Stat key={card.label} card={card} isLoading={isLoading} />
+        ))}
+      </Panel.Body>
     </Panel.Root>
   );
 }

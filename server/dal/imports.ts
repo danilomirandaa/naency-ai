@@ -9,6 +9,7 @@ import type { ImportBatchDetail, ImportBatchSummary, ImportRowItem } from '@/fea
 import { parseStatement } from '@/lib/import/parse';
 import { matchRule, suggestRulePattern } from '@/lib/import/rules';
 import { StatementParseError } from '@/lib/import/types';
+import { inferPaymentMethod } from '@/lib/transactions';
 import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
 import {
@@ -317,6 +318,10 @@ export async function commitImportBatch(workspaceId: string, batchId: string) {
       .where(and(eq(importRows.batchId, batch.id), eq(importRows.include, true)))
       .orderBy(asc(importRows.position));
 
+    const [account] = await tx
+      .select({ type: accounts.type })
+      .from(accounts)
+      .where(eq(accounts.id, batch.accountId));
     for (const row of rows) {
       const kind = row.amountCents > 0 ? 'income' : 'expense';
       await tx.insert(transactions).values({
@@ -329,6 +334,8 @@ export async function commitImportBatch(workspaceId: string, batchId: string) {
         rawDescription: row.rawDescription,
         categoryId: row.categoryId,
         status: 'cleared',
+        paidAt: row.date,
+        paymentMethod: inferPaymentMethod(row.rawDescription, account?.type ?? ''),
         importBatchId: batch.id,
         fingerprint: row.fingerprint,
         invoiceId: await resolveInvoiceId(tx, workspaceId, batch.accountId, row.date),

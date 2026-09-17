@@ -99,6 +99,11 @@ describe('importação: confirmar', () => {
       ['Transferência recebida - EMPRESA LTDA', 850_000, null],
       ['Compra no débito - PADARIA SAO JOAO', -4_590, 'Padaria e café'],
     ]);
+    // Importado entra pago no dia do extrato, com a forma de pagamento que a descrição indica.
+    expect(page.items.map((item) => [item.paymentMethod, item.paidAt === item.date])).toEqual([
+      [null, true],
+      ['debit_card', true],
+    ]);
     expect((await listAccounts(workspaceId))[0]?.balanceCents).toBe(845_410);
     await expect(commitImportBatch(workspaceId, batch.id)).rejects.toMatchObject({ code: 'not-in-review' });
     await expect(updateImportRow(workspaceId, batch.rows[0]?.id ?? '', { include: false })).rejects.toMatchObject({

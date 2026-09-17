@@ -48,6 +48,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Categorias: conjunto padrão (espaços novos e existentes), CRUD em dois níveis, arquivar, `CategoryIcon` e `CategorySelect`
 - [x] Lançamentos: receita, despesa e transferência (duas pernas), previsto/efetivado, exclusão lógica
 - [x] Página de Transações: filtros na URL (mês, conta, categoria com subcategorias, busca), rotas por tipo, resumo do período, paginação
+- [x] Transações em tabela (lista por dia no celular): situação (atrasada/a pagar/paga), forma de pagamento, pago em, recorrente/parcela, ordenação por coluna, filtro rápido de situação com contador de atrasadas, resumo por situação em Receitas e Despesas
 - [x] Convite de membro por link, aceite e página de membros
 - [x] Gestão de papéis: trocar papel, remover membro, sair do espaço e regra do último admin (checada na transação)
 

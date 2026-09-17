@@ -13,7 +13,8 @@ import {
 import { transactionsQuery } from '@/features/transactions/api/transactions.queries';
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog';
 import { TransactionsList } from '@/features/transactions/components/TransactionsList';
-import type { TransactionFilters } from '@/features/transactions/filters';
+import { TransactionsTable, type TransactionsTableProps } from '@/features/transactions/components/TransactionsTable';
+import type { TransactionFilters, TransactionSort } from '@/features/transactions/filters';
 import type { TransactionItem, TransactionsPage } from '@/features/transactions/types';
 import type { TransactionKind } from '@/lib/transactions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,11 +25,13 @@ export type TransactionsManagerProps = {
   canEdit: boolean;
   filters: TransactionFilters;
   onPageChange: (page: number) => void;
+  onSortChange: (sort: TransactionSort | null) => void;
   isFiltered: boolean;
   defaultKind: TransactionKind;
   today: string;
   /** Chaves extras a invalidar depois de uma escrita (ex.: faturas). */
   extraInvalidations?: readonly (readonly unknown[])[];
+  hiddenColumns?: TransactionsTableProps['hiddenColumns'];
   /** Recebe a página carregada (resumo, cabeçalhos). */
   children?: (state: {
     page: TransactionsPage | undefined;
@@ -48,10 +51,12 @@ export function TransactionsManager({
   canEdit,
   filters,
   onPageChange,
+  onSortChange,
   isFiltered,
   defaultKind,
   today,
   extraInvalidations = [],
+  hiddenColumns,
   children,
 }: TransactionsManagerProps) {
   const queryClient = useQueryClient();
@@ -80,6 +85,16 @@ export function TransactionsManager({
     [editing, workspaceId],
   );
   const openCreate = () => setDialog({ mode: 'create' });
+  const rowHandlers = {
+    onEdit: (transaction: TransactionItem) => setDialog({ mode: 'edit', transaction }),
+    // Excluir sempre passa pelo DeleteDialog abaixo.
+    onDelete: setDeleting,
+    onStatusChange: async (transaction: TransactionItem, status: 'cleared' | 'planned') => {
+      const { ok } = await setTransactionStatusAction(workspaceId, transaction.id, status);
+      setActionFailed(!ok);
+      await refresh();
+    },
+  };
 
   return (
     <>
@@ -89,26 +104,45 @@ export function TransactionsManager({
           Não foi possível alterar o lançamento. Atualize a página e tente de novo.
         </Panel.Callout>
       )}
-      <TransactionsList
-        items={page.data?.items ?? []}
-        total={page.data?.total ?? 0}
-        page={filters.page}
-        pageSize={page.data?.pageSize ?? 50}
-        onPageChange={onPageChange}
-        isLoading={page.isPending}
-        isError={page.isError}
-        onRetry={() => void page.refetch()}
-        isFiltered={isFiltered}
-        canEdit={canEdit}
-        onCreate={openCreate}
-        onEdit={(transaction) => setDialog({ mode: 'edit', transaction })}
-        onDelete={setDeleting}
-        onStatusChange={async (transaction, status) => {
-          const { ok } = await setTransactionStatusAction(workspaceId, transaction.id, status);
-          setActionFailed(!ok);
-          await refresh();
-        }}
-      />
+      {/* Tabela no desktop; no celular, a lista por dia. A que não cabe some com display:none. */}
+      <div className="hidden md:block">
+        <TransactionsTable
+          items={page.data?.items ?? []}
+          today={today}
+          total={page.data?.total ?? 0}
+          page={filters.page}
+          pageSize={page.data?.pageSize ?? 50}
+          onPageChange={onPageChange}
+          sort={filters.sort ?? null}
+          onSortChange={onSortChange}
+          isLoading={page.isPending}
+          isError={page.isError}
+          emptyMessage={isFiltered ? 'Nada encontrado com esses filtros' : 'Nenhum lançamento neste período'}
+          emptyDescription={
+            canEdit && !isFiltered ? 'Lance receitas, despesas e transferências para acompanhar os saldos.' : undefined
+          }
+          canEdit={canEdit}
+          hiddenColumns={hiddenColumns}
+          {...rowHandlers}
+        />
+      </div>
+      <div className="md:hidden">
+        <TransactionsList
+          items={page.data?.items ?? []}
+          today={today}
+          total={page.data?.total ?? 0}
+          page={filters.page}
+          pageSize={page.data?.pageSize ?? 50}
+          onPageChange={onPageChange}
+          isLoading={page.isPending}
+          isError={page.isError}
+          onRetry={() => void page.refetch()}
+          isFiltered={isFiltered}
+          canEdit={canEdit}
+          onCreate={openCreate}
+          {...rowHandlers}
+        />
+      </div>
       {canEdit && (
         <>
           <TransactionFormDialog

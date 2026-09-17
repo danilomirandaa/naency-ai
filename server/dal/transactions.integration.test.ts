@@ -2,7 +2,7 @@ import { monthRange } from '@/lib/dates';
 import type { TransactionFilters } from '@/features/transactions/filters';
 import { ForbiddenError } from '@/server/auth/errors';
 import { createUser, resetTestDb, signInAs } from '@/tests/integration/db';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAccount, listAccounts, setAccountArchived } from './accounts';
 import { listCategories, setCategoryArchived } from './categories';
 import { acceptInvitation, createInvitation } from './members';
@@ -106,7 +106,7 @@ describe('lançamentos: receita e despesa', () => {
       transfer: null,
       createdByName: 'danilo',
     });
-    expect(page.totals).toEqual({ incomeCents: 500_000, expenseCents: -25_000 });
+    expect(page.totals).toMatchObject({ incomeCents: 500_000, expenseCents: -25_000 });
     expect(await balances()).toEqual({ Carteira: 0, Nubank: 575_000 });
   });
 
@@ -188,7 +188,7 @@ describe('lançamentos: transferência', () => {
     expect(page.items.map((item) => [item.account.name, item.amountCents, item.transfer?.counterpartAccountName])).toEqual([
       ['Nubank', -20_000, 'Carteira'],
     ]);
-    expect(page.totals).toEqual({ incomeCents: 0, expenseCents: 0 });
+    expect(page.totals).toMatchObject({ incomeCents: 0, expenseCents: 0 });
 
     // Filtrando pela conta de destino, aparece a entrada.
     const destination = await listTransactions(workspaceId, { ...september, accountId: carteira });
@@ -309,6 +309,118 @@ describe('lançamentos: filtros e paginação', () => {
     expect(second.items).toHaveLength(2);
     expect(first.totals.expenseCents).toBe(-5_200);
     expect(first.items[0]?.date).toBe('2026-10-31');
+  });
+});
+
+describe('lançamentos: situação, forma de pagamento e ordem', () => {
+  beforeEach(() => {
+    // "Hoje" decide o que está atrasado; só o Date é falso, o banco segue normal.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-17T15:00:00Z'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('grava forma de pagamento e dia do pagamento; previsto não tem pagamento', async () => {
+    const { id: paid } = await createTransaction(workspaceId, expense({ paymentMethod: 'pix', paidAt: '2026-09-12' }));
+    const { id: sameDay } = await createTransaction(workspaceId, expense({ description: 'Sem dia', date: '2026-09-08' }));
+    const { id: planned } = await createTransaction(
+      workspaceId,
+      expense({ description: 'Condomínio', status: 'planned', paymentMethod: 'boleto', paidAt: '2026-09-12' }),
+    );
+    const byId = async () =>
+      Object.fromEntries((await listTransactions(workspaceId, september)).items.map((item) => [item.id, item]));
+
+    let items = await byId();
+    expect(items[paid]).toMatchObject({ paymentMethod: 'pix', paidAt: '2026-09-12', recurring: false });
+    expect(items[sameDay]).toMatchObject({ paymentMethod: null, paidAt: '2026-09-08' });
+    expect(items[planned]).toMatchObject({ paymentMethod: 'boleto', paidAt: null });
+
+    // Efetivar marca pago hoje; voltar para previsto limpa.
+    await setTransactionStatus(workspaceId, planned, 'cleared');
+    items = await byId();
+    expect(items[planned]).toMatchObject({ status: 'cleared', paidAt: '2026-09-17' });
+    await setTransactionStatus(workspaceId, planned, 'planned');
+    expect((await byId())[planned]?.paidAt).toBeNull();
+
+    // Editar para previsto também limpa o dia do pagamento.
+    await updateTransaction(workspaceId, paid, expense({ status: 'planned', paidAt: '2026-09-12', paymentMethod: null }));
+    expect((await byId())[paid]).toMatchObject({ paidAt: null, paymentMethod: null });
+  });
+
+  it('despesa em cartão sai como cartão de crédito, inclusive parcelada', async () => {
+    const { id: card } = await createAccount(workspaceId, {
+      name: 'Nubank Roxinho',
+      type: 'credit_card',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: '2026-09-01',
+      closingDay: 5,
+      dueDay: 12,
+    });
+    await createTransaction(workspaceId, expense({ accountId: card, description: 'Farmácia' }));
+    await createTransaction(workspaceId, expense({ accountId: card, description: 'TV', installments: 3 }));
+    const page = await listTransactions(workspaceId, { ...september, from: '2026-09-01', to: '2026-12-31', accountId: card });
+    expect(page.items.map((item) => item.paymentMethod)).toEqual(['credit_card', 'credit_card', 'credit_card', 'credit_card']);
+  });
+
+  it('atrasadas ignoram o período; pendentes e pagas filtram no período; totais por status', async () => {
+    await createTransaction(workspaceId, expense({ description: 'Luz de agosto', date: '2026-08-20', status: 'planned', amountCents: 10_000 }));
+    await createTransaction(workspaceId, expense({ description: 'Água', date: '2026-09-10', status: 'planned', amountCents: 5_000 }));
+    await createTransaction(workspaceId, expense({ description: 'Escola', date: '2026-09-25', status: 'planned', amountCents: 80_000 }));
+    await createTransaction(workspaceId, expense({ description: 'Mercado', date: '2026-09-11', amountCents: 30_000 }));
+    await createTransaction(workspaceId, {
+      kind: 'income',
+      accountId: nubank,
+      amountCents: 500_000,
+      date: '2026-09-05',
+      description: 'Salário',
+      categoryId: salario,
+      status: 'cleared',
+      notes: null,
+    });
+
+    const all = await listTransactions(workspaceId, september);
+    expect(all.total).toBe(4);
+    expect(all.overdueCount).toBe(2);
+    expect(all.totals.pending).toEqual({ cents: -85_000, count: 2 });
+    expect(all.totals.paid).toEqual({ cents: 470_000, count: 2 });
+
+    const overdue = await listTransactions(workspaceId, { ...september, situation: 'overdue' });
+    expect(overdue.items.map((item) => item.description)).toEqual(['Água', 'Luz de agosto']);
+    // Os cartões continuam mostrando o período inteiro.
+    expect(overdue.totals.pending).toEqual({ cents: -85_000, count: 2 });
+
+    const pending = await listTransactions(workspaceId, { ...september, situation: 'pending', kind: 'expense' });
+    expect(pending.items.map((item) => item.description)).toEqual(['Escola', 'Água']);
+    expect(pending.overdueCount).toBe(2);
+
+    const paid = await listTransactions(workspaceId, { ...september, situation: 'paid', kind: 'expense' });
+    expect(paid.items.map((item) => item.description)).toEqual(['Mercado']);
+    expect(paid.totals.paid).toEqual({ cents: -30_000, count: 1 });
+
+    // Busca também vale para a contagem de atrasadas.
+    expect((await listTransactions(workspaceId, { ...september, search: 'luz' })).overdueCount).toBe(1);
+  });
+
+  it('ordena por valor, descrição, conta, categoria e dia do pagamento', async () => {
+    await createTransaction(workspaceId, expense({ description: 'banana', amountCents: 300, date: '2026-09-03', paidAt: '2026-09-09' }));
+    await createTransaction(workspaceId, expense({ description: 'Abacate', amountCents: 900, date: '2026-09-01', accountId: carteira, categoryId: aluguel }));
+    await createTransaction(workspaceId, expense({ description: 'Cenoura', amountCents: 500, date: '2026-09-02', status: 'planned', categoryId: null }));
+    const order = async (sort: TransactionFilters['sort']) =>
+      (await listTransactions(workspaceId, { ...september, sort })).items.map((item) => item.description);
+
+    expect(await order(null)).toEqual(['banana', 'Cenoura', 'Abacate']);
+    expect(await order({ key: 'date', dir: 'asc' })).toEqual(['Abacate', 'Cenoura', 'banana']);
+    expect(await order({ key: 'amount', dir: 'desc' })).toEqual(['Abacate', 'Cenoura', 'banana']);
+    expect(await order({ key: 'amount', dir: 'asc' })).toEqual(['banana', 'Cenoura', 'Abacate']);
+    expect(await order({ key: 'description', dir: 'asc' })).toEqual(['Abacate', 'banana', 'Cenoura']);
+    expect(await order({ key: 'account', dir: 'asc' })).toEqual(['Abacate', 'banana', 'Cenoura']);
+    // Sem categoria e previsto sem pagamento ficam por último nas duas direções.
+    expect(await order({ key: 'category', dir: 'asc' })).toEqual(['Abacate', 'banana', 'Cenoura']);
+    expect(await order({ key: 'paidAt', dir: 'desc' })).toEqual(['banana', 'Abacate', 'Cenoura']);
+    expect(await order({ key: 'paidAt', dir: 'asc' })).toEqual(['Abacate', 'banana', 'Cenoura']);
   });
 });
 

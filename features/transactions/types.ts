@@ -1,6 +1,6 @@
 import type { AccountType } from '@/lib/accounts';
 import type { CategoryIconName } from '@/lib/categories';
-import type { TransactionKind, TransactionStatus } from '@/lib/transactions';
+import type { PaymentMethod, TransactionKind, TransactionStatus } from '@/lib/transactions';
 
 export type TransactionItem = {
   id: string;
@@ -12,6 +12,11 @@ export type TransactionItem = {
   description: string;
   notes: string | null;
   status: TransactionStatus;
+  paymentMethod: PaymentMethod | null;
+  /** "AAAA-MM-DD" em efetivados; `null` em previstos. */
+  paidAt: string | null;
+  /** Gerado por uma recorrência. */
+  recurring: boolean;
   account: {
     id: string;
     name: string;
@@ -39,6 +44,14 @@ export type TransactionsPage = {
   total: number;
   page: number;
   pageSize: number;
-  /** Somas do filtro inteiro (não só da página), sem transferências. */
-  totals: { incomeCents: number; expenseCents: number };
+  /** Somas do filtro inteiro (não só da página), sem transferências e sem o filtro de situação. */
+  totals: {
+    incomeCents: number;
+    expenseCents: number;
+    /** Previstos (inclui atrasados) e efetivados do período: soma com sinal e quantidade. */
+    pending: { cents: number; count: number };
+    paid: { cents: number; count: number };
+  };
+  /** Previstos com data anterior a hoje, em qualquer período (mesmos filtros de conta, categoria, tipo e busca). */
+  overdueCount: number;
 };

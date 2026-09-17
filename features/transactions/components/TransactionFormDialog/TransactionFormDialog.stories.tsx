@@ -74,6 +74,8 @@ export const CreateExpense: Story = {
     await expect(lastFormData(args.action)).toEqual({
       kind: 'expense',
       status: 'planned',
+      // Previsto: sem "pago em"; forma de pagamento não informada.
+      paymentMethod: '',
       amountCents: '4590',
       date: '2026-09-16',
       description: 'Padaria',

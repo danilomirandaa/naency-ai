@@ -13,6 +13,7 @@ import {
   filtersFromSearchParams,
   filtersToSearchParams,
 } from '@/features/transactions/filters';
+import type { TransactionsPage } from '@/features/transactions/types';
 import type { TransactionKind } from '@/lib/transactions';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -26,6 +27,13 @@ export type TransactionsScreenProps = {
   today: string;
   /** Cookie do período global (header). */
   periodCookie: string | null;
+};
+
+const EMPTY_TOTALS: TransactionsPage['totals'] = {
+  incomeCents: 0,
+  expenseCents: 0,
+  pending: { cents: 0, count: 0 },
+  paid: { cents: 0, count: 0 },
 };
 
 /** Container: filtros na URL em volta do TransactionsManager. */
@@ -44,13 +52,14 @@ export function TransactionsScreen({ workspaceId, canEdit, kind, title, today, p
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <TransactionsManager
         workspaceId={workspaceId}
         canEdit={canEdit}
         filters={filters}
         onPageChange={(page) => changeFilters({ page })}
-        isFiltered={Boolean(filters.accountId || filters.categoryId || filters.search)}
+        onSortChange={(sort) => changeFilters({ sort })}
+        isFiltered={Boolean(filters.accountId || filters.categoryId || filters.search || filters.situation)}
         defaultKind={kind ?? 'expense'}
         today={today}
       >
@@ -68,19 +77,16 @@ export function TransactionsScreen({ workspaceId, canEdit, kind, title, today, p
                 ) : undefined
               }
             />
+            {kind !== 'transfer' && (
+              <TransactionsSummary kind={kind} totals={page?.totals ?? EMPTY_TOTALS} isLoading={isPending} />
+            )}
             <TransactionsFilters
               filters={filters}
               onChange={changeFilters}
               accounts={accounts.data ?? []}
               categories={categories.data ?? []}
+              overdueCount={page?.overdueCount ?? 0}
             />
-            {kind !== 'transfer' && (
-              <TransactionsSummary
-                incomeCents={page?.totals.incomeCents ?? 0}
-                expenseCents={page?.totals.expenseCents ?? 0}
-                isLoading={isPending}
-              />
-            )}
           </>
         )}
       </TransactionsManager>

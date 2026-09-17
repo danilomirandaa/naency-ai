@@ -8,7 +8,8 @@ import {
 import type { TransactionItem, TransactionsPage } from '@/features/transactions/types';
 import type { CategoryIconName } from '@/lib/categories';
 import { addMonthsToDate, invoiceForPurchase, splitInstallments } from '@/lib/cards';
-import { signedAmount } from '@/lib/transactions';
+import { todayIsoDate } from '@/lib/dates';
+import { type TransactionStatus, signedAmount } from '@/lib/transactions';
 import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
 import {
@@ -21,7 +22,7 @@ import {
   profiles,
   transactions,
 } from '@/server/db/schema';
-import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import { type SQL, and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 
@@ -43,16 +44,28 @@ const counterpart = alias(transactions, 'counterpart');
 const counterpartAccount = alias(accounts, 'counterpart_account');
 const parentCategory = alias(categories, 'parent_category');
 
-function filterConditions(workspaceId: string, filters: TransactionFilters) {
+/** Efetivado guarda o dia do pagamento (padrão: a data do lançamento); previsto, nenhum. */
+function paidAtFor(status: TransactionStatus, paidAt: string | null, date: string) {
+  return status === 'cleared' ? (paidAt ?? date) : null;
+}
+
+function filterConditions(workspaceId: string, filters: TransactionFilters, today: string) {
   const { from, to } = filters;
   const search = filters.search.replace(/[%_\\]/g, (char) => `\\${char}`);
-  // A fatura junta compras de meses diferentes: com ela, o mês não filtra.
-  const byInvoice = Boolean(filters.invoiceId);
+  // A fatura junta compras de meses diferentes, e atrasadas vêm de qualquer mês: nos dois casos o período não filtra.
+  const ignorePeriod = Boolean(filters.invoiceId) || filters.situation === 'overdue';
   return and(
     eq(transactions.workspaceId, workspaceId),
     isNull(transactions.deletedAt),
-    byInvoice ? undefined : gte(transactions.date, from),
-    byInvoice ? undefined : lte(transactions.date, to),
+    ignorePeriod ? undefined : gte(transactions.date, from),
+    ignorePeriod ? undefined : lte(transactions.date, to),
+    filters.situation === 'overdue'
+      ? and(eq(transactions.status, 'planned'), lt(transactions.date, today))
+      : filters.situation === 'pending'
+        ? eq(transactions.status, 'planned')
+        : filters.situation === 'paid'
+          ? eq(transactions.status, 'cleared')
+          : undefined,
     // Sem filtro de conta, a transferência aparece uma vez (pela perna de saída).
     filters.accountId
       ? eq(transactions.accountId, filters.accountId)
@@ -72,7 +85,25 @@ export async function listTransactions(
 ): Promise<TransactionsPage> {
   await requireMembership(workspaceId, 'workspace.read');
   const db = getDb();
-  const where = filterConditions(workspaceId, filters);
+  const today = todayIsoDate();
+  const where = filterConditions(workspaceId, filters, today);
+  const dir = filters.sort?.dir === 'asc' ? asc : desc;
+  const sortColumns: Record<NonNullable<TransactionFilters['sort']>['key'], SQL> = {
+    date: sql`${transactions.date}`,
+    amount: sql`abs(${transactions.amountCents})`,
+    description: sql`lower(${transactions.description})`,
+    account: sql`lower(${accounts.name})`,
+    category: sql`lower(${categories.name})`,
+    paidAt: sql`${transactions.paidAt}`,
+  };
+  const byOtherColumn = filters.sort && filters.sort.key !== 'date';
+  const orderBy = [
+    ...(byOtherColumn && filters.sort ? [sql`${dir(sortColumns[filters.sort.key])} nulls last`] : []),
+    // Empate (ou ordem por data): a data na direção pedida; em outra coluna, mais recentes primeiro.
+    byOtherColumn ? desc(transactions.date) : dir(transactions.date),
+    desc(transactions.createdAt),
+    desc(transactions.id),
+  ];
 
   const rows = await db
     .select({
@@ -83,6 +114,9 @@ export async function listTransactions(
       description: transactions.description,
       notes: transactions.notes,
       status: transactions.status,
+      paymentMethod: transactions.paymentMethod,
+      paidAt: transactions.paidAt,
+      recurringRuleId: transactions.recurringRuleId,
       accountId: accounts.id,
       accountName: accounts.name,
       accountType: accounts.type,
@@ -117,19 +151,36 @@ export async function listTransactions(
     .innerJoin(profiles, eq(profiles.id, transactions.createdBy))
     .leftJoin(cardInvoices, eq(cardInvoices.id, transactions.invoiceId))
     .where(where)
-    .orderBy(desc(transactions.date), desc(transactions.createdAt), desc(transactions.id))
+    .orderBy(...orderBy)
     .limit(TRANSACTIONS_PAGE_SIZE)
     .offset((filters.page - 1) * TRANSACTIONS_PAGE_SIZE);
 
-  const [summary] = await db
-    .select({
-      total: count(),
-      incomeCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'income' then ${transactions.amountCents} end), 0)`,
-      expenseCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'expense' then ${transactions.amountCents} end), 0)`,
-    })
+  const [{ total } = { total: 0 }] = await db
+    .select({ total: count() })
     .from(transactions)
     .leftJoin(categories, eq(categories.id, transactions.categoryId))
     .where(where);
+
+  // Os cartões de resumo mostram o período inteiro, qualquer que seja a situação escolhida.
+  const moving = sql`${transactions.kind} <> 'transfer'`;
+  const [summary] = await db
+    .select({
+      incomeCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'income' then ${transactions.amountCents} end), 0)`,
+      expenseCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'expense' then ${transactions.amountCents} end), 0)`,
+      pendingCents: sql<string>`coalesce(sum(case when ${moving} and ${transactions.status} = 'planned' then ${transactions.amountCents} end), 0)`,
+      pendingCount: sql<number>`count(*) filter (where ${moving} and ${transactions.status} = 'planned')::int`,
+      paidCents: sql<string>`coalesce(sum(case when ${moving} and ${transactions.status} = 'cleared' then ${transactions.amountCents} end), 0)`,
+      paidCount: sql<number>`count(*) filter (where ${moving} and ${transactions.status} = 'cleared')::int`,
+    })
+    .from(transactions)
+    .leftJoin(categories, eq(categories.id, transactions.categoryId))
+    .where(filterConditions(workspaceId, { ...filters, situation: null }, today));
+
+  const [overdue] = await db
+    .select({ count: count() })
+    .from(transactions)
+    .leftJoin(categories, eq(categories.id, transactions.categoryId))
+    .where(filterConditions(workspaceId, { ...filters, situation: 'overdue' }, today));
 
   const items: TransactionItem[] = rows.map((row) => ({
     id: row.id,
@@ -139,6 +190,9 @@ export async function listTransactions(
     description: row.description,
     notes: row.notes,
     status: row.status,
+    paymentMethod: row.paymentMethod,
+    paidAt: row.status === 'cleared' ? (row.paidAt ?? row.date) : null,
+    recurring: row.recurringRuleId !== null,
     account: {
       id: row.accountId,
       name: row.accountName,
@@ -175,13 +229,16 @@ export async function listTransactions(
 
   return {
     items,
-    total: summary?.total ?? 0,
+    total,
     page: filters.page,
     pageSize: TRANSACTIONS_PAGE_SIZE,
     totals: {
       incomeCents: Number(summary?.incomeCents ?? 0),
       expenseCents: Number(summary?.expenseCents ?? 0),
+      pending: { cents: Number(summary?.pendingCents ?? 0), count: Number(summary?.pendingCount ?? 0) },
+      paid: { cents: Number(summary?.paidCents ?? 0), count: Number(summary?.paidCount ?? 0) },
     },
+    overdueCount: overdue?.count ?? 0,
   };
 }
 
@@ -259,6 +316,8 @@ async function insertTransaction(tx: Tx, workspaceId: string, userId: string, in
     date: input.date,
     description: input.description,
     status: input.status,
+    paidAt: paidAtFor(input.status, input.paidAt, input.date),
+    paymentMethod: input.paymentMethod,
     notes: input.notes,
     createdBy: userId,
     updatedBy: userId,
@@ -279,6 +338,7 @@ async function insertTransaction(tx: Tx, workspaceId: string, userId: string, in
     return insertInstallments(tx, workspaceId, userId, input);
   }
 
+  const invoiceId = await resolveInvoiceId(tx, workspaceId, input.accountId, input.date);
   const [row] = await tx
     .insert(transactions)
     .values({
@@ -287,7 +347,9 @@ async function insertTransaction(tx: Tx, workspaceId: string, userId: string, in
       accountId: input.accountId,
       amountCents: signedAmount(input.kind, input.amountCents),
       categoryId: input.categoryId,
-      invoiceId: await resolveInvoiceId(tx, workspaceId, input.accountId, input.date),
+      invoiceId,
+      // Lançamento em conta cartão foi pago com o cartão, a menos que digam outra coisa.
+      paymentMethod: input.paymentMethod ?? (invoiceId ? 'credit_card' : null),
     })
     .returning({ id: transactions.id });
   return { id: row?.id ?? '' };
@@ -339,6 +401,8 @@ async function insertInstallments(
         description: `${input.description} (${index + 1}/${input.installments})`,
         categoryId: input.categoryId,
         status: input.status,
+        paidAt: paidAtFor(input.status, input.paidAt, date),
+        paymentMethod: input.paymentMethod ?? 'credit_card',
         notes: input.notes,
         installmentGroupId: group?.id,
         installmentNumber: index + 1,
@@ -424,6 +488,8 @@ export async function updateTransaction(
       date: data.date,
       description: data.description,
       status: data.status,
+      paidAt: paidAtFor(data.status, data.paidAt, data.date),
+      paymentMethod: data.paymentMethod,
       notes: data.notes,
       updatedBy: user.id,
     };
@@ -488,7 +554,7 @@ export async function deleteTransaction(workspaceId: string, transactionId: stri
   return { id: transactionId };
 }
 
-/** Marca como efetivado (entra no saldo) ou previsto. */
+/** Marca como efetivado (entra no saldo, pago hoje) ou previsto. */
 export async function setTransactionStatus(
   workspaceId: string,
   transactionId: string,
@@ -499,7 +565,7 @@ export async function setTransactionStatus(
     const legs = await loadLegs(tx, workspaceId, transactionId);
     await tx
       .update(transactions)
-      .set({ status, updatedBy: user.id })
+      .set({ status, paidAt: status === 'cleared' ? todayIsoDate() : null, updatedBy: user.id })
       .where(inArray(transactions.id, legs.map((leg) => leg.id)));
   });
   return { id: transactionId };

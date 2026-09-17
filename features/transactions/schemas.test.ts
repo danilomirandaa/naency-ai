@@ -26,11 +26,25 @@ describe('parseTransactionForm', () => {
         date: '2026-09-10',
         description: 'Padaria',
         status: 'cleared',
+        paymentMethod: null,
+        paidAt: null,
         notes: null,
         accountId: A,
         categoryId: B,
         installments: 1,
       },
+    });
+  });
+
+  it('forma de pagamento e dia do pagamento', () => {
+    const base = { kind: 'expense', amountCents: '4590', date: '2026-09-10', description: 'Padaria', accountId: A };
+    expect(parseTransactionForm(form({ ...base, paymentMethod: 'pix', paidAt: '2026-09-12' }))).toMatchObject({
+      success: true,
+      data: { paymentMethod: 'pix', paidAt: '2026-09-12' },
+    });
+    expect(parseTransactionForm(form({ ...base, paymentMethod: 'cheque', paidAt: '12/09' }))).toMatchObject({
+      status: 'error',
+      fieldErrors: { paymentMethod: 'Forma de pagamento inválida.', paidAt: 'Data de pagamento inválida.' },
     });
   });
 

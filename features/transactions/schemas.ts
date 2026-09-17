@@ -1,5 +1,5 @@
 import { isIsoDate } from '@/lib/dates';
-import { TRANSACTION_STATUSES } from '@/lib/transactions';
+import { PAYMENT_METHODS, TRANSACTION_STATUSES } from '@/lib/transactions';
 import { z } from 'zod';
 
 const MAX_CENTS = 10_000_000_000_000;
@@ -22,6 +22,9 @@ const common = {
     .min(1, 'Descreva o lançamento.')
     .max(120, 'Use no máximo 120 caracteres.'),
   status: z.enum(TRANSACTION_STATUSES).default('cleared'),
+  paymentMethod: z.preprocess(emptyToNull, z.enum(PAYMENT_METHODS, { error: 'Forma de pagamento inválida.' }).nullable()).default(null),
+  /** Só vale em efetivados; vazio usa a data do lançamento. */
+  paidAt: z.preprocess(emptyToNull, z.string().refine(isIsoDate, 'Data de pagamento inválida.').nullable()).default(null),
   notes: z.preprocess(
     emptyToNull,
     z.string().trim().max(500, 'Use no máximo 500 caracteres.').nullable(),
@@ -67,6 +70,8 @@ export type TransactionFormValues = {
   date: string;
   description: string;
   status: string;
+  paymentMethod: string;
+  paidAt: string;
   notes: string;
   accountId: string;
   toAccountId: string;
@@ -94,6 +99,8 @@ const FIELDS: TransactionFieldName[] = [
   'date',
   'description',
   'status',
+  'paymentMethod',
+  'paidAt',
   'notes',
   'accountId',
   'toAccountId',
@@ -114,6 +121,8 @@ export function readTransactionForm(formData: FormData): TransactionFormValues {
     date: text(formData, 'date'),
     description: text(formData, 'description'),
     status: text(formData, 'status'),
+    paymentMethod: text(formData, 'paymentMethod'),
+    paidAt: text(formData, 'paidAt'),
     notes: text(formData, 'notes'),
     accountId: text(formData, 'accountId'),
     toAccountId: text(formData, 'toAccountId'),

@@ -14,6 +14,8 @@ describe('filtersFromSearchParams', () => {
       kind: null,
       search: '',
       page: 1,
+      situation: null,
+      sort: null,
       invoiceId: null,
     });
   });
@@ -26,6 +28,9 @@ describe('filtersFromSearchParams', () => {
       tipo: 'despesas',
       busca: '  padaria ',
       pagina: '3',
+      situacao: 'atrasadas',
+      ordem: 'valor',
+      direcao: 'asc',
     });
     expect(filtersFromSearchParams(params, { now })).toEqual({
       from: '2026-08-01',
@@ -35,18 +40,27 @@ describe('filtersFromSearchParams', () => {
       kind: 'expense',
       search: 'padaria',
       page: 3,
+      situation: 'overdue',
+      sort: { key: 'amount', dir: 'asc' },
       invoiceId: null,
     });
   });
 
   it('valores inválidos voltam ao padrão', () => {
-    const params = new URLSearchParams({ mes: '2026-13', conta: 'x', tipo: 'outros', pagina: '-2' });
+    const params = new URLSearchParams({ mes: '2026-13', conta: 'x', tipo: 'outros', pagina: '-2', situacao: 'x', ordem: 'y', direcao: 'z' });
     expect(filtersFromSearchParams(params, { now })).toMatchObject({
       from: '2026-09-01',
       to: '2026-09-30',
       accountId: null,
       kind: null,
       page: 1,
+      situation: null,
+      sort: null,
+    });
+    // Direção inválida com ordem válida cai em decrescente.
+    expect(filtersFromSearchParams(new URLSearchParams({ ordem: 'pago-em', direcao: 'z' }), { now }).sort).toEqual({
+      key: 'paidAt',
+      dir: 'desc',
     });
   });
 
@@ -59,14 +73,23 @@ describe('filtersFromSearchParams', () => {
 describe('filtersToSearchParams', () => {
   it('período sempre explícito, resto só fora do padrão, e ida e volta', () => {
     const filters = filtersFromSearchParams(
-      new URLSearchParams({ mes: '2026-08', tipo: 'transferencias', busca: 'pix', pagina: '2' }),
+      new URLSearchParams({ mes: '2026-08', tipo: 'transferencias', busca: 'pix', pagina: '2', situacao: 'pagas', ordem: 'descricao', direcao: 'asc' }),
       { now },
     );
     const params = filtersToSearchParams(filters);
-    expect(params.toString()).toBe('mes=2026-08&tipo=transferencias&busca=pix&pagina=2');
+    expect(params.toString()).toBe('mes=2026-08&tipo=transferencias&busca=pix&situacao=pagas&ordem=descricao&direcao=asc&pagina=2');
     expect(filtersFromSearchParams(params, { now })).toEqual(filters);
     expect(
-      filtersToSearchParams({ ...filters, from: '2026-09-01', to: '2026-09-30', page: 1, search: '', kind: null }).toString(),
+      filtersToSearchParams({
+        ...filters,
+        from: '2026-09-01',
+        to: '2026-09-30',
+        page: 1,
+        search: '',
+        kind: null,
+        situation: null,
+        sort: null,
+      }).toString(),
     ).toBe('mes=2026-09');
     expect(filtersToSearchParams(filters, { omitKind: true }).has('tipo')).toBe(false);
   });

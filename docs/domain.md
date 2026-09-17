@@ -151,13 +151,24 @@ Regras (`lib/cards.ts`, com testes):
 - **`transactions`**: `workspace_id`, `account_id`, `kind`
   (`income | expense | transfer`), `amount_cents` (com sinal), `date`,
   `description` (limpa, exibida), `raw_description` (como veio do banco),
-  `category_id`, `status` (`planned | cleared`), `invoice_id`,
+  `category_id`, `status` (`planned | cleared`), `payment_method`
+  (`pix | boleto | debit_card | credit_card | cash | bank_transfer`, opcional),
+  `paid_at` (dia do pagamento/recebimento), `invoice_id`,
   `transfer_group_id`, `installment_group_id`, `installment_number`,
   `installment_total`, `recurring_rule_id`, `import_batch_id`, `fingerprint`,
   `notes`, `created_by`, `updated_by`, `deleted_at`.
 
 Regras:
 
+- **Situação** (exibida, nunca gravada): `cleared` = paga/recebida; `planned` com
+  `date` anterior a hoje (America/Sao_Paulo) = **atrasada**; senão, a pagar/a receber.
+  O filtro "Atrasadas" ignora o período: mostra tudo que venceu e não foi pago.
+- **`paid_at`** só existe em efetivados (check `transactions_paid_at_cleared`).
+  Vazio no formulário usa a data do lançamento; "marcar como paga" grava hoje;
+  voltar para previsto limpa. Importados entram com a data do extrato.
+- **`payment_method`**: escolhido no formulário. Lançamento em conta cartão (e
+  parcelas) assume `credit_card`; na importação, `inferPaymentMethod` lê Pix,
+  boleto, TED/DOC, saque e débito na descrição.
 - **Sinal**: `income` > 0, `expense` < 0. Em `transfer`, a perna de saída é negativa e a de entrada, positiva.
 - **Transferência** = dois lançamentos com o mesmo `transfer_group_id`, um em cada
   conta, com valores opostos e sem categoria. Editar ou excluir uma perna afeta as duas.

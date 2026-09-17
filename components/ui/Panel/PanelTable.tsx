@@ -187,8 +187,24 @@ export function PanelTableHead({
   sortable = false,
   sorted,
   children,
+  onClick,
   ...props
 }: PanelTableHeadProps) {
+  const content = (
+    <>
+      {children}
+      {sortable && (
+        <Icon
+          icon="chevron-down"
+          className={classMerge(
+            'size-4 opacity-0 transition group-hover/table-head:opacity-100 group-focus-visible/table-sort:opacity-100',
+            sorted && 'opacity-100',
+            sorted === 'asc' && 'rotate-180',
+          )}
+        />
+      )}
+    </>
+  );
   return (
     <th
       aria-sort={
@@ -203,19 +219,20 @@ export function PanelTableHead({
       )}
       {...props}
     >
-      <div className="flex items-center gap-1">
-        {children}
-        {sortable && (
-          <Icon
-            icon="chevron-down"
-            className={classMerge(
-              'size-4 opacity-0 transition group-hover/table-head:opacity-100',
-              sorted && 'opacity-100',
-              sorted === 'asc' && 'rotate-180',
-            )}
-          />
-        )}
-      </div>
+      {sortable ? (
+        // Botão: ordenar também pelo teclado.
+        <button
+          type="button"
+          onClick={onClick as unknown as React.MouseEventHandler<HTMLButtonElement>}
+          className="group/table-sort -mx-1 flex cursor-pointer items-center gap-1 rounded-control-sm px-1 outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="flex items-center gap-1">
+          {content}
+        </div>
+      )}
     </th>
   );
 }

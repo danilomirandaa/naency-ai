@@ -226,9 +226,10 @@
   --text-link: oklch(0.51 0.14 242);
 
   --background-neutral-000: oklch(1 0 0);
-  --background-neutral-100: oklch(0.967 0.001 286.375);
-  --background-neutral-200: oklch(0.94 0.003 286);
-  --background-neutral-300: oklch(0.9 0.004 286);
+  /* Superfícies e bordas do claro: valores do design system de origem do Panel. */
+  --background-neutral-100: #f8f9fb;
+  --background-neutral-200: #eef1f3;
+  --background-neutral-300: #e0e7ee;
   --background-neutral-disabled: oklch(0.967 0.001 286.375);
   --background-neutral-inverse: oklch(0.21 0.006 285.885);
   /* Sidebar e cabeçalho dos cards (claro). */
@@ -257,10 +258,10 @@
   --typography-status-success-pressed: oklch(0.43 0.12 163);
   --typography-status-warning-rest: oklch(0.525 0.15 70);
 
-  --border-neutral-subtle: oklch(0.92 0.004 286.32);
-  --border-neutral-rest: oklch(0.87 0.006 286);
-  --border-neutral-hover: oklch(0.8 0.008 286);
-  --border-neutral-disabled: oklch(0.94 0.003 286);
+  --border-neutral-subtle: #eef1f3;
+  --border-neutral-rest: #c3cfdc;
+  --border-neutral-hover: #95a4b9;
+  --border-neutral-disabled: #e0e7ee;
   --border-status-critical-rest: oklch(0.6189 0.2069 23.39);
   --border-status-critical-hover: oklch(0.55 0.2 23);
 

@@ -1,4 +1,4 @@
-import { TRANSACTION_KINDS, TRANSACTION_STATUSES } from '@/lib/transactions';
+import { PAYMENT_METHODS, TRANSACTION_KINDS, TRANSACTION_STATUSES } from '@/lib/transactions';
 import { sql } from 'drizzle-orm';
 import {
   type AnyPgColumn,
@@ -23,6 +23,7 @@ import { profiles, workspaces } from './workspaces';
 
 export const transactionKind = pgEnum('transaction_kind', TRANSACTION_KINDS);
 export const transactionStatus = pgEnum('transaction_status', TRANSACTION_STATUSES);
+export const paymentMethod = pgEnum('payment_method', PAYMENT_METHODS);
 
 /**
  * Lançamentos (docs/domain.md). Transferência = duas linhas com o mesmo
@@ -46,6 +47,9 @@ export const transactions = pgTable(
     rawDescription: text('raw_description'),
     categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
     status: transactionStatus('status').notNull().default('cleared'),
+    paymentMethod: paymentMethod('payment_method'),
+    /** Dia em que foi pago/recebido; só em efetivados (sem valor, a tela usa a data). */
+    paidAt: date('paid_at', { mode: 'string' }),
     transferGroupId: uuid('transfer_group_id'),
     /** Fatura do cartão (só em lançamentos de conta cartão que não são transferência). */
     invoiceId: uuid('invoice_id').references((): AnyPgColumn => cardInvoices.id, { onDelete: 'set null' }),
@@ -92,6 +96,7 @@ export const transactions = pgTable(
         or (${table.kind} = 'expense' and ${table.amountCents} < 0)
         or (${table.kind} = 'transfer' and ${table.amountCents} <> 0)`,
     ),
+    check('transactions_paid_at_cleared', sql`${table.status} = 'cleared' or ${table.paidAt} is null`),
     check(
       'transactions_transfer_shape',
       sql`(${table.kind} = 'transfer') = (${table.transferGroupId} is not null)

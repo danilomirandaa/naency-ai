@@ -87,6 +87,8 @@ export function PanelDataTable<T>({
   totalCount,
   manual = false,
   stretch = false,
+  rowClassName,
+  paginationLabel,
 }: PanelDataTableProps<T>) {
   const [internalSort, setInternalSort] = React.useState<
     PanelDataTableSort | undefined
@@ -295,6 +297,7 @@ export function PanelDataTable<T>({
       key={getRowKey(row, index)}
       data-index={index}
       ref={shouldVirtualize ? virtualizer.measureElement : undefined}
+      className={rowClassName?.(row, index)}
     >
       {columns.map((column) => (
         <PanelTableCell
@@ -422,6 +425,7 @@ export function PanelDataTable<T>({
           total={total}
           visibleCount={visibleRows.length}
           onPageChange={setPage}
+          label={paginationLabel}
         />
       )}
     </>
@@ -436,6 +440,7 @@ function PanelTablePagination({
   total,
   visibleCount,
   onPageChange,
+  label,
 }: {
   page: number;
   pageCount: number;
@@ -443,6 +448,7 @@ function PanelTablePagination({
   total: number;
   visibleCount: number;
   onPageChange: (page: number) => void;
+  label?: PanelDataTableProps<unknown>['paginationLabel'];
 }) {
   const from = total === 0 ? 0 : page * pageSize + 1;
   const to = page * pageSize + visibleCount;
@@ -452,9 +458,7 @@ function PanelTablePagination({
       data-panel-body=""
       className="flex items-center justify-between gap-4 px-6 py-2 text-typography-neutral-secondary text-xs"
     >
-      <span>
-        {from}&ndash;{to} of {total}
-      </span>
+      <span>{label ? label({ from, to, total }) : <>{from}&ndash;{to} of {total}</>}</span>
       <BootsPagination
         page={page + 1}
         count={pageCount}

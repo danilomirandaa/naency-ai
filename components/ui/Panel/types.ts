@@ -210,6 +210,10 @@ export type PanelDataTableProps<T> = {
   totalCount?: number;
   manual?: boolean;
   stretch?: boolean;
+  /** Classe extra por linha (ex.: destacar atrasados). */
+  rowClassName?: (row: T, index: number) => string | undefined;
+  /** Texto da paginação: "1–50 de 120". */
+  paginationLabel?: (range: { from: number; to: number; total: number }) => React.ReactNode;
 };
 
 export type PanelTableHeaderProps = React.ComponentPropsWithRef<'thead'>;

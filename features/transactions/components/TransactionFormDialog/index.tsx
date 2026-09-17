@@ -20,7 +20,13 @@ import {
   initialTransactionFormState,
 } from '@/features/transactions/schemas';
 import type { TransactionItem } from '@/features/transactions/types';
-import { TRANSACTION_KINDS, TRANSACTION_KIND_LABELS, type TransactionKind } from '@/lib/transactions';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+  TRANSACTION_KINDS,
+  TRANSACTION_KIND_LABELS,
+  type TransactionKind,
+} from '@/lib/transactions';
 import * as React from 'react';
 
 export type TransactionFormAction = (
@@ -45,6 +51,15 @@ export type TransactionFormDialogProps = {
 };
 
 const FORM_ID = 'transaction-form';
+
+/** O Radix Select não aceita valor vazio num item; "Não informar" usa este e vira "" no form. */
+const NO_METHOD = 'none';
+
+const PAID_AT_LABELS: Record<TransactionKind, string> = {
+  expense: 'Pago em',
+  income: 'Recebido em',
+  transfer: 'Transferido em',
+};
 
 const STATUS_LABELS: Record<TransactionKind, string> = {
   expense: 'Já foi pago',
@@ -75,6 +90,8 @@ function valuesFromTransaction(
       date: today,
       description: '',
       status: 'cleared',
+      paymentMethod: '',
+      paidAt: '',
       notes: '',
       accountId: defaultAccountId ?? '',
       toAccountId: '',
@@ -89,6 +106,8 @@ function valuesFromTransaction(
     date: transaction.date,
     description: transaction.description,
     status: transaction.status,
+    paymentMethod: transaction.paymentMethod ?? '',
+    paidAt: transaction.paidAt ?? '',
     notes: transaction.notes ?? '',
     // Transferência sempre editada como origem → destino.
     accountId: isIncomingLeg ? (transaction.transfer?.counterpartAccountId ?? '') : transaction.account.id,
@@ -196,6 +215,7 @@ function TransactionFormFields({
   const [accountId, setAccountId] = React.useState<string | null>(values.accountId || null);
   const [cleared, setCleared] = React.useState(values.status !== 'planned');
   const [installments, setInstallments] = React.useState(values.installments || '1');
+  const [paymentMethod, setPaymentMethod] = React.useState(values.paymentMethod);
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const canSplit = !isEdit && kind === 'expense' && selectedAccount?.type === 'credit_card';
   const statusId = React.useId();
@@ -315,6 +335,35 @@ function TransactionFormFields({
         </label>
         <Switch id={statusId} checked={cleared} onCheckedChange={setCleared} />
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Forma de pagamento" error={fieldErrors.paymentMethod}>
+          {(control) => (
+            <Select.Root
+              value={paymentMethod || NO_METHOD}
+              onValueChange={(next) => setPaymentMethod(next === NO_METHOD ? '' : next)}
+            >
+              <Select.Trigger {...control}>
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value={NO_METHOD}>Não informar</Select.Item>
+                {PAYMENT_METHODS.map((method) => (
+                  <Select.Item key={method} value={method}>
+                    {PAYMENT_METHOD_LABELS[method]}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        </Field>
+        {cleared && (
+          <Field label={PAID_AT_LABELS[kind]} description="Vazio usa a data do lançamento." error={fieldErrors.paidAt}>
+            {(control) => <DatePicker {...control} name="paidAt" defaultValue={values.paidAt || null} />}
+          </Field>
+        )}
+      </div>
+      <input type="hidden" name="paymentMethod" value={paymentMethod} />
 
       <Field label="Observação" error={fieldErrors.notes}>
         {(control) => (
