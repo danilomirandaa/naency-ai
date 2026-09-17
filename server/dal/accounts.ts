@@ -7,6 +7,8 @@ import { accounts, institutions } from '@/server/db/schema';
 import { and, asc, eq, isNull, or } from 'drizzle-orm';
 import { z } from 'zod';
 
+const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
+
 export class AccountError extends Error {
   constructor(
     public readonly code: 'not-found' | 'invalid-institution',
@@ -60,9 +62,10 @@ export async function listAccounts(
         eq(accounts.workspaceId, workspaceId),
         includeArchived ? undefined : isNull(accounts.archivedAt),
       ),
-    )
-    .orderBy(asc(accounts.name));
+    );
 
+  // Ordem em pt-BR; o Postgres do Supabase usa collation C.
+  rows.sort((a, b) => collator.compare(a.name, b.name));
   return rows.map((row) => ({
     id: row.id,
     name: row.name,

@@ -2,3 +2,4 @@
 // leem nada pela API pública do Supabase. O app acessa pelo DAL (docs/architecture.md).
 export * from './workspaces';
 export * from './accounts';
+export * from './categories';

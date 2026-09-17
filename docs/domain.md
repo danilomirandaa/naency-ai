@@ -159,8 +159,13 @@ Regras:
 
 - **`categories`**: `workspace_id`, `parent_id`, `name`, `kind` (`income | expense`),
   `icon`, `color`, `archived_at`.
-- Criar o espaço semeia um conjunto padrão em pt-BR (Moradia, Mercado, Transporte,
-  Saúde, Lazer, Educação, Assinaturas, Salário, Investimentos…).
+- Criar o espaço semeia o conjunto padrão em pt-BR (`lib/categories.ts`,
+  `DEFAULT_CATEGORIES`); a migration `0004` semeou os espaços que já existiam.
+- Nome único por espaço, tipo e nível, sem diferenciar maiúsculas.
+- O tipo (receita/despesa) não muda depois de criada. A principal só vira
+  subcategoria se não tiver subcategorias; o pai precisa ser do mesmo tipo.
+- Arquivar a principal arquiva as subcategorias; desarquivar uma subcategoria traz o pai.
+- `icon` é um nome de `CATEGORY_ICONS` e `color` uma cor da paleta (hex).
 - Profundidade máxima de 2 níveis (categoria → subcategoria).
 - Categoria arquivada não aparece para novos lançamentos, mas continua nos antigos.
 

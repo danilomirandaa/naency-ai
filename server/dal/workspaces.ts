@@ -9,6 +9,7 @@ import { UnauthenticatedError } from '@/server/auth/errors';
 import { getCurrentUser } from '@/server/auth/current-user';
 import { getDb } from '@/server/db/client';
 import { workspaceMembers, workspaces } from '@/server/db/schema';
+import { seedDefaultCategories } from '@/server/dal/categories';
 import { ensureProfile } from '@/server/dal/profiles';
 import { asc, eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
@@ -60,6 +61,7 @@ export async function createWorkspace(input: unknown): Promise<{ id: string }> {
     await tx
       .insert(workspaceMembers)
       .values({ workspaceId: workspace.id, userId: user.id, role: 'admin' });
+    await seedDefaultCategories(tx, workspace.id);
     return workspace;
   });
 }

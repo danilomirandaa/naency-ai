@@ -27,7 +27,6 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Matriz de permissões por papel (`lib/permissions.ts`) com testes
 - [x] Conexões `DATABASE_URL`/`DATABASE_MIGRATION_URL` configuradas
 - [x] Migration `0000` aplicada no Supabase; RLS confirmado (escrita anônima negada pela API)
-- [ ] Drizzle + migrations; Supabase local para testes de integração
 - [x] Login por link mágico (`/entrar`, `/auth/callback`), perfil criado no primeiro acesso e sair
 - [x] `proxy` protegendo `app/(app)`, com destino preservado e validado
 - [x] `requireUser` e `requireMembership` com testes por papel (unitários e integração)
@@ -40,14 +39,13 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] `InstitutionLogo`, `AccountAvatar`; `ui/List`, `ui/Select`, `ui/Popover`, `ui/Calendar` e `ui/DatePicker` (shadcn)
 - [x] `MoneyInput` formatando enquanto digita (`maskMoneyInput`)
 - [x] `Button` e `Spinner` do shadcn (efeito ao pressionar), com story
-- [ ] Gerenciar papéis: trocar papel, remover membro, regra do último admin
 
 ## Fase 1 · Núcleo financeiro
 
 - [x] Catálogo de instituições (seed na migration `0002`; formatos e instruções de exportação na Fase 3)
 - [x] Contas: criar, editar, arquivar, página `/contas` e contas reais na sidebar, com testes por papel
 - [ ] Saldo somando os lançamentos (entra com os lançamentos)
-- [ ] Categorias: seed padrão e CRUD
+- [x] Categorias: conjunto padrão (espaços novos e existentes), CRUD em dois níveis, arquivar, `CategoryIcon` e `CategorySelect`
 - [ ] Lançamentos: CRUD de receita, despesa e transferência
 - [ ] Página de Transações (filtros por período, conta, categoria, tipo)
 - [x] Convite de membro por link, aceite e página de membros
