@@ -1,6 +1,6 @@
 import { DASHBOARD_BLOCKS, dashboardQuery } from '@/features/dashboard/api/dashboard.queries';
 import { DashboardScreen } from '@/features/dashboard/containers/DashboardScreen';
-import { currentMonth, isMonth, todayIsoDate } from '@/lib/dates';
+import { currentMonth, isMonth, monthRange, todayIsoDate } from '@/lib/dates';
 import { can } from '@/lib/permissions';
 import { makeQueryClient } from '@/lib/query-client';
 import { loadDashboardBlock } from '@/server/dal/dashboard-blocks';
@@ -25,8 +25,8 @@ export default async function OverviewPage({ searchParams }: PageProps<'/'>) {
   await Promise.allSettled(
     DASHBOARD_BLOCKS.filter((block) => block !== 'evolucao-anual').map((block) =>
       queryClient.prefetchQuery({
-        ...dashboardQuery.block(active.id, block, month),
-        queryFn: () => loadDashboardBlock(active.id, block, month),
+        ...dashboardQuery.block(active.id, block, monthRange(month)),
+        queryFn: () => loadDashboardBlock(active.id, block, monthRange(month)),
       }),
     ),
   );

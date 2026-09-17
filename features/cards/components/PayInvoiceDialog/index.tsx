@@ -83,7 +83,7 @@ function PayInvoiceDialogContent({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Valor pago" error={error?.fieldErrors.amountCents}>
             {(control) => (
-              <MoneyInput {...control} name="amountCents" defaultValue={Math.abs(invoice.totalCents)} />
+              <MoneyInput {...control} name="amountCents" defaultValue={Math.abs(invoice.totalCents)} calculator />
             )}
           </Field>
           <Field label="Data do pagamento" error={error?.fieldErrors.date}>

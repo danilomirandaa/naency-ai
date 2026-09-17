@@ -1,3 +1,4 @@
+import { monthRange } from '@/lib/dates';
 import { ForbiddenError } from '@/server/auth/errors';
 import { createUser, resetTestDb, signInAs } from '@/tests/integration/db';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -7,7 +8,7 @@ import { listCategories } from './categories';
 import {
   getBalances,
   getCategoryBreakdown,
-  getMonthResult,
+  getPeriodResult,
   getMonthlyEvolution,
   getRecentTransactions,
   getSetupProgress,
@@ -83,16 +84,27 @@ describe('dashboard: resultado do mês', () => {
       notes: null,
     });
 
-    await expect(getMonthResult(workspaceId, '2026-09')).resolves.toEqual({
-      month: '2026-09',
+    await expect(getPeriodResult(workspaceId, monthRange('2026-09'))).resolves.toEqual({
+      range: { from: '2026-09-01', to: '2026-09-30' },
+      previousRange: { from: '2026-08-01', to: '2026-08-31' },
       current: { incomeCents: 500_000, expenseCents: -20_000 },
       previous: { incomeCents: 0, expenseCents: -30_000 },
     });
   });
 
+  it('período personalizado compara com o anterior de mesmo tamanho', async () => {
+    await tx('expense', 1_000, '2026-09-05');
+    await tx('expense', 3_000, '2026-09-12');
+    await expect(getPeriodResult(workspaceId, { from: '2026-09-11', to: '2026-09-20' })).resolves.toMatchObject({
+      previousRange: { from: '2026-09-01', to: '2026-09-10' },
+      current: { expenseCents: -3_000 },
+      previous: { expenseCents: -1_000 },
+    });
+  });
+
   it('compra no cartão conta como despesa na data da compra', async () => {
     await tx('expense', 12_000, '2026-09-20', { accountId: card });
-    expect((await getMonthResult(workspaceId, '2026-09')).current.expenseCents).toBe(-12_000);
+    expect((await getPeriodResult(workspaceId, monthRange('2026-09'))).current.expenseCents).toBe(-12_000);
   });
 });
 
@@ -105,7 +117,7 @@ describe('dashboard: categorias', () => {
     await tx('expense', 1_000, '2026-09-05');
     await tx('income', 1_000_000, '2026-09-05', { categoryId: ids['Salário'] });
 
-    const slices = await getCategoryBreakdown(workspaceId, '2026-09');
+    const slices = await getCategoryBreakdown(workspaceId, monthRange('2026-09'));
     expect(slices.map((slice) => [slice.name, slice.totalCents])).toEqual([
       ['Moradia', 175_000],
       ['Mercado', 40_000],
@@ -184,8 +196,8 @@ describe('dashboard: saldos, recentes e configuração', () => {
   it('quem não é membro não vê nada', async () => {
     signInAs(await createUser('intruso@exemplo.com'));
     for (const call of [
-      () => getMonthResult(workspaceId, '2026-09'),
-      () => getCategoryBreakdown(workspaceId, '2026-09'),
+      () => getPeriodResult(workspaceId, monthRange('2026-09')),
+      () => getCategoryBreakdown(workspaceId, monthRange('2026-09')),
       () => getMonthlyEvolution(workspaceId, '2026-09'),
       () => getUpcoming(workspaceId),
       () => getBalances(workspaceId),

@@ -12,7 +12,7 @@ import { PayInvoiceDialog } from '@/features/cards/components/PayInvoiceDialog';
 import type { CardSummary } from '@/features/cards/types';
 import { TransactionsManager } from '@/features/transactions/containers/TransactionsManager';
 import type { TransactionFilters } from '@/features/transactions/filters';
-import { isMonth } from '@/lib/dates';
+import { isMonth, monthRange } from '@/lib/dates';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -47,7 +47,7 @@ export function CardInvoiceScreen({ workspaceId, card, canEdit, today }: CardInv
     list[0];
 
   const filters: TransactionFilters = {
-    month: selected?.referenceMonth ?? today.slice(0, 7),
+    ...monthRange(selected?.referenceMonth ?? today.slice(0, 7)),
     accountId: card.id,
     categoryId: null,
     kind: null,

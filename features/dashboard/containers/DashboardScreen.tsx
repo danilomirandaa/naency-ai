@@ -10,7 +10,7 @@ import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvoluti
 import { RecentTransactions } from '@/features/dashboard/components/RecentTransactions';
 import { SetupChecklist } from '@/features/dashboard/components/SetupChecklist';
 import { UpcomingBills } from '@/features/dashboard/components/UpcomingBills';
-import { currentMonth, isMonth } from '@/lib/dates';
+import { currentMonth, isMonth, monthRange } from '@/lib/dates';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -28,14 +28,15 @@ export function DashboardScreen({ workspaceId, workspaceName, canEdit, today }: 
   const searchParams = useSearchParams();
   const requested = searchParams.get('mes');
   const month = isMonth(requested) ? requested : currentMonth();
+  const range = monthRange(month);
 
-  const result = useQuery(dashboardQuery.block(workspaceId, 'resultado', month));
-  const categories = useQuery(dashboardQuery.block(workspaceId, 'categorias', month));
-  const evolution = useQuery(dashboardQuery.block(workspaceId, 'evolucao', month));
-  const upcoming = useQuery(dashboardQuery.block(workspaceId, 'a-vencer', month));
-  const balances = useQuery(dashboardQuery.block(workspaceId, 'saldos', month));
-  const recent = useQuery(dashboardQuery.block(workspaceId, 'recentes', month));
-  const setup = useQuery(dashboardQuery.block(workspaceId, 'configuracao', month));
+  const result = useQuery(dashboardQuery.block(workspaceId, 'resultado', range));
+  const categories = useQuery(dashboardQuery.block(workspaceId, 'categorias', range));
+  const evolution = useQuery(dashboardQuery.block(workspaceId, 'evolucao', range));
+  const upcoming = useQuery(dashboardQuery.block(workspaceId, 'a-vencer', range));
+  const balances = useQuery(dashboardQuery.block(workspaceId, 'saldos', range));
+  const recent = useQuery(dashboardQuery.block(workspaceId, 'recentes', range));
+  const setup = useQuery(dashboardQuery.block(workspaceId, 'configuracao', range));
 
   const changeMonth = (next: string) => {
     router.replace(next === currentMonth() ? pathname : `${pathname}?mes=${next}`, { scroll: false });

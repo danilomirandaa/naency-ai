@@ -1,6 +1,10 @@
 'use client';
 
+import { MoneyCalculator } from '@/components/finance/MoneyCalculator';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { Input, type InputProps } from '@/components/ui/Input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import { formatMoneyInput, maskMoneyInput, parseMoneyInput } from '@/lib/money';
 import { classMerge } from '@/lib/utils';
 import * as React from 'react';
@@ -16,6 +20,8 @@ export type MoneyInputProps = Omit<
   onValueChange?: (cents: number | null) => void;
   /** Permite valor negativo: "-" inverte o sinal. */
   allowNegative?: boolean;
+  /** Botão com calculadora ao lado do campo. */
+  calculator?: boolean;
 };
 
 function textFor(cents: number | null) {
@@ -35,6 +41,7 @@ export function MoneyInput({
   defaultValue = null,
   onValueChange,
   allowNegative = false,
+  calculator = false,
   name,
   className,
   onPaste,
@@ -78,8 +85,10 @@ export function MoneyInput({
     apply({ text: textFor(pasted), cents: pasted });
   };
 
-  return (
-    <div className="relative">
+  const [calculatorOpen, setCalculatorOpen] = React.useState(false);
+
+  const input = (
+    <div className="relative min-w-0 flex-1">
       <span
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-typography-neutral-secondary"
@@ -94,9 +103,47 @@ export function MoneyInput({
         value={text}
         onChange={handleChange}
         onPaste={handlePaste}
-        className={classMerge('pl-9 text-right tabular-nums', className)}
+        className={classMerge('pl-9 text-right tabular-nums', calculator && 'rounded-r-none', className)}
       />
       {name && <input type="hidden" name={name} value={cents ?? ''} />}
+    </div>
+  );
+
+  if (!calculator) {
+    return input;
+  }
+
+  return (
+    <div className="flex">
+      {input}
+      <Popover open={calculatorOpen} onOpenChange={setCalculatorOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Abrir calculadora"
+            className="-ml-px shrink-0 rounded-l-none"
+            disabled={props.disabled}
+          >
+            <Icon icon="calculator" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          className="w-auto p-2"
+          // A calculadora foca a si mesma para receber o teclado.
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
+          <MoneyCalculator
+            initialCents={cents === null ? null : Math.abs(cents)}
+            onApply={(value) => {
+              const next = cents !== null && cents < 0 && allowNegative ? -value : value;
+              apply({ text: textFor(next), cents: next });
+              setCalculatorOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

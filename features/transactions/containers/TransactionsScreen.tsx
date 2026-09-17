@@ -71,6 +71,7 @@ export function TransactionsScreen({ workspaceId, canEdit, kind, title, today }:
               onChange={changeFilters}
               accounts={accounts.data ?? []}
               categories={categories.data ?? []}
+              today={today}
             />
             {kind !== 'transfer' && (
               <TransactionsSummary

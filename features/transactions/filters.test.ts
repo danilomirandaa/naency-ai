@@ -7,7 +7,8 @@ const uuid = '11111111-1111-4111-8111-111111111111';
 describe('filtersFromSearchParams', () => {
   it('sem parâmetros usa o mês atual e nada filtrado', () => {
     expect(filtersFromSearchParams(new URLSearchParams(), { now })).toEqual({
-      month: '2026-09',
+      from: '2026-09-01',
+      to: '2026-09-30',
       accountId: null,
       categoryId: null,
       kind: null,
@@ -27,7 +28,8 @@ describe('filtersFromSearchParams', () => {
       pagina: '3',
     });
     expect(filtersFromSearchParams(params, { now })).toEqual({
-      month: '2026-08',
+      from: '2026-08-01',
+      to: '2026-08-31',
       accountId: uuid,
       categoryId: uuid,
       kind: 'expense',
@@ -40,7 +42,8 @@ describe('filtersFromSearchParams', () => {
   it('valores inválidos voltam ao padrão', () => {
     const params = new URLSearchParams({ mes: '2026-13', conta: 'x', tipo: 'outros', pagina: '-2' });
     expect(filtersFromSearchParams(params, { now })).toMatchObject({
-      month: '2026-09',
+      from: '2026-09-01',
+      to: '2026-09-30',
       accountId: null,
       kind: null,
       page: 1,
@@ -62,7 +65,20 @@ describe('filtersToSearchParams', () => {
     const params = filtersToSearchParams(filters, { now });
     expect(params.toString()).toBe('mes=2026-08&tipo=transferencias&busca=pix&pagina=2');
     expect(filtersFromSearchParams(params, { now })).toEqual(filters);
-    expect(filtersToSearchParams({ ...filters, month: '2026-09', page: 1, search: '', kind: null }, { now }).toString()).toBe('');
+    expect(
+      filtersToSearchParams({ ...filters, from: '2026-09-01', to: '2026-09-30', page: 1, search: '', kind: null }, { now }).toString(),
+    ).toBe('');
     expect(filtersToSearchParams(filters, { now, omitKind: true }).has('tipo')).toBe(false);
+  });
+});
+
+describe('intervalo personalizado', () => {
+  it('lê ?de=&ate= e grava de volta; intervalo inválido cai no mês', () => {
+    const custom = filtersFromSearchParams(new URLSearchParams({ de: '2026-09-01', ate: '2026-09-15', mes: '2026-01' }), { now });
+    expect(custom).toMatchObject({ from: '2026-09-01', to: '2026-09-15' });
+    expect(filtersToSearchParams(custom, { now }).toString()).toBe('de=2026-09-01&ate=2026-09-15');
+
+    const inverted = filtersFromSearchParams(new URLSearchParams({ de: '2026-09-15', ate: '2026-09-01' }), { now });
+    expect(inverted).toMatchObject({ from: '2026-09-01', to: '2026-09-30' });
   });
 });

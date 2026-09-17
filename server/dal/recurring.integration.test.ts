@@ -1,3 +1,4 @@
+import { monthRange } from '@/lib/dates';
 import type { TransactionFilters } from '@/features/transactions/filters';
 import { ForbiddenError } from '@/server/auth/errors';
 import { createUser, resetTestDb, signInAs } from '@/tests/integration/db';
@@ -22,7 +23,7 @@ let aluguel: string;
 
 const TODAY = '2026-09-16';
 const filters = (month: string): TransactionFilters => ({
-  month,
+  ...monthRange(month),
   accountId: null,
   categoryId: null,
   kind: null,

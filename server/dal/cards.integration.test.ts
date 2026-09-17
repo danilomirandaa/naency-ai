@@ -1,3 +1,4 @@
+import { monthRange } from '@/lib/dates';
 import type { TransactionFilters } from '@/features/transactions/filters';
 import { ForbiddenError } from '@/server/auth/errors';
 import { createUser, resetTestDb, signInAs } from '@/tests/integration/db';
@@ -30,7 +31,7 @@ const cardInput = {
 };
 
 const allFilters: TransactionFilters = {
-  month: '2026-09',
+  ...monthRange('2026-09'),
   accountId: null,
   categoryId: null,
   kind: null,
@@ -178,7 +179,7 @@ describe('cartão: parcelas', () => {
       ['2026-11', -33_33],
       ['2026-10', -33_34],
     ]);
-    const october = await listTransactions(workspaceId, { ...allFilters, month: '2026-10', accountId: card });
+    const october = await listTransactions(workspaceId, { ...allFilters, ...monthRange('2026-10'), accountId: card });
     expect(october.items[0]).toMatchObject({
       description: 'Geladeira (2/3)',
       installment: { number: 2, total: 3 },
@@ -224,7 +225,7 @@ describe('cartão: pagamento da fatura', () => {
 
     const [paid] = await listCardInvoices(workspaceId, card, { today: TODAY });
     expect(paid).toMatchObject({ status: 'paid', totalCents: -120_000 });
-    const october10 = await listTransactions(workspaceId, { ...allFilters, month: '2026-10' });
+    const october10 = await listTransactions(workspaceId, { ...allFilters, ...monthRange('2026-10') });
     expect(october10.items.map((item) => item.description)).toEqual(['Pagamento da fatura de outubro de 2026']);
 
     await expect(

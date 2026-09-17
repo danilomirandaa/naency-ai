@@ -8,6 +8,7 @@ import type {
   UpcomingItem,
 } from '@/features/dashboard/types';
 import { fetchJson } from '@/lib/api/fetch-json';
+import type { DateRange } from '@/lib/periods';
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 
 export type DashboardBlocks = {
@@ -37,10 +38,11 @@ export const DASHBOARD_BLOCKS: DashboardBlock[] = [
 /** Contrato de query do dashboard: um bloco por query, para carregar e falhar separado. */
 export const dashboardQuery = {
   all: (workspaceId: string) => ['workspace', workspaceId, 'dashboard'] as const,
-  block: <B extends DashboardBlock>(workspaceId: string, block: B, month: string) =>
+  block: <B extends DashboardBlock>(workspaceId: string, block: B, range: DateRange) =>
     queryOptions({
-      queryKey: [...dashboardQuery.all(workspaceId), block, month] as const,
-      queryFn: () => fetchJson<DashboardBlocks[B]>(`/api/workspaces/${workspaceId}/dashboard/${block}`, { mes: month }),
+      queryKey: [...dashboardQuery.all(workspaceId), block, range.from, range.to] as const,
+      queryFn: () =>
+        fetchJson<DashboardBlocks[B]>(`/api/workspaces/${workspaceId}/dashboard/${block}`, { de: range.from, ate: range.to }),
       placeholderData: keepPreviousData,
     }),
 };

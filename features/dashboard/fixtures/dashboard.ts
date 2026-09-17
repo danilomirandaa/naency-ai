@@ -31,7 +31,8 @@ export const balanceFixture: BalanceData = {
 };
 
 export const monthResultFixture: MonthResultData = {
-  month: '2026-09',
+  range: { from: '2026-09-01', to: '2026-09-30' },
+  previousRange: { from: '2026-08-01', to: '2026-08-31' },
   current: { incomeCents: 850_000, expenseCents: -612_340 },
   previous: { incomeCents: 850_000, expenseCents: -540_000 },
 };

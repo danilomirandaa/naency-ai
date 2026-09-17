@@ -1,10 +1,9 @@
-import { currentMonth, isMonth } from '@/lib/dates';
+import { currentMonth, isMonth, monthRange } from '@/lib/dates';
+import { type DateRange, isValidRange, wholeMonthOf } from '@/lib/periods';
 import type { TransactionKind } from '@/lib/transactions';
 import { z } from 'zod';
 
-export type TransactionFilters = {
-  /** "AAAA-MM" */
-  month: string;
+export type TransactionFilters = DateRange & {
   accountId: string | null;
   categoryId: string | null;
   kind: TransactionKind | null;
@@ -27,12 +26,18 @@ const uuid = z.uuid();
 
 type ParamsLike = { get(name: string): string | null };
 
+/** Filtros de um mês inteiro. */
+export function monthFilters(month: string, overrides: Partial<TransactionFilters> = {}): TransactionFilters {
+  return { ...monthRange(month), accountId: null, categoryId: null, kind: null, search: '', page: 1, ...overrides };
+}
+
 /** Lê filtros da URL; valor inválido vira o padrão, nunca erro. */
 export function filtersFromSearchParams(
   params: ParamsLike,
   { now = new Date(), kind = null }: { now?: Date; kind?: TransactionKind | null } = {},
 ): TransactionFilters {
   const month = params.get('mes');
+  const range = { from: params.get('de'), to: params.get('ate') };
   const accountId = params.get('conta');
   const categoryId = params.get('categoria');
   const kindParam = params.get('tipo');
@@ -43,7 +48,8 @@ export function filtersFromSearchParams(
     null;
 
   return {
-    month: isMonth(month) ? month : currentMonth(now),
+    // Intervalo explícito (?de=&ate=) vence o mês (?mes=); sem nada, o mês atual.
+    ...(isValidRange(range) ? range : monthRange(isMonth(month) ? month : currentMonth(now))),
     accountId: accountId && uuid.safeParse(accountId).success ? accountId : null,
     categoryId: categoryId && uuid.safeParse(categoryId).success ? categoryId : null,
     kind: kind ?? parsedKind,
@@ -59,8 +65,14 @@ export function filtersToSearchParams(
   { now = new Date(), omitKind = false }: { now?: Date; omitKind?: boolean } = {},
 ) {
   const params = new URLSearchParams();
-  if (filters.month !== currentMonth(now)) {
-    params.set('mes', filters.month);
+  const month = wholeMonthOf(filters);
+  if (month) {
+    if (month !== currentMonth(now)) {
+      params.set('mes', month);
+    }
+  } else {
+    params.set('de', filters.from);
+    params.set('ate', filters.to);
   }
   if (filters.accountId) {
     params.set('conta', filters.accountId);

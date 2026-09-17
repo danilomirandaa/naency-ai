@@ -7,7 +7,8 @@ import * as React from 'react';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 
 const base: TransactionFilters = {
-  month: '2026-09',
+  from: '2026-09-01',
+  to: '2026-09-30',
   accountId: null,
   categoryId: null,
   kind: null,
@@ -24,6 +25,7 @@ function Demo({ initial }: { initial: TransactionFilters }) {
       filters={filters}
       accounts={accountsFixture}
       categories={categoriesFixture}
+      today="2026-09-16"
       onChange={(changes) => {
         onChange(changes);
         setFilters((current) => ({ ...current, ...changes, page: 1 }));
@@ -48,7 +50,7 @@ export const ChangeFilters: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Mês anterior' }));
-    await expect(onChange).toHaveBeenLastCalledWith({ month: '2026-08' });
+    await expect(onChange).toHaveBeenLastCalledWith({ from: '2026-08-01', to: '2026-08-31' });
 
     await userEvent.click(canvas.getByLabelText('Filtrar por categoria'));
     await userEvent.click(within(await screen.findByRole('listbox')).getByRole('option', { name: 'Mercado' }));

@@ -149,7 +149,7 @@ function RecurringFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Valor" error={fieldErrors.amountCents}>
           {(control) => (
-            <MoneyInput {...control} name="amountCents" defaultValue={values.amountCents ? Number(values.amountCents) : null} placeholder="0,00" />
+            <MoneyInput {...control} name="amountCents" defaultValue={values.amountCents ? Number(values.amountCents) : null} placeholder="0,00" calculator />
           )}
         </Field>
         <Field label="Frequência" error={fieldErrors.frequency}>

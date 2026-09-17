@@ -4,7 +4,9 @@ import type { CategoryIconName } from '@/lib/categories';
 export type MonthTotals = { incomeCents: number; expenseCents: number };
 
 export type MonthResultData = {
-  month: string;
+  /** Período escolhido e o anterior de mesmo tamanho. */
+  range: { from: string; to: string };
+  previousRange: { from: string; to: string };
   current: MonthTotals;
   previous: MonthTotals;
 };

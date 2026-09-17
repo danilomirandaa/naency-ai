@@ -2,7 +2,7 @@ import 'server-only';
 import { type BudgetInput, type GoalInput, budgetInputSchema, goalInputSchema } from '@/features/planning/schemas';
 import type { BudgetLine, GoalSummary } from '@/features/planning/types';
 import type { CategoryIconName } from '@/lib/categories';
-import { todayIsoDate } from '@/lib/dates';
+import { monthRange, todayIsoDate } from '@/lib/dates';
 import { monthlyNeeded } from '@/lib/planning';
 import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
@@ -41,7 +41,7 @@ export async function listBudgets(workspaceId: string, month: string): Promise<B
         ),
       ),
     db.select({ categoryId: budgets.categoryId, amountCents: budgets.amountCents }).from(budgets).where(eq(budgets.workspaceId, workspaceId)),
-    getCategoryBreakdown(workspaceId, month),
+    getCategoryBreakdown(workspaceId, monthRange(month)),
   ]);
   return roots
     .map((root) => ({

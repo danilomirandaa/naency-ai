@@ -1,8 +1,17 @@
 'use client';
 
 import { CategoryIcon } from '@/components/finance/CategoryIcon';
-import type { FieldControlProps } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/Command';
+import { Icon } from '@/components/ui/Icon';
+import { type FieldControlProps, inputControlClassName } from '@/components/ui/Input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import {
   CATEGORY_KINDS,
   CATEGORY_KIND_LABELS,
@@ -10,6 +19,8 @@ import {
   type CategoryKind,
   buildCategoryTree,
 } from '@/lib/categories';
+import { normalizeDescription } from '@/lib/transactions';
+import { classMerge } from '@/lib/utils';
 import * as React from 'react';
 
 export type CategoryOption = {
@@ -36,11 +47,27 @@ export type CategorySelectProps = Partial<FieldControlProps> & {
   disabled?: boolean;
   /** Abre a lista ao montar (stories). */
   defaultOpen?: boolean;
+  'aria-label'?: string;
 };
 
-const NONE = 'none';
+/** Busca sem acento pelo nome (o id no `value` só diferencia nomes repetidos). */
+export function filterCategories(value: string, search: string, keywords: string[] = []) {
+  const term = normalizeDescription(search);
+  if (!term) {
+    return 1;
+  }
+  const name = normalizeDescription(value.slice(value.indexOf('|') + 1));
+  if (name.includes(term)) {
+    return name.startsWith(term) ? 1 : 0.8;
+  }
+  return keywords.some((keyword) => normalizeDescription(keyword).includes(term)) ? 0.5 : 0;
+}
 
-/** Escolha de categoria com subcategorias agrupadas sob a principal. */
+/**
+ * Escolha de categoria com busca (combobox do shadcn: Popover + Command). As
+ * subcategorias aparecem sob a principal; buscar pelo nome da principal mostra
+ * as subcategorias dela.
+ */
 export function CategorySelect({
   categories,
   kind,
@@ -51,63 +78,108 @@ export function CategorySelect({
   placeholder = 'Escolha a categoria',
   noneLabel = 'Sem categoria',
   disabled,
-  defaultOpen,
-  ...control
+  defaultOpen = false,
+  id,
+  'aria-describedby': describedBy,
+  'aria-invalid': invalid,
+  'aria-label': ariaLabel,
 }: CategorySelectProps) {
+  const [open, setOpen] = React.useState(defaultOpen);
   const isControlled = value !== undefined;
   const [internal, setInternal] = React.useState<string | null>(defaultValue);
-  const selected = isControlled ? value : internal;
+  const selectedId = isControlled ? value : internal;
   const kinds = kind ? [kind] : CATEGORY_KINDS;
+  const available = categories.filter((category) => kind === null || category.kind === kind);
+  const selected = available.find((category) => category.id === selectedId) ?? null;
+  const parent = selected?.parentId ? categories.find((category) => category.id === selected.parentId) : null;
 
-  const handleChange = (next: string) => {
-    const id = next === NONE ? null : next;
+  const choose = (next: string | null) => {
     if (!isControlled) {
-      setInternal(id);
+      setInternal(next);
     }
-    onValueChange?.(id);
+    onValueChange?.(next);
+    setOpen(false);
   };
 
-  // Valor que não está na lista (ex.: categoria arquivada) mostra o placeholder.
-  const known =
-    selected !== null &&
-    categories.some((category) => category.id === selected && (kind === null || category.kind === kind));
+  const listboxId = React.useId();
 
   return (
     <>
-      <Select.Root
-        // "" mostra o placeholder; sem categoria aparece como a opção "Sem categoria".
-        value={known ? (selected as string) : noneLabel !== null ? NONE : ''}
-        onValueChange={handleChange}
-        disabled={disabled}
-        defaultOpen={defaultOpen}
-      >
-        <Select.Trigger {...control}>
-          <Select.Value placeholder={placeholder} />
-        </Select.Trigger>
-        <Select.Content className="max-h-80">
-          {noneLabel !== null && <Select.Item value={NONE}>{noneLabel}</Select.Item>}
-          {kinds.map((groupKind) => {
-            const tree = buildCategoryTree(categories.filter((category) => category.kind === groupKind));
-            return (
-              <Select.Group key={groupKind}>
-                {kind === null && <Select.Label>{CATEGORY_KIND_LABELS[groupKind]}</Select.Label>}
-                {tree.flatMap((root) => [
-                  <Select.Item key={root.id} value={root.id}>
-                    <CategoryIcon icon={root.icon} color={root.color} size="sm" />
-                    {root.name}
-                  </Select.Item>,
-                  ...root.children.map((child) => (
-                    <Select.Item key={child.id} value={child.id} className="pl-9">
-                      {child.name}
-                    </Select.Item>
-                  )),
-                ])}
-              </Select.Group>
-            );
-          })}
-        </Select.Content>
-      </Select.Root>
-      {name && <input type="hidden" name={name} value={known ? (selected as string) : ''} />}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild disabled={disabled}>
+          <button
+            type="button"
+            id={id}
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={open ? listboxId : undefined}
+            aria-describedby={describedBy}
+            aria-invalid={invalid}
+            aria-label={ariaLabel}
+            data-placeholder={selected ? undefined : ''}
+            className={classMerge(
+              inputControlClassName,
+              'flex items-center gap-2 text-left data-[placeholder]:text-typography-neutral-secondary',
+            )}
+          >
+            {selected ? (
+              <>
+                <CategoryIcon icon={selected.icon} color={selected.color} size="sm" />
+                <span className="flex-1 truncate">
+                  {parent ? `${parent.name} › ${selected.name}` : selected.name}
+                </span>
+              </>
+            ) : (
+              <span className="flex-1 truncate">{noneLabel ?? placeholder}</span>
+            )}
+            <Icon icon="chevron-down" className="size-4 text-icon-neutral-rest" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" aria-label="Categorias" className="w-(--radix-popover-trigger-width) min-w-64 p-0">
+          <Command filter={filterCategories}>
+            <CommandInput placeholder="Buscar categoria…" aria-label="Buscar categoria" />
+            <CommandList id={listboxId}>
+              <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+              {noneLabel !== null && (
+                <CommandGroup>
+                  <CommandItem value={`__none__|${noneLabel}`} checked={selectedId === null} onSelect={() => choose(null)}>
+                    {noneLabel}
+                  </CommandItem>
+                </CommandGroup>
+              )}
+              {kinds.map((groupKind) => (
+                <CommandGroup key={groupKind} heading={kind === null ? CATEGORY_KIND_LABELS[groupKind] : undefined}>
+                  {buildCategoryTree(available.filter((category) => category.kind === groupKind)).flatMap((root) => [
+                    <CommandItem
+                      key={root.id}
+                      value={`${root.id}|${root.name}`}
+                      keywords={root.children.map((child) => child.name)}
+                      checked={selectedId === root.id}
+                      onSelect={() => choose(root.id)}
+                    >
+                      <CategoryIcon icon={root.icon} color={root.color} size="sm" />
+                      <span className="truncate">{root.name}</span>
+                    </CommandItem>,
+                    ...root.children.map((child) => (
+                      <CommandItem
+                        key={child.id}
+                        value={`${child.id}|${child.name}`}
+                        keywords={[root.name]}
+                        checked={selectedId === child.id}
+                        onSelect={() => choose(child.id)}
+                        className="pl-9"
+                      >
+                        <span className="truncate">{child.name}</span>
+                      </CommandItem>
+                    )),
+                  ])}
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {name && <input type="hidden" name={name} value={selected ? selected.id : ''} />}
     </>
   );
 }

@@ -114,3 +114,27 @@ export const OpenList: Story = {
     ).toBeLessThan(12);
   },
 };
+
+export const Search: Story = {
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByLabelText('Categoria'));
+    const search = await screen.findByPlaceholderText('Buscar categoria…');
+    await userEvent.type(search, 'cafe');
+    const listbox = within(screen.getByRole('listbox'));
+    await expect(listbox.getByRole('option', { name: 'Padaria e café' })).toBeInTheDocument();
+    await expect(listbox.queryByRole('option', { name: 'Aluguel' })).toBeNull();
+
+    await userEvent.clear(search);
+    await userEvent.type(search, 'xyz');
+    await expect(await screen.findByText('Nenhuma categoria encontrada.')).toBeInTheDocument();
+
+    await userEvent.clear(search);
+    await userEvent.type(search, 'netf');
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull());
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(categoryFixtureId('Assinaturas/Netflix'));
+    await expect(canvas.getByLabelText('Categoria')).toHaveTextContent('Assinaturas › Netflix');
+    (document.activeElement as HTMLElement | null)?.blur();
+  },
+};

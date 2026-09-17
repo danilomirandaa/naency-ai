@@ -1,3 +1,4 @@
+import { monthRange } from '@/lib/dates';
 import type { TransactionFilters } from '@/features/transactions/filters';
 import { ForbiddenError } from '@/server/auth/errors';
 import { createUser, resetTestDb, signInAs } from '@/tests/integration/db';
@@ -26,7 +27,7 @@ let moradia: string;
 let salario: string;
 
 const september: TransactionFilters = {
-  month: '2026-09',
+  ...monthRange('2026-09'),
   accountId: null,
   categoryId: null,
   kind: null,
@@ -277,7 +278,7 @@ describe('lançamentos: filtros e paginação', () => {
 
   it('por mês', async () => {
     expect((await listTransactions(workspaceId, september)).total).toBe(3);
-    expect((await listTransactions(workspaceId, { ...september, month: '2026-08' })).total).toBe(1);
+    expect((await listTransactions(workspaceId, { ...september, ...monthRange('2026-08') })).total).toBe(1);
   });
 
   it('por conta, por tipo e por busca (ignora maiúsculas)', async () => {
@@ -300,7 +301,7 @@ describe('lançamentos: filtros e paginação', () => {
         expense({ description: `Item ${day}`, date: `2026-10-${String(Math.min(day, 31)).padStart(2, '0')}`, amountCents: 100 }),
       );
     }
-    const october = { ...september, month: '2026-10' };
+    const october = { ...september, ...monthRange('2026-10') };
     const first = await listTransactions(workspaceId, october);
     const second = await listTransactions(workspaceId, { ...october, page: 2 });
     expect(first).toMatchObject({ total: 52, page: 1, pageSize: 50 });

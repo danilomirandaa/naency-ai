@@ -218,7 +218,7 @@ function TransactionFormFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={canSplit && installments !== '1' ? 'Valor total' : 'Valor'} error={fieldErrors.amountCents}>
           {(control) => (
-            <MoneyInput {...control} name="amountCents" defaultValue={values.amountCents} placeholder="0,00" autoFocus />
+            <MoneyInput {...control} name="amountCents" defaultValue={values.amountCents} placeholder="0,00" calculator autoFocus />
           )}
         </Field>
         <Field label="Data" error={fieldErrors.date}>

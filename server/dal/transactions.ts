@@ -8,7 +8,6 @@ import {
 import type { TransactionItem, TransactionsPage } from '@/features/transactions/types';
 import type { CategoryIconName } from '@/lib/categories';
 import { addMonthsToDate, invoiceForPurchase, splitInstallments } from '@/lib/cards';
-import { monthRange } from '@/lib/dates';
 import { signedAmount } from '@/lib/transactions';
 import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
@@ -45,7 +44,7 @@ const counterpartAccount = alias(accounts, 'counterpart_account');
 const parentCategory = alias(categories, 'parent_category');
 
 function filterConditions(workspaceId: string, filters: TransactionFilters) {
-  const { from, to } = monthRange(filters.month);
+  const { from, to } = filters;
   const search = filters.search.replace(/[%_\\]/g, (char) => `\\${char}`);
   // A fatura junta compras de meses diferentes: com ela, o mês não filtra.
   const byInvoice = Boolean(filters.invoiceId);

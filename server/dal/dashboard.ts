@@ -11,6 +11,7 @@ import type {
 } from '@/features/dashboard/types';
 import { type CategoryIconName, buildCategoryTree } from '@/lib/categories';
 import { monthRange, shiftMonth, todayIsoDate } from '@/lib/dates';
+import { type DateRange, previousRange } from '@/lib/periods';
 import { requireMembership } from '@/server/auth/membership';
 import { getDb } from '@/server/db/client';
 import { accounts, categories, profiles, transactions, workspaceMembers } from '@/server/db/schema';
@@ -41,21 +42,22 @@ async function totalsBetween(workspaceId: string, from: string, to: string): Pro
   return { incomeCents: Number(row?.incomeCents ?? 0), expenseCents: Number(row?.expenseCents ?? 0) };
 }
 
-export async function getMonthResult(workspaceId: string, month: string): Promise<MonthResultData> {
+/** Receitas e despesas do período e do anterior de mesmo tamanho. */
+export async function getPeriodResult(workspaceId: string, range: DateRange): Promise<MonthResultData> {
   await requireMembership(workspaceId, 'workspace.read');
-  const current = monthRange(month);
-  const previous = monthRange(shiftMonth(month, -1));
+  const current = range;
+  const previous = previousRange(range);
   const [currentTotals, previousTotals] = await Promise.all([
     totalsBetween(workspaceId, current.from, current.to),
     totalsBetween(workspaceId, previous.from, previous.to),
   ]);
-  return { month, current: currentTotals, previous: previousTotals };
+  return { range: current, previousRange: previous, current: currentTotals, previous: previousTotals };
 }
 
 /** Despesas do mês por categoria principal (subcategorias somadas no pai), da maior para a menor. */
-export async function getCategoryBreakdown(workspaceId: string, month: string): Promise<CategorySlice[]> {
+export async function getCategoryBreakdown(workspaceId: string, range: DateRange): Promise<CategorySlice[]> {
   await requireMembership(workspaceId, 'workspace.read');
-  const { from, to } = monthRange(month);
+  const { from, to } = range;
   const db = getDb();
   const [sums, allCategories] = await Promise.all([
     db

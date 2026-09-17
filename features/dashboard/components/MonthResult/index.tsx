@@ -2,7 +2,11 @@ import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Text } from '@/components/ui/Text';
 import { DashboardCard } from '@/features/dashboard/components/DashboardCard';
 import type { MonthResultData } from '@/features/dashboard/types';
-import { formatMonth, shiftMonth } from '@/lib/dates';
+import { formatRange } from '@/lib/periods';
+
+function lowerFirst(text: string) {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
 
 export type MonthResultProps = {
   data: MonthResultData | undefined;
@@ -33,7 +37,7 @@ export function MonthResult({ data, isLoading, isError }: MonthResultProps) {
   return (
     <DashboardCard
       title="Resultado do mês"
-      description={data ? `${formatMonth(data.month)} · comparado a ${formatMonth(shiftMonth(data.month, -1)).toLowerCase()}` : undefined}
+      description={data ? `${formatRange(data.range)} · comparado a ${lowerFirst(formatRange(data.previousRange))}` : undefined}
       isLoading={isLoading}
       isError={isError}
     >

@@ -12,11 +12,13 @@ export const transactionsQuery = {
     queryOptions({
       queryKey: transactionsQuery.key(workspaceId, filters),
       queryFn: () => {
-        // Mês sempre explícito na API: o "mês atual" do cliente e do servidor podem diferir.
+        // Intervalo sempre explícito na API: o "mês atual" do cliente e do servidor podem diferir.
         const params = Object.fromEntries(filtersToSearchParams(filters));
         return fetchJson<TransactionsPage>(`/api/workspaces/${workspaceId}/transactions`, {
           ...params,
-          mes: filters.month,
+          mes: null,
+          de: filters.from,
+          ate: filters.to,
         });
       },
       // Trocar de filtro mantém a lista anterior na tela até a nova chegar.

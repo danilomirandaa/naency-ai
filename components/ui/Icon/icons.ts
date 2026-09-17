@@ -7,6 +7,7 @@ import { IconArchiveUp } from '@devigner-ui/icons/ArchiveUp';
 import { IconArrowLeftDown } from '@devigner-ui/icons/ArrowLeftDown';
 import { IconArrowRight } from '@devigner-ui/icons/ArrowRight';
 import { IconArrowRightUp } from '@devigner-ui/icons/ArrowRightUp';
+import { IconBackspace } from '@devigner-ui/icons/Backspace';
 import { IconBag } from '@devigner-ui/icons/Bag';
 import { IconBank } from '@devigner-ui/icons/Bank';
 import { IconBell } from '@devigner-ui/icons/Bell';
@@ -14,7 +15,9 @@ import { IconBillList } from '@devigner-ui/icons/BillList';
 import { IconBolt } from '@devigner-ui/icons/Bolt';
 import { IconBottle } from '@devigner-ui/icons/Bottle';
 import { IconBus } from '@devigner-ui/icons/Bus';
+import { IconCalculatorMinimalistic } from '@devigner-ui/icons/CalculatorMinimalistic';
 import { IconCalendar } from '@devigner-ui/icons/Calendar';
+import { IconCalendarMark } from '@devigner-ui/icons/CalendarMark';
 import { IconCard } from '@devigner-ui/icons/Card';
 import { IconCartLarge } from '@devigner-ui/icons/CartLarge';
 import { IconCaseMinimalistic } from '@devigner-ui/icons/CaseMinimalistic';
@@ -32,6 +35,7 @@ import { IconDoubleAltArrowLeft } from '@devigner-ui/icons/DoubleAltArrowLeft';
 import { IconDoubleAltArrowRight } from '@devigner-ui/icons/DoubleAltArrowRight';
 import { IconDumbbell } from '@devigner-ui/icons/Dumbbell';
 import { IconEye } from '@devigner-ui/icons/Eye';
+import { IconFilter } from '@devigner-ui/icons/Filter';
 import { IconGamepad } from '@devigner-ui/icons/Gamepad';
 import { IconGasStation } from '@devigner-ui/icons/GasStation';
 import { IconGift } from '@devigner-ui/icons/Gift';
@@ -71,8 +75,8 @@ import { IconTransferHorizontal } from '@devigner-ui/icons/TransferHorizontal';
 import { IconTrashBinMinimalistic } from '@devigner-ui/icons/TrashBinMinimalistic';
 import { IconTShirt } from '@devigner-ui/icons/TShirt';
 import { IconUndo } from '@devigner-ui/icons/Undo';
-import { IconUploadMinimalistic } from '@devigner-ui/icons/UploadMinimalistic';
 import { IconUndoLeft } from '@devigner-ui/icons/UndoLeft';
+import { IconUploadMinimalistic } from '@devigner-ui/icons/UploadMinimalistic';
 import { IconUserRounded } from '@devigner-ui/icons/UserRounded';
 import { IconWadOfMoney } from '@devigner-ui/icons/WadOfMoney';
 import { IconWallet } from '@devigner-ui/icons/Wallet';
@@ -103,6 +107,10 @@ export const icons = {
   settings: IconSettings,
   view: IconEye,
   upload: IconUploadMinimalistic,
+  calculator: IconCalculatorMinimalistic,
+  backspace: IconBackspace,
+  filter: IconFilter,
+  'calendar-range': IconCalendarMark,
   archive: IconArchive,
   unarchive: IconArchiveUp,
   logout: IconLogout2,

@@ -1,3 +1,4 @@
+import { monthRange } from '@/lib/dates';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { TransactionFilters } from '@/features/transactions/filters';
@@ -26,7 +27,7 @@ let padaria: string;
 let salario: string;
 
 const ofx = readFileSync(path.resolve('lib/import/__fixtures__/conta-sgml.ofx'), 'utf8');
-const september: TransactionFilters = { month: '2026-09', accountId: null, categoryId: null, kind: null, search: '', page: 1 };
+const september: TransactionFilters = { ...monthRange('2026-09'), accountId: null, categoryId: null, kind: null, search: '', page: 1 };
 
 beforeEach(async () => {
   await resetTestDb();
