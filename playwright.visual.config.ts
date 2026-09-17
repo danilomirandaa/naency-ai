@@ -17,7 +17,8 @@ export default defineConfig({
   expect: {
     // Timeout maior: sob carga (ou em runner lento) duas capturas iguais seguidas
     // podem levar mais que os 5s padrão.
-    toHaveScreenshot: { animations: 'disabled', caret: 'hide', timeout: 15_000 },
+    timeout: 15_000,
+    toHaveScreenshot: { animations: 'disabled', caret: 'hide' },
   },
   use: {
     ...devices['Desktop Chrome'],
