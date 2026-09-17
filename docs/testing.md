@@ -57,6 +57,10 @@ Uma entrega (feature, componente, correção) só está pronta quando tem:
 - **`play` termina no estado inicial**: sem dialog, menu ou popover aberto e sem
   tema alterado. O screenshot visual é tirado depois do `play`, e overlays abertos
   deixam o resultado instável.
+- **Nada temporário no fim do `play`**: aviso que some sozinho ("Copiado") precisa
+  sumir antes de o `play` terminar (`waitFor`). O teste visual já tira o foco da
+  página antes do screenshot, porque o anel de foco após clique simulado não é
+  determinístico.
 - **Nada de `sleep` em teste**: espere uma condição (`findBy…`, `waitFor`).
   Asserção de visibilidade logo após abrir algo animado usa `waitFor`, porque o
   elemento começa com opacidade 0.

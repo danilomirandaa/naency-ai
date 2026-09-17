@@ -1,6 +1,6 @@
 import { CopyInput } from '@/components/ui/CopyInput';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, spyOn, userEvent, within } from 'storybook/test';
+import { expect, spyOn, userEvent, waitFor, within } from 'storybook/test';
 
 const meta: Meta<typeof CopyInput> = {
   title: 'Design System/CopyInput',
@@ -30,6 +30,10 @@ export const Default: Story = {
     await expect(writeText).toHaveBeenCalledWith(args.value);
     await expect(await canvas.findByRole('button', { name: 'Copiado' })).toBeVisible();
     writeText.mockRestore();
+    // O aviso some sozinho; espera voltar ao normal para o screenshot ser estável.
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Copiar' })).toBeVisible(), {
+      timeout: 4000,
+    });
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };
@@ -41,6 +45,10 @@ export const ClipboardBlocked: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Copiar' }));
     await expect(await canvas.findByRole('button', { name: 'Selecione e copie' })).toBeVisible();
     writeText.mockRestore();
+    // O aviso some sozinho; espera voltar ao normal para o screenshot ser estável.
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Copiar' })).toBeVisible(), {
+      timeout: 4000,
+    });
     (document.activeElement as HTMLElement | null)?.blur();
   },
 };

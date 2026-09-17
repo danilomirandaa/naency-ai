@@ -41,6 +41,10 @@ for (const story of stories) {
         'finished',
       );
       await page.evaluate(() => document.fonts.ready);
+      // O anel de foco (:focus-visible) nem sempre aparece após interações do
+      // play, e dialogs devolvem o foco ao fechar: tira o foco para o screenshot
+      // ser determinístico.
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
       await expect(page).toHaveScreenshot(`${story.id}--${theme}.png`, {
         fullPage: true,

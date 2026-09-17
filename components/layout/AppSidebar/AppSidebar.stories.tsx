@@ -58,6 +58,9 @@ export const ActiveSubItem: Story = {
     await userEvent.click(expandPlanning);
     await expect(canvas.getByRole('link', { name: 'Orçamentos' })).toBeVisible();
     await userEvent.click(expandPlanning);
+    // Sem foco residual: o anel de foco nem sempre aparece após clique simulado,
+    // o que deixava o screenshot instável.
+    (document.activeElement as HTMLElement | null)?.blur();
   },
 };
 
