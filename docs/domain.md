@@ -165,10 +165,14 @@ Regras:
 - **Parcelado** (`installment_groups`: `description`, `total_amount_cents`,
   `installments_count`, `first_date`): gera N lançamentos, um em cada fatura futura.
   A diferença de arredondamento de centavos vai na primeira parcela.
-- **Recorrente** (`recurring_rules`: `account_id`, `kind`, `amount_cents`,
-  `category_id`, `frequency` `monthly | weekly | yearly`, `day`, `next_date`,
-  `active`): gera lançamentos `planned` (contas a vencer). Confirmar o pagamento os
-  torna `cleared`.
+- **Recorrente** (`recurring_rules`: `account_id`, `kind`, `amount_cents` positivo,
+  `description`, `category_id`, `frequency` `monthly | weekly | yearly`,
+  `start_date`, `end_date`, `generate_from`, `active`): gera lançamentos `planned`
+  até 45 dias à frente, a cada carregamento do app (idempotente pela chave
+  `recurring_rule_id + recurrence_date`). A primeira data define o dia; mensal e anual
+  limitam ao fim do mês. Ocorrências anteriores à criação da regra não são geradas.
+  Excluir uma ocorrência não faz ela voltar. Editar ou pausar a regra refaz só os
+  previstos futuros; os efetivados ficam. Confirmar o pagamento os torna `cleared`.
 - **`planned`** não entra no saldo atual; entra na projeção.
 - **Listagem**: sem filtro de conta, a transferência aparece uma vez (pela perna de
   saída); filtrando por conta, aparece a perna daquela conta.
@@ -192,6 +196,14 @@ Regras:
 - `icon` é um nome de `CATEGORY_ICONS` e `color` uma cor da paleta (hex).
 - Profundidade máxima de 2 níveis (categoria → subcategoria).
 - Categoria arquivada não aparece para novos lançamentos, mas continua nos antigos.
+
+## Planejamento
+
+- **`budgets`**: orçamento mensal (`amount_cents`) por categoria **principal** de
+  despesa; o gasto soma as subcategorias e considera só efetivados.
+- **`goals`**: `name`, `target_cents`, `target_date` opcional e `account_id` (conta
+  que não é cartão). O guardado é o saldo da conta; com data, mostra quanto guardar
+  por mês (arredondado para cima).
 
 ## Memória de categorização
 

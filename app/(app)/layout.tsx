@@ -5,6 +5,7 @@ import { selectWorkspaceAction } from '@/features/workspaces/actions';
 import { can } from '@/lib/permissions';
 import { requireUser } from '@/server/auth/current-user';
 import { listAccounts } from '@/server/dal/accounts';
+import { materializeRecurring } from '@/server/dal/recurring';
 import { defaultProfileName, getProfile } from '@/server/dal/profiles';
 import { getActiveWorkspace } from '@/server/dal/workspaces';
 import { redirect } from 'next/navigation';
@@ -27,6 +28,8 @@ export default async function AppLayout({
   if (!active) {
     redirect('/comecar');
   }
+  // Previstos das recorrências até o horizonte; idempotente e barato quando já gerado.
+  await materializeRecurring(active.id).catch(() => undefined);
   const [accounts, cookieStore] = await Promise.all([listAccounts(active.id), cookies()]);
   const defaultOpen = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value !== 'false';
 

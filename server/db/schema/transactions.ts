@@ -11,12 +11,14 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { accounts } from './accounts';
 import { cardInvoices, installmentGroups } from './cards';
 import { categories } from './categories';
 import { importBatches } from './imports';
+import { recurringRules } from './planning';
 import { profiles, workspaces } from './workspaces';
 
 export const transactionKind = pgEnum('transaction_kind', TRANSACTION_KINDS);
@@ -53,6 +55,11 @@ export const transactions = pgTable(
     installmentNumber: integer('installment_number'),
     installmentTotal: integer('installment_total'),
     importBatchId: uuid('import_batch_id').references((): AnyPgColumn => importBatches.id, { onDelete: 'set null' }),
+    recurringRuleId: uuid('recurring_rule_id').references((): AnyPgColumn => recurringRules.id, {
+      onDelete: 'set null',
+    }),
+    /** Data prevista pela regra; a data do lançamento pode ser mudada à mão. */
+    recurrenceDate: date('recurrence_date', { mode: 'string' }),
     /** Deduplicação de importações (server/import/fingerprint.ts). */
     fingerprint: text('fingerprint'),
     notes: text('notes'),
@@ -77,6 +84,8 @@ export const transactions = pgTable(
     index('transactions_invoice_id_idx').on(table.invoiceId),
     index('transactions_installment_group_id_idx').on(table.installmentGroupId),
     index('transactions_account_fingerprint_idx').on(table.accountId, table.fingerprint),
+    // Uma ocorrência por data prevista, mesmo excluída: excluir não faz ela voltar.
+    uniqueIndex('transactions_recurrence_idx').on(table.recurringRuleId, table.recurrenceDate),
     check(
       'transactions_amount_sign',
       sql`(${table.kind} = 'income' and ${table.amountCents} > 0)

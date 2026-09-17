@@ -82,8 +82,8 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
 ## Fase 5 · Planejamento e assistente
 
-- [ ] Recorrências e contas a vencer
-- [ ] Orçamentos e metas
+- [x] Recorrências (mensal, semanal, anual) gerando previstos por 45 dias, idempotente; pausar, editar só o futuro, excluir; página /transacoes/recorrentes
+- [x] Orçamentos mensais por categoria principal (/planejamento/orcamentos) e metas ligadas ao saldo de uma conta (/planejamento/metas)
 - [ ] Assistente de AI: perguntas sobre os dados do espaço, com ferramentas somente leitura
 - [ ] Insights automáticos no dashboard
 
