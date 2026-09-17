@@ -10,6 +10,31 @@ function fixture(name: string) {
   return decodeStatement(readFileSync(path.join(__dirname, '__fixtures__', name)));
 }
 
+describe('fatura de cartão', () => {
+  it('compra positiva no CSV vira saída; pagamento e estorno viram entrada', () => {
+    const { layout, rows } = parseStatement('Fatura2026-10-05.csv', fixture('cartao-generico.csv'), {
+      accountType: 'credit_card',
+    });
+    expect(layout).toBe('generico');
+    expect(rows.map((row) => [row.description, row.amountCents])).toEqual([
+      ['PADOCA REAL.', -2592],
+      ['DISNEY PLUS', -2990],
+      ['SMILETECH TECNOLOGIA O', -68333],
+      ['PAGAMENTO FATURA', 120000],
+      ['ESTORNO LOJA', 1000],
+    ]);
+  });
+
+  it('não inverte o que já vem com compra negativa (OFX, Nubank cartão) nem conta corrente', () => {
+    const ofx = parseStatement('fatura.ofx', fixture('cartao-xml.ofx'), { accountType: 'credit_card' });
+    expect(ofx.rows.map((row) => row.amountCents)).toEqual([-8990, 1500]);
+    const nubank = parseStatement('fatura.csv', fixture('nubank-cartao.csv'), { accountType: 'credit_card' });
+    expect(nubank.rows).toEqual(parseStatement('fatura.csv', fixture('nubank-cartao.csv')).rows);
+    const checking = parseStatement('conta.csv', fixture('cartao-generico.csv'), { accountType: 'checking' });
+    expect(checking.rows[0]?.amountCents).toBe(2592);
+  });
+});
+
 describe('OFX', () => {
   it('lê OFX 1.x (SGML, tags sem fechar) com valores em ponto e vírgula', () => {
     expect(parseStatement('extrato.ofx', fixture('conta-sgml.ofx'))).toEqual({

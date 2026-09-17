@@ -57,7 +57,7 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
   const db = getDb();
 
   const [account] = await db
-    .select({ id: accounts.id, archivedAt: accounts.archivedAt })
+    .select({ id: accounts.id, type: accounts.type, archivedAt: accounts.archivedAt })
     .from(accounts)
     .where(and(eq(accounts.id, data.accountId), eq(accounts.workspaceId, workspaceId)));
   if (!account || account.archivedAt) {
@@ -66,7 +66,7 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
 
   let statement: ReturnType<typeof parseStatement>;
   try {
-    statement = parseStatement(data.fileName, data.text);
+    statement = parseStatement(data.fileName, data.text, { accountType: account.type });
   } catch (error) {
     if (error instanceof StatementParseError) {
       throw new ImportError('parse', error.message);

@@ -166,6 +166,33 @@ describe('importação: confirmar', () => {
     ]);
   });
 
+  it('fatura CSV com compra positiva entra como despesa e aceita categoria de despesa da AI', async () => {
+    const { id: card } = await createAccount(workspaceId, {
+      name: 'XP Black',
+      type: 'credit_card',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: '2026-01-01',
+      closingDay: 5,
+      dueDay: 12,
+    });
+    const csv = readFileSync(path.resolve('lib/import/__fixtures__/cartao-generico.csv'), 'utf8');
+    const { id } = await createImportBatch(workspaceId, { accountId: card, fileName: 'Fatura2026-10-05.csv', text: csv });
+    const batch = await getImportBatch(workspaceId, id);
+    expect(batch.rows.map((row) => row.amountCents)).toEqual([-2592, -2990, -68333, 120000, 1000]);
+    expect(batch.summary.expenseCents).toBe(-73_915);
+
+    await expect(
+      suggestImportCategories(workspaceId, id, {
+        model: 'm',
+        enricher: async ({ rows }) => ({
+          suggestions: rows.map((row) => ({ id: row.id, cleanName: row.description, categoryId: row.amountCents < 0 ? padaria : null })),
+          usage: [],
+        }),
+      }),
+    ).resolves.toEqual({ suggested: 3 });
+  });
+
   it('descartar encerra sem criar nada; histórico lista as importações', async () => {
     const batch = await importOfx();
     await discardImportBatch(workspaceId, batch.id);
