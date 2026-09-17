@@ -49,7 +49,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] Lançamentos: receita, despesa e transferência (duas pernas), previsto/efetivado, exclusão lógica
 - [x] Página de Transações: filtros na URL (mês, conta, categoria com subcategorias, busca), rotas por tipo, resumo do período, paginação
 - [x] Convite de membro por link, aceite e página de membros
-- [ ] Gestão de papéis (mudar papel, remover membro, regra do último admin)
+- [x] Gestão de papéis: trocar papel, remover membro, sair do espaço e regra do último admin (checada na transação)
 
 ## Fase 2 · Cartões
 

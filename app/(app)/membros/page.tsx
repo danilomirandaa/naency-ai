@@ -1,7 +1,12 @@
 import { PageHeader } from '@/components/layout/PageHeader';
-import { inviteMemberAction, revokeInvitationAction } from '@/features/members/actions';
+import {
+  changeMemberRoleAction,
+  inviteMemberAction,
+  removeMemberAction,
+  revokeInvitationAction,
+} from '@/features/members/actions';
 import { InviteMemberDialog } from '@/features/members/components/InviteMemberDialog';
-import { MembersList } from '@/features/members/components/MembersList';
+import { MembersManager } from '@/features/members/containers/MembersManager';
 import { PendingInvitations } from '@/features/members/components/PendingInvitations';
 import { can } from '@/lib/permissions';
 import { requireUser } from '@/server/auth/current-user';
@@ -34,7 +39,13 @@ export default async function MembersPage() {
         description={`Quem tem acesso a ${active.name}.`}
         actions={canManage ? <InviteMemberDialog action={inviteMemberAction} /> : undefined}
       />
-      <MembersList members={members} currentUserId={user.id} />
+      <MembersManager
+        members={members}
+        currentUserId={user.id}
+        canManage={canManage}
+        changeRoleAction={changeMemberRoleAction}
+        removeAction={removeMemberAction}
+      />
       {canManage && (
         <PendingInvitations
           invitations={invitations}

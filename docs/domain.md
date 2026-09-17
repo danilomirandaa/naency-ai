@@ -84,6 +84,13 @@ Regras:
 - Quem entra por convite **pula o onboarding**, porque o espaço já está configurado.
 - A regra é aplicada no DAL (`requireMembership`) e coberta por testes de integração por papel ([testes](./testing.md)).
 
+### Gerenciar membros
+
+- Só admin troca papéis e remove pessoas; qualquer membro pode sair do espaço.
+- O espaço nunca fica sem administrador: rebaixar ou remover o último admin é
+  recusado, e a verificação roda dentro da mesma transação da alteração.
+- Lançamentos feitos por quem saiu continuam no espaço.
+
 ## Instituições
 
 - **`institutions`**: `slug` (identificador estável do catálogo), `name`, `compe_code`, `kind` (`bank | broker | wallet`),

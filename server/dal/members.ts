@@ -1,6 +1,6 @@
 import 'server-only';
 import { inviteMemberSchema } from '@/features/members/schemas';
-import type { WorkspaceRole } from '@/lib/permissions';
+import { type WorkspaceRole, isWorkspaceRole } from '@/lib/permissions';
 import { UnauthenticatedError } from '@/server/auth/errors';
 import { getCurrentUser } from '@/server/auth/current-user';
 import { requireMembership } from '@/server/auth/membership';
@@ -20,6 +20,7 @@ import {
 } from '@/server/invitations/token';
 import { and, asc, eq, gt, isNull, sql } from 'drizzle-orm';
 import { authUsers } from 'drizzle-orm/supabase';
+import { z } from 'zod';
 
 export type MemberDTO = {
   userId: string;
@@ -219,4 +220,69 @@ export async function acceptInvitation(token: string): Promise<InvitationEvaluat
   });
 
   return accepted ? evaluation : { status: 'used' };
+}
+
+export class MemberError extends Error {
+  constructor(
+    public readonly code: 'not-found' | 'last-admin',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'MemberError';
+  }
+}
+
+const memberIdSchema = z.uuid();
+
+type MembersTx = Parameters<Parameters<ReturnType<typeof getDb>['transaction']>[0]>[0];
+
+/** O espaço nunca fica sem administrador; lança dentro da transação para desfazer. */
+async function assertHasAdmin(tx: MembersTx, workspaceId: string) {
+  const [row] = await tx
+    .select({ admins: sql<number>`count(*)::int` })
+    .from(workspaceMembers)
+    .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.role, 'admin')));
+  if (!row || row.admins === 0) {
+    throw new MemberError('last-admin', 'O espaço precisa de pelo menos um administrador.');
+  }
+}
+
+export async function changeMemberRole(workspaceId: string, userId: string, role: WorkspaceRole) {
+  await requireMembership(workspaceId, 'members.manage');
+  if (!memberIdSchema.safeParse(userId).success || !isWorkspaceRole(role)) {
+    throw new MemberError('not-found', 'Membro não encontrado.');
+  }
+  await getDb().transaction(async (tx) => {
+    const [updated] = await tx
+      .update(workspaceMembers)
+      .set({ role })
+      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
+      .returning({ userId: workspaceMembers.userId });
+    if (!updated) {
+      throw new MemberError('not-found', 'Membro não encontrado.');
+    }
+    await assertHasAdmin(tx, workspaceId);
+  });
+}
+
+/** Remove alguém (admin) ou sai do espaço (qualquer membro, sobre si mesmo). */
+export async function removeMember(workspaceId: string, userId: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new UnauthenticatedError();
+  }
+  await requireMembership(workspaceId, userId === user.id ? 'workspace.read' : 'members.manage');
+  if (!memberIdSchema.safeParse(userId).success) {
+    throw new MemberError('not-found', 'Membro não encontrado.');
+  }
+  await getDb().transaction(async (tx) => {
+    const [removed] = await tx
+      .delete(workspaceMembers)
+      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
+      .returning({ userId: workspaceMembers.userId });
+    if (!removed) {
+      throw new MemberError('not-found', 'Membro não encontrado.');
+    }
+    await assertHasAdmin(tx, workspaceId);
+  });
 }

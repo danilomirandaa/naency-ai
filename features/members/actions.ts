@@ -1,6 +1,16 @@
 'use server';
 
-import { InvitationError, acceptInvitation, createInvitation, revokeInvitation } from '@/server/dal/members';
+import type { WorkspaceRole } from '@/lib/permissions';
+import { getCurrentUser } from '@/server/auth/current-user';
+import {
+  InvitationError,
+  MemberError,
+  acceptInvitation,
+  changeMemberRole,
+  createInvitation,
+  removeMember,
+  revokeInvitation,
+} from '@/server/dal/members';
 import { getActiveWorkspace, setActiveWorkspaceCookie } from '@/server/dal/workspaces';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
@@ -72,4 +82,45 @@ export async function acceptInvitationAction(token: string): Promise<AcceptInvit
   }
   await setActiveWorkspaceCookie(result.invitation.workspaceId);
   redirect('/');
+}
+
+export type MemberActionResult = { ok: true } | { ok: false; message: string };
+
+function memberFailure(error: unknown): MemberActionResult {
+  if (error instanceof MemberError) {
+    return { ok: false, message: error.message };
+  }
+  return { ok: false, message: 'Não foi possível alterar o membro. Tente de novo.' };
+}
+
+export async function changeMemberRoleAction(userId: string, role: WorkspaceRole): Promise<MemberActionResult> {
+  const { active } = await getActiveWorkspace();
+  if (!active) {
+    return { ok: false, message: 'Nenhum espaço ativo.' };
+  }
+  try {
+    await changeMemberRole(active.id, userId, role);
+  } catch (error) {
+    return memberFailure(error);
+  }
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}
+
+export async function removeMemberAction(userId: string): Promise<MemberActionResult> {
+  const [{ active }, user] = await Promise.all([getActiveWorkspace(), getCurrentUser()]);
+  if (!active || !user) {
+    return { ok: false, message: 'Nenhum espaço ativo.' };
+  }
+  try {
+    await removeMember(active.id, userId);
+  } catch (error) {
+    return memberFailure(error);
+  }
+  if (userId === user.id) {
+    // Saiu do espaço: o cookie do espaço ativo deixa de valer e o layout escolhe outro.
+    redirect('/');
+  }
+  revalidatePath(MEMBERS_PATH);
+  return { ok: true };
 }
