@@ -160,6 +160,9 @@ Regras (`lib/cards.ts`, com testes):
 
 Regras:
 
+- **Fatura aberta ao entrar no cartão**: a atual (aberta e ainda não vencida) ou,
+  na falta dela, a mais recente (`currentInvoiceOf`). Fatura antiga não paga, comum
+  depois de importar histórico, não sequestra a navegação.
 - **Situação** (exibida, nunca gravada): `cleared` = paga/recebida; `planned` com
   `date` anterior a hoje (America/Sao_Paulo) = **atrasada**; senão, a pagar/a receber.
   O filtro "Atrasadas" ignora o período: mostra tudo que venceu e não foi pago.

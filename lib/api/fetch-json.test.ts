@@ -26,6 +26,14 @@ describe('fetchJson', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/x', expect.anything());
   });
 
+  it('401 manda para o login guardando a página atual', async () => {
+    stubFetch(Response.json({ error: 'unauthenticated' }, { status: 401 }));
+    const assign = vi.fn();
+    vi.stubGlobal('window', { location: { pathname: '/contas', search: '?arquivadas=1', assign } });
+    await expect(fetchJson('/api/x')).rejects.toMatchObject({ status: 401 });
+    expect(assign).toHaveBeenCalledWith('/entrar?next=%2Fcontas%3Farquivadas%3D1');
+  });
+
   it('status de erro vira ApiError com o status', async () => {
     stubFetch(new Response(null, { status: 403 }));
     await expect(fetchJson('/api/x')).rejects.toEqual(new ApiError(403, 'Falha ao carregar /api/x (403).'));

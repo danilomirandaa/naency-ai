@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addMonthsToDate, invoiceForPurchase, invoiceStatus, splitInstallments } from './cards';
+import {
+  type InvoiceStatus,
+  addMonthsToDate,
+  currentInvoiceOf,
+  invoiceForPurchase,
+  invoiceStatus,
+  splitInstallments,
+} from './cards';
 
 describe('invoiceForPurchase', () => {
   it.each([
@@ -73,5 +80,25 @@ describe('invoiceStatus', () => {
     expect(invoiceStatus(invoice, '2026-09-25')).toBe('open');
     expect(invoiceStatus(invoice, '2026-09-26')).toBe('closed');
     expect(invoiceStatus({ ...invoice, paidAt: new Date() }, '2026-09-01')).toBe('paid');
+  });
+});
+
+describe('currentInvoiceOf', () => {
+  const invoice = (referenceMonth: string, status: InvoiceStatus, dueDate: string) => ({ referenceMonth, status, dueDate });
+  // Lista como vem do DAL: da mais recente para a mais antiga.
+  const list = [
+    invoice('2026-10', 'open', '2026-10-05'),
+    invoice('2026-09', 'closed', '2026-09-05'),
+    invoice('2026-01', 'closed', '2026-01-05'),
+  ];
+
+  it('abre na fatura atual, mesmo com faturas antigas em aberto', () => {
+    expect(currentInvoiceOf(list, '2026-09-17')?.referenceMonth).toBe('2026-10');
+  });
+
+  it('sem fatura atual, abre na mais recente', () => {
+    expect(currentInvoiceOf([invoice('2026-09', 'paid', '2026-09-05')], '2026-09-17')?.referenceMonth).toBe('2026-09');
+    expect(currentInvoiceOf(list, '2026-12-01')?.referenceMonth).toBe('2026-10');
+    expect(currentInvoiceOf([], '2026-09-17')).toBeUndefined();
   });
 });

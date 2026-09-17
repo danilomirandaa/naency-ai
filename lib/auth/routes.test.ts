@@ -68,3 +68,10 @@ describe('getAuthRedirect', () => {
     ).toBeNull();
   });
 });
+
+describe('rotas de API', () => {
+  it('não redireciona: sem sessão, quem responde é o Route Handler (401 em JSON)', () => {
+    expect(getAuthRedirect({ pathname: '/api/workspaces/x/accounts', search: '?arquivadas=1', isAuthenticated: false })).toBeNull();
+    expect(getAuthRedirect({ pathname: '/api/workspaces/x/accounts', search: '', isAuthenticated: true })).toBeNull();
+  });
+});

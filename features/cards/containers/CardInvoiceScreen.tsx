@@ -12,6 +12,7 @@ import { PayInvoiceDialog } from '@/features/cards/components/PayInvoiceDialog';
 import type { CardSummary } from '@/features/cards/types';
 import { TransactionsManager } from '@/features/transactions/containers/TransactionsManager';
 import type { TransactionFilters } from '@/features/transactions/filters';
+import { currentInvoiceOf } from '@/lib/cards';
 import { isMonth, monthRange } from '@/lib/dates';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -40,12 +41,10 @@ export function CardInvoiceScreen({ workspaceId, card, canEdit, today }: CardInv
 
   const list = invoices.data ?? [];
   const requested = searchParams.get('fatura');
-  // Padrão: a fatura mais antiga ainda não paga; senão, a mais recente.
+  // Sem fatura na URL, abre na atual (lib/cards).
   const selected =
     (isMonth(requested) && list.find((invoice) => invoice.referenceMonth === requested)) ||
-    [...list].reverse().find((invoice) => invoice.status === 'closed') ||
-    list.find((invoice) => invoice.status === 'open' && invoice.dueDate >= today) ||
-    list[0];
+    currentInvoiceOf(list, today);
 
   const filters: TransactionFilters = {
     ...monthRange(selected?.referenceMonth ?? today.slice(0, 7)),

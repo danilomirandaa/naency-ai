@@ -5,6 +5,9 @@ export const HOME_PATH = '/';
 
 const PUBLIC_PREFIXES = [LOGIN_PATH, '/auth/'];
 
+/** Rotas de dados: sem sessão respondem 401 em JSON, nunca HTML de login. */
+export const API_PREFIX = '/api/';
+
 export function isPublicPath(pathname: string) {
   return PUBLIC_PREFIXES.some((prefix) =>
     prefix.endsWith('/')
@@ -54,6 +57,12 @@ export function getAuthRedirect({
   search: string;
   isAuthenticated: boolean;
 }): string | null {
+  // Chamada de dados não é navegação: redirecionar faria o fetch receber a
+  // página de login em HTML e quebrar ao ler o JSON. O Route Handler responde 401.
+  if (pathname.startsWith(API_PREFIX)) {
+    return null;
+  }
+
   if (!isAuthenticated && !isPublicPath(pathname)) {
     const target = `${pathname}${search}`;
     return target === HOME_PATH

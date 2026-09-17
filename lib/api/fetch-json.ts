@@ -23,6 +23,11 @@ export async function fetchJson<T>(path: string, params: SearchParams = {}): Pro
   const response = await fetch(query ? `${path}?${query}` : path, {
     headers: { accept: 'application/json' },
   });
+  if (response.status === 401 && typeof window !== 'undefined') {
+    // Sessão expirada: volta para o login guardando a página atual.
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.assign(`/entrar?next=${encodeURIComponent(next)}`);
+  }
   if (!response.ok) {
     throw new ApiError(response.status, `Falha ao carregar ${path} (${response.status}).`);
   }

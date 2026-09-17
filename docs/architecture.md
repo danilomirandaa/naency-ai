@@ -143,6 +143,10 @@ Regras:
   em `lib/auth/routes.ts`, que também valida o `next` contra redirecionamento aberto.
   É uma checagem otimista: `app/(app)/layout.tsx` chama `requireUser()` e o DAL
   chama `requireMembership()` (ver `node_modules/next/dist/docs/01-app/02-guides/authentication.md`).
+- **`/api/` nunca redireciona**: o `proxy` deixa passar, o Route Handler responde
+  **401 em JSON** e o `fetchJson` manda o navegador para `/entrar?next=…`. Redirecionar
+  faria o `fetch` receber o HTML do login e quebrar ao ler o JSON — a tela mostrava
+  "não foi possível carregar" até recarregar a página.
 - **Login**: link mágico por e-mail (`features/auth/actions.ts`). O link volta em
   `/auth/callback`, que troca o código pela sessão, cria o `profile` no primeiro
   acesso e redireciona. No painel do Supabase, **Authentication → URL

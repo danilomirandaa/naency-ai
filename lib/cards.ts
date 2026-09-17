@@ -96,3 +96,15 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   closed: 'Fechada',
   paid: 'Paga',
 };
+
+/**
+ * Fatura aberta ao entrar no cartão: a atual (aberta e ainda não vencida) ou,
+ * na falta dela, a mais recente. Faturas antigas não pagas — comuns depois de
+ * importar o histórico — não sequestram a navegação.
+ */
+export function currentInvoiceOf<T extends { status: InvoiceStatus; dueDate: string }>(
+  invoices: T[],
+  today: string,
+): T | undefined {
+  return invoices.find((invoice) => invoice.status === 'open' && invoice.dueDate >= today) ?? invoices[0];
+}
