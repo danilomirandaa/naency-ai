@@ -12,7 +12,7 @@ export const loginSchema = z.object({
 export type LoginState =
   | { status: 'idle' }
   | { status: 'sent'; email: string }
-  | { status: 'error'; message: string };
+  | { status: 'error'; message: string; email?: string };
 
 export const initialLoginState: LoginState = { status: 'idle' };
 

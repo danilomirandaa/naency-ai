@@ -15,6 +15,7 @@ describe('sendMagicLink', () => {
     await expect(sendMagicLink({ email: 'danilo', next: null, origin }, d)).resolves.toEqual({
       status: 'error',
       message: 'Informe um e-mail válido.',
+      email: 'danilo',
     });
     expect(d.signInWithOtp).not.toHaveBeenCalled();
   });
@@ -55,6 +56,7 @@ describe('sendMagicLink', () => {
     ).resolves.toEqual({
       status: 'error',
       message: 'Muitos envios em pouco tempo. Aguarde alguns minutos e tente de novo.',
+      email: 'a@b.com',
     });
   });
 
@@ -66,6 +68,7 @@ describe('sendMagicLink', () => {
     expect(result).toEqual({
       status: 'error',
       message: 'Não foi possível enviar o link agora. Tente de novo.',
+      email: 'a@b.com',
     });
   });
 });

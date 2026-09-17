@@ -20,6 +20,13 @@ const permissions: Record<WorkspaceRole, readonly WorkspaceAction[]> = {
   viewer: ['workspace.read'],
 };
 
+/** Nome do papel na interface. */
+export const ROLE_LABELS: Record<WorkspaceRole, string> = {
+  admin: 'Administrador',
+  editor: 'Editor',
+  viewer: 'Leitor',
+};
+
 export function can(role: WorkspaceRole | null | undefined, action: WorkspaceAction) {
   return role != null && permissions[role].includes(action);
 }

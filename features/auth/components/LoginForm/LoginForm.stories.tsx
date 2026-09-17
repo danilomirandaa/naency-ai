@@ -8,12 +8,13 @@ async function fakeSendMagicLink(_state: LoginState, formData: FormData): Promis
   await new Promise((resolve) => setTimeout(resolve, 150));
   const email = String(formData.get('email') ?? '').trim();
   if (!email.includes('@')) {
-    return { status: 'error', message: 'Informe um e-mail válido.' };
+    return { status: 'error', message: 'Informe um e-mail válido.', email };
   }
   if (email === 'limite@exemplo.com') {
     return {
       status: 'error',
       message: 'Muitos envios em pouco tempo. Aguarde alguns minutos e tente de novo.',
+      email,
     };
   }
   return { status: 'sent', email };
@@ -62,6 +63,8 @@ export const SendError: Story = {
 
     await expect(await canvas.findByRole('alert')).toHaveTextContent(/Muitos envios/);
     await expect(email).toBeInvalid();
+    // O e-mail digitado continua no campo depois do erro.
+    await expect(canvas.getByLabelText('E-mail')).toHaveValue('limite@exemplo.com');
   },
 };
 

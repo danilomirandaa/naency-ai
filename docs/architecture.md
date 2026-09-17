@@ -152,10 +152,12 @@ Regras:
 
 ## Espaço ativo
 
-O usuário pode participar de mais de um espaço. O espaço ativo fica em cookie e é
-trocado por um seletor no topo da sidebar (evolução do cabeçalho em
-`components/layout/AppSidebar/index.tsx`). A cada requisição, o DAL confere se o
-usuário é membro do espaço do cookie.
+O usuário pode participar de mais de um espaço. O espaço ativo fica no cookie
+`naency_workspace` e é trocado pelo `WorkspaceSwitcher` no topo da sidebar. A cada
+requisição, `getActiveWorkspace()` (`server/dal/workspaces.ts`) cruza o cookie com os
+espaços em que o usuário é membro: cookie inválido cai no primeiro espaço, e sem
+nenhum espaço o layout redireciona para `/comecar`, onde a pessoa cria o primeiro
+(e vira `admin`). Trocar de espaço passa por `requireMembership`.
 
 ## Convenções de dados
 

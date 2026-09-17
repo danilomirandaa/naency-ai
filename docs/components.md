@@ -43,6 +43,7 @@ para `components/finance/`.
 components/ui/<Nome>/index.tsx            componente do design system
 components/ui/<Nome>/<Nome>.stories.tsx   story (obrigatória)
 components/ui/Icon/icons.ts               registro único de ícones (Devigner, família Solar)
+components/ui/Input/                      Input e Field (rótulo, descrição e erro acessíveis)
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
 components/layout/navigation.ts           itens do menu e trilha do breadcrumb

@@ -30,8 +30,14 @@ export async function sendMagicLink(
     email: input.email,
     next: typeof input.next === 'string' ? input.next : undefined,
   });
+  // Devolve o que foi digitado: o React limpa o formulário depois da action.
+  const typedEmail = typeof input.email === 'string' ? input.email : '';
   if (!parsed.success) {
-    return { status: 'error', message: parsed.error.issues[0]?.message ?? 'E-mail inválido.' };
+    return {
+      status: 'error',
+      message: parsed.error.issues[0]?.message ?? 'E-mail inválido.',
+      email: typedEmail,
+    };
   }
 
   const callback = new URL(AUTH_CALLBACK_PATH, input.origin);
@@ -46,7 +52,7 @@ export async function sendMagicLink(
   });
 
   if (error) {
-    return { status: 'error', message: magicLinkErrorMessage(error) };
+    return { status: 'error', message: magicLinkErrorMessage(error), email: parsed.data.email };
   }
   return { status: 'sent', email: parsed.data.email };
 }

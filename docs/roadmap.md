@@ -34,7 +34,7 @@ Vem antes de qualquer feature, para que tudo o que vier depois já nasça testad
 - [x] `requireUser` e `requireMembership` com testes por papel (unitários)
 - [ ] Login com Google (ativar o provedor no Supabase; a tela já suporta)
 - [ ] Provider do TanStack Query e helper de contrato de query
-- [ ] Seletor de espaço no topo da sidebar
+- [x] Criar espaço (`/comecar`), espaço ativo em cookie e seletor de espaços na sidebar
 - [ ] `lib/money.ts` e `lib/dates.ts` com testes unitários
 - [ ] `components/finance` base: `MoneyValue`, `MoneyInput`, `DateInput`, com stories e testes
 

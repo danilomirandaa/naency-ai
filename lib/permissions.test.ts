@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ROLE_LABELS,
   WORKSPACE_ACTIONS,
+  WORKSPACE_ROLES,
   type WorkspaceAction,
   type WorkspaceRole,
   can,
@@ -59,5 +61,13 @@ describe('isWorkspaceRole', () => {
 
   it.each(['owner', 'Admin', '', null, 1])('rejeita %s', (value) => {
     expect(isWorkspaceRole(value)).toBe(false);
+  });
+});
+
+describe('ROLE_LABELS', () => {
+  it('todo papel tem nome em pt-BR', () => {
+    for (const role of WORKSPACE_ROLES) {
+      expect(ROLE_LABELS[role]).toMatch(/\S/);
+    }
   });
 });

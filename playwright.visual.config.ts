@@ -15,7 +15,9 @@ export default defineConfig({
   // Na CI um baseline ausente é erro; localmente ele é criado.
   updateSnapshots: process.env.CI ? 'none' : 'missing',
   expect: {
-    toHaveScreenshot: { animations: 'disabled', caret: 'hide' },
+    // Timeout maior: sob carga (ou em runner lento) duas capturas iguais seguidas
+    // podem levar mais que os 5s padrão.
+    toHaveScreenshot: { animations: 'disabled', caret: 'hide', timeout: 15_000 },
   },
   use: {
     ...devices['Desktop Chrome'],

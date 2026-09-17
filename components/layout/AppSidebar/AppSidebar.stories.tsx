@@ -13,6 +13,12 @@ const meta: Meta<typeof AppSidebar> = {
   args: {
     user: { name: 'Danilo Miranda', description: 'Conta pessoal' },
     signOutAction: fn(async () => {}),
+    workspaces: [
+      { id: 'casa', name: 'Finanças da casa', role: 'admin' },
+      { id: 'praia', name: 'Casa da praia', role: 'viewer' },
+    ],
+    activeWorkspaceId: 'casa',
+    selectWorkspaceAction: fn(async () => {}),
   },
   decorators: [
     (Story) => (

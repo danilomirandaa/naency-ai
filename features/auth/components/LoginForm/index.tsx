@@ -107,6 +107,7 @@ function LoginFormAttempt({
                   type="email"
                   autoComplete="email"
                   placeholder="voce@exemplo.com"
+                  defaultValue={state.status === 'error' ? state.email : undefined}
                   required
                   aria-invalid={error ? true : undefined}
                 />
