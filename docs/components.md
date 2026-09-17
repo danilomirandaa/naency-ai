@@ -49,12 +49,13 @@ components/ui/Button, Select, Popover,     portados do shadcn/ui com os tokens d
   Calendar, Spinner                       ícone como filho com data-icon, carregando = disabled + Spinner)
 components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
 components/finance/<Nome>/                peças de domínio reutilizáveis
+components/evilcharts/{ui,charts}/        gráficos do EvilCharts (Recharts), instalados pelo registry; ver "Gráficos"
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
 components/layout/navigation.ts           itens do menu e trilha do breadcrumb
 features/<feature>/components/            composições da feature
 features/<feature>/containers/            ligam query e actions aos componentes; sem markup próprio, sem story
 hooks/                                    hooks genéricos (useTheme, useIsMobile, usePagination…)
-lib/utils.ts                              classMerge
+lib/utils.ts                              classMerge (e `cn`, alias só para código de registry)
 lib/theme.ts                              tipos do tema e script anti-flash do <head>
 app/globals.css                           tokens e tema (ver docs/design/tokens.md)
 app/(app)/layout.tsx                      páginas com sidebar (Sidebar.Provider + AppSidebar)
@@ -76,12 +77,41 @@ trocam sozinhos).
 
 ## Blocos do shadcn
 
-Não rode `npx shadcn add` direto no projeto: ele cria `components/ui/button.tsx`
+Não rode `npx shadcn add` de componentes do shadcn (a exceção é o registry
+`@evilcharts`, ver [Gráficos](#gráficos)): ele cria `components/ui/button.tsx`
 e similares em minúsculo, que no macOS colidem com as nossas pastas, e reescreve
 o `globals.css`. Faça assim: `npx shadcn@latest view <bloco>` para ler o
 código, e porte para o padrão abaixo, trocando `cn` por `classMerge`, lucide
 por `<Icon>`, `bg-sidebar`/`text-muted-foreground`/`bg-accent` pelos nossos
 tokens e reaproveitando Button, Tooltip, DropdownMenu, Skeleton.
+
+## Gráficos
+
+Gráficos usam o [EvilCharts](https://evilcharts.com) sobre **Recharts** (SVG no
+DOM: cores por variável CSS, light/dark sem re-render, testável nas stories). O
+motor ECharts só entra se um gráfico específico passar de milhares de pontos.
+
+- Instalar: `npx shadcn@latest add @evilcharts/recharts-<gráfico>`. O
+  `components.json` foi criado à mão só com o registry `@evilcharts`; **não rode
+  `shadcn init`** (reescreve o `globals.css`). Os arquivos vão para
+  `components/evilcharts/` e são código nosso: ajustes locais ficam marcados com
+  `Naency:` no comentário (legenda na ordem das séries, `formatValue` no
+  `ChartConfig`, `key` fora do spread na pizza).
+- As partes compostas (`EvilBarChart.Bar`) vêm de módulo `'use client'`. Use-as
+  só dentro de um componente client da feature (ex.:
+  `features/dashboard/components/EvolutionChart`), que tem story; blocos que
+  podem rodar no servidor importam esse componente.
+- Cores: `colors: { light: ['var(--color-icon-finance-income)'] }` (o token já
+  troca no escuro) ou a cor da categoria. A chave da série vira id de SVG e nome
+  de variável CSS: use chaves simples (`income`, `slice0`), nunca o nome da
+  categoria.
+- Valores em centavos: passe `formatValue: (cents) => formatMoney(cents)` no
+  `ChartConfig` para o tooltip.
+- Acessibilidade: o gráfico fica em `aria-hidden` com
+  `chartProps={{ accessibilityLayer: false }}` (e `rootTabIndex: -1` na pizza), e o
+  bloco entrega os mesmos números em tabela `sr-only` ou lista.
+- Animação: `isAnimationActive: 'auto'` respeita "reduzir movimento", que a
+  regressão visual liga para ter capturas estáveis.
 
 ## Regras
 

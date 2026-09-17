@@ -98,6 +98,8 @@ A Vercel publica produção só a partir da `main`; PRs geram preview.
 - `npm run build-storybook` gera `storybook-static/index.json`, e o teste tira um
   screenshot de **cada story em light e dark**. Story nova entra sozinha; para
   excluir uma, use a tag `skip-visual` (com justificativa).
+- O navegador da regressão visual roda com `reducedMotion: 'reduce'`: gráficos
+  pulam a animação de entrada e a captura não depende do tempo.
 - Baselines ficam em `tests/visual/__screenshots__/<plataforma>/`. **Só os de
   `linux/` são commitados**, porque a CI roda em Linux. Os de `darwin/` ficam fora
   do git e servem para conferir localmente antes do push.

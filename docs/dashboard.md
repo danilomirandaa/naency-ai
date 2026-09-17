@@ -40,9 +40,12 @@ Entidades em [domínio](./domain.md).
 
 ## Visualização
 
-Ao implementar os gráficos, carregar a skill `dataviz` e usar os tokens `chart-*`
-(escalas) e `finance-*` (receita, despesa, transferência) de `app/globals.css`.
-Os gráficos precisam funcionar em light e dark.
+Gráficos com EvilCharts sobre Recharts ([padrão](./components.md#gráficos)):
+Evolução em colunas (`EvolutionChart`) e categorias em rosca com o total no
+centro (`CategoryDonut`), acima da lista com barras. Ao criar um gráfico novo,
+carregar a skill `dataviz` e usar os tokens `chart-*` (escalas) e `finance-*`
+(receita, despesa, transferência) de `app/globals.css`. Os gráficos precisam
+funcionar em light e dark.
 
 ## Depois
 

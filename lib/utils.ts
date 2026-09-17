@@ -27,3 +27,6 @@ const twMerge = extendTailwindMerge({
 export function classMerge(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/** Nome usado pelo código de registries shadcn (components/evilcharts). No nosso código, use `classMerge`. */
+export const cn = classMerge;

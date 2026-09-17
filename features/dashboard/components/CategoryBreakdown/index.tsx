@@ -5,6 +5,7 @@ import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Text } from '@/components/ui/Text';
+import { CategoryDonut } from '@/features/dashboard/components/CategoryDonut';
 import { DashboardCard } from '@/features/dashboard/components/DashboardCard';
 import type { CategorySlice } from '@/features/dashboard/types';
 import Link from 'next/link';
@@ -20,7 +21,7 @@ export type CategoryBreakdownProps = {
 
 const VISIBLE = 6;
 
-/** "Para onde foi o dinheiro?": despesas por categoria em barras, com subcategorias ao abrir. */
+/** "Para onde foi o dinheiro?": despesas por categoria em rosca e em barras, com subcategorias ao abrir. */
 export function CategoryBreakdown({ data, isLoading, isError, transactionsHref }: CategoryBreakdownProps) {
   const [expanded, setExpanded] = React.useState<string | null>(null);
   const slices = data ?? [];
@@ -39,6 +40,13 @@ export function CategoryBreakdown({ data, isLoading, isError, transactionsHref }
       emptyIcon="reports"
       emptyMessage="Nenhuma despesa neste mês"
     >
+      <CategoryDonut
+        className="mx-auto mt-4"
+        slices={[
+          ...visible.map((slice) => ({ name: slice.name, color: slice.color, valueCents: slice.totalCents })),
+          ...(rest.length > 0 ? [{ name: `Outras ${rest.length} categorias`, color: null, valueCents: restTotal }] : []),
+        ]}
+      />
       <ul aria-label="Despesas por categoria" className="flex flex-col gap-3 px-4 py-3">
         {visible.map((slice) => {
           const percent = total > 0 ? Math.round((slice.totalCents / total) * 100) : 0;

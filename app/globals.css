@@ -126,6 +126,14 @@
 
   --color-background: var(--background);
   --color-ring: var(--ring);
+
+  /* Nomes do shadcn usados pelo código de registry (components/evilcharts).
+     Só apontam para os tokens semânticos; não use nos nossos componentes. */
+  --color-foreground: var(--typography-neutral-primary);
+  --color-muted: var(--background-neutral-100);
+  --color-muted-foreground: var(--typography-neutral-secondary);
+  --color-border: var(--border-neutral-subtle);
+  --color-primary: var(--typography-brand-primary-rest);
   --color-destructive: var(--destructive);
   --color-text-link: var(--text-link);
 

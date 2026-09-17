@@ -78,6 +78,15 @@ principal: `primary` → `brand-primary`, `destructive` → `status-critical`,
 `border-neutral-subtle`, `icon-income`/`text-positive` → `finance-income`,
 `text-unique` → `finance-single`.
 
+## Nomes do shadcn (só para código de registry)
+
+O código instalado de registries (`components/evilcharts`) usa classes do shadcn.
+Em `app/globals.css` elas apontam para os nossos tokens: `foreground` →
+`typography-neutral-primary`, `muted` → `background-neutral-100`,
+`muted-foreground` → `typography-neutral-secondary`, `border` →
+`border-neutral-subtle`, `primary` → `typography-brand-primary-rest`. Não use
+esses nomes nos nossos componentes.
+
 ## Fundos do app (definidos pelo produto)
 
 | Onde | Claro | Escuro | Token |

@@ -25,6 +25,8 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:6007',
     viewport: { width: 1280, height: 800 },
     colorScheme: 'light',
+    // Gráficos (EvilCharts/Recharts) pulam a animação de entrada: capturas estáveis.
+    reducedMotion: 'reduce',
   },
   webServer: {
     command: 'npx http-server storybook-static -p 6007 -s',
