@@ -52,6 +52,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                               isActive={pathname === subItem.url}
                             >
                               <Link href={subItem.url}>
+                                <Icon icon={subItem.icon} />
                                 <span>{subItem.title}</span>
                               </Link>
                             </Sidebar.MenuSubButton>

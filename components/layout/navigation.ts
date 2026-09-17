@@ -5,9 +5,13 @@ export type NavLink = {
   url: string;
 };
 
+export type NavSubItem = NavLink & {
+  icon: Icons;
+};
+
 export type NavItem = NavLink & {
   icon: Icons;
-  items?: NavLink[];
+  items?: NavSubItem[];
 };
 
 /** Navegação principal do app. Rotas ainda não criadas respondem 404. */
@@ -18,11 +22,11 @@ export const navMain: NavItem[] = [
     url: '/transacoes',
     icon: 'transactions',
     items: [
-      { title: 'Todas', url: '/transacoes' },
-      { title: 'Receitas', url: '/transacoes/receitas' },
-      { title: 'Despesas', url: '/transacoes/despesas' },
-      { title: 'Transferências', url: '/transacoes/transferencias' },
-      { title: 'Recorrentes', url: '/transacoes/recorrentes' },
+      { title: 'Todas', url: '/transacoes', icon: 'list' },
+      { title: 'Receitas', url: '/transacoes/receitas', icon: 'income' },
+      { title: 'Despesas', url: '/transacoes/despesas', icon: 'expense' },
+      { title: 'Transferências', url: '/transacoes/transferencias', icon: 'transfer' },
+      { title: 'Recorrentes', url: '/transacoes/recorrentes', icon: 'recurring' },
     ],
   },
   { title: 'Cartões', url: '/cartoes', icon: 'credit-card' },
@@ -31,8 +35,8 @@ export const navMain: NavItem[] = [
     url: '/planejamento',
     icon: 'goal',
     items: [
-      { title: 'Orçamentos', url: '/planejamento/orcamentos' },
-      { title: 'Metas', url: '/planejamento/metas' },
+      { title: 'Orçamentos', url: '/planejamento/orcamentos', icon: 'wallet' },
+      { title: 'Metas', url: '/planejamento/metas', icon: 'flag' },
     ],
   },
   { title: 'Relatórios', url: '/relatorios', icon: 'reports' },
@@ -65,7 +69,7 @@ export function getBreadcrumb(pathname: string): NavLink[] {
       (sub) => sub.url !== item.url && isActivePath(pathname, sub.url),
     );
     return subItem
-      ? [{ title: item.title, url: item.url }, subItem]
+      ? [{ title: item.title, url: item.url }, { title: subItem.title, url: subItem.url }]
       : [{ title: item.title, url: item.url }];
   }
   return [];

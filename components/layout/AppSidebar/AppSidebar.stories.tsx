@@ -60,6 +60,11 @@ export const ActiveSubItem: Story = {
       'true',
     );
 
+    // Cada subitem tem ícone, como os itens principais.
+    for (const name of ['Todas', 'Receitas', 'Despesas', 'Transferências', 'Recorrentes']) {
+      await expect(canvas.getByRole('link', { name }).querySelector('svg')).not.toBeNull();
+    }
+
     // Grupos fechados expandem pelo botão de ação.
     await expect(canvas.queryByRole('link', { name: 'Orçamentos' })).toBeNull();
     const expandPlanning = canvas.getByRole('button', {

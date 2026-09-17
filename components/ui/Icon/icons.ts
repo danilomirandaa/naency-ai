@@ -36,6 +36,7 @@ import { IconDoubleAltArrowRight } from '@devigner-ui/icons/DoubleAltArrowRight'
 import { IconDumbbell } from '@devigner-ui/icons/Dumbbell';
 import { IconEye } from '@devigner-ui/icons/Eye';
 import { IconFilter } from '@devigner-ui/icons/Filter';
+import { IconFlag } from '@devigner-ui/icons/Flag';
 import { IconGamepad } from '@devigner-ui/icons/Gamepad';
 import { IconGasStation } from '@devigner-ui/icons/GasStation';
 import { IconGift } from '@devigner-ui/icons/Gift';
@@ -48,6 +49,7 @@ import { IconInbox } from '@devigner-ui/icons/Inbox';
 import { IconInfoCircle } from '@devigner-ui/icons/InfoCircle';
 import { IconInfoSquare } from '@devigner-ui/icons/InfoSquare';
 import { IconLayoutDashboard } from '@devigner-ui/icons/LayoutDashboard';
+import { IconList } from '@devigner-ui/icons/List';
 import { IconLogout2 } from '@devigner-ui/icons/Logout2';
 import { IconMagnifer } from '@devigner-ui/icons/Magnifer';
 import { IconMail } from '@devigner-ui/icons/Mail';
@@ -154,8 +156,10 @@ export const icons = {
   investment: IconGraphUp,
   cash: IconWadOfMoney,
   transactions: IconReceiptText,
+  list: IconList,
   reports: IconPieChart2,
   goal: IconTarget,
+  flag: IconFlag,
 
   // Categorias (lib/categories.ts: CATEGORY_ICONS)
   'category-bills': IconBillList,
