@@ -160,6 +160,10 @@ Regras (`lib/cards.ts`, com testes):
 
 Regras:
 
+- **Saldo informado é o do fim do dia**: o valor que o banco mostra já inclui os
+  lançamentos daquele dia, então o saldo soma só o que vem **depois** da data
+  (`t.date > initial_balance_date`). Sem isso, importar o extrato do próprio dia
+  contava os mesmos valores duas vezes.
 - **Dívida do cartão no cadastro**: cartão não tem saldo inicial; o formulário
   pede "dívida atual" (positiva) e grava `initial_balance_cents` negativo. Serve
   para quem não vai importar todas as faturas antigas: o limite usado já começa

@@ -291,8 +291,8 @@ function AccountFormFields({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
-              label="Dívida atual"
-              description="Quanto já está usado do limite nesta data."
+              label="Dívida no fim do dia"
+              description="Quanto já está usado do limite nessa data."
               error={fieldErrors.initialBalanceCents}
             >
               {(control) => (
@@ -318,7 +318,11 @@ function AccountFormFields({
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Saldo inicial" error={fieldErrors.initialBalanceCents}>
+            <Field
+              label="Saldo no fim do dia"
+              description="O que o banco mostra nessa data."
+              error={fieldErrors.initialBalanceCents}
+            >
               {(control) => (
                 <MoneyInput
                   {...control}
@@ -341,7 +345,8 @@ function AccountFormFields({
             </Field>
           </div>
           <Panel.Callout variant="neutral" icon="info-icon" className="mt-0">
-            O saldo da conta parte deste valor, somando os lançamentos a partir da data.
+            O saldo parte desse valor e soma o que vier <strong>depois</strong> dessa data. Os lançamentos do próprio
+            dia já estão nele, então importar o extrato do dia não soma duas vezes.
           </Panel.Callout>
         </>
       )}

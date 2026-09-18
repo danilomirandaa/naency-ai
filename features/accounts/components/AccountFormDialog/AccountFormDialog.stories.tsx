@@ -79,8 +79,8 @@ export const Create: Story = {
     await userEvent.type(dialog.getByLabelText('Nome'), 'Nubank');
     await choose(dialog, 'Tipo', 'Conta corrente');
     await choose(dialog, 'Instituição', 'Nubank');
-    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '-150075');
-    await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('-1.500,75');
+    await userEvent.type(dialog.getByLabelText('Saldo no fim do dia'), '-150075');
+    await expect(dialog.getByLabelText('Saldo no fim do dia')).toHaveValue('-1.500,75');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -99,14 +99,14 @@ export const Create: Story = {
 export const ValidationKeepsValues: Story = {
   play: async ({ canvasElement, args }) => {
     const dialog = await openDialog(canvasElement, 'Nova conta');
-    await userEvent.type(dialog.getByLabelText('Saldo inicial'), '1000');
+    await userEvent.type(dialog.getByLabelText('Saldo no fim do dia'), '1000');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await expect(await dialog.findByRole('alert')).toHaveTextContent('Revise os campos destacados.');
     await expect(dialog.getByLabelText('Nome')).toHaveAccessibleDescription('Dê um nome à conta.');
     await expect(dialog.getByLabelText('Tipo')).toHaveAttribute('aria-invalid', 'true');
     // O React limpa o formulário depois da action; os valores voltam do estado.
-    await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('10,00');
+    await expect(dialog.getByLabelText('Saldo no fim do dia')).toHaveValue('10,00');
     await expect(args.onSaved).not.toHaveBeenCalled();
     await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -137,7 +137,7 @@ export const Edit: Story = {
     await expect(dialog.getByLabelText('Nome')).toHaveValue('Reserva de emergência');
     await expect(dialog.getByLabelText('Tipo')).toHaveTextContent('Investimentos');
     await expect(dialog.getByLabelText('Instituição')).toHaveTextContent('XP Investimentos');
-    await expect(dialog.getByLabelText('Saldo inicial')).toHaveValue('25.000,00');
+    await expect(dialog.getByLabelText('Saldo no fim do dia')).toHaveValue('25.000,00');
     await expect(dialog.getByLabelText('Data do saldo')).toHaveTextContent('01/09/2026');
 
     await choose(dialog, 'Instituição', 'Nenhuma');
@@ -176,14 +176,14 @@ export const CreateCard: Story = {
   args: { defaultType: 'credit_card', paymentAccounts: accountsFixture },
   play: async ({ canvasElement, args }) => {
     const dialog = await openDialog(canvasElement, 'Novo cartão');
-    await expect(dialog.queryByLabelText('Saldo inicial')).toBeNull();
+    await expect(dialog.queryByLabelText('Saldo no fim do dia')).toBeNull();
     await userEvent.type(dialog.getByLabelText('Nome'), 'Nubank Roxinho');
     await choose(dialog, 'Fechamento', 'Dia 25');
     await choose(dialog, 'Vencimento', 'Dia 5');
     await userEvent.type(dialog.getByLabelText('Limite'), '800000');
     await choose(dialog, 'Pagar a fatura com', /Nubank/);
     // Cartão não tem saldo inicial, e sim quanto já está usado do limite.
-    await userEvent.type(dialog.getByLabelText('Dívida atual'), '141524');
+    await userEvent.type(dialog.getByLabelText('Dívida no fim do dia'), '141524');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());

@@ -580,11 +580,12 @@ export async function setTransactionStatus(
 }
 
 /**
- * Soma que entra no saldo de cada conta: efetivados e não excluídos, a partir da
- * data do saldo inicial. Cartão sem dívida declarada (saldo inicial zero) soma
- * tudo: a fatura importada costuma ser mais antiga que o cadastro do cartão, e
- * sem isso o limite usado ficaria zerado. Com dívida declarada, a data vale, para
- * a dívida não ser contada duas vezes junto com as faturas antigas importadas.
+ * Soma que entra no saldo de cada conta: efetivados e não excluídos, **depois** do
+ * dia do saldo informado. O saldo que o banco mostra é o do fim do dia, então os
+ * lançamentos daquele mesmo dia já estão nele; contá-los de novo dobrava o valor.
+ * Cartão sem dívida declarada (saldo inicial zero) soma tudo: a fatura importada
+ * costuma ser mais antiga que o cadastro do cartão, e sem isso o limite usado
+ * ficaria zerado.
  */
 export function accountMovementSql() {
   const type = sql.raw('"accounts"."type"');
@@ -595,6 +596,6 @@ export function accountMovementSql() {
     where t.account_id = ${sql.raw('"accounts"."id"')}
       and t.deleted_at is null
       and t.status = 'cleared'
-      and ((${type} = 'credit_card' and ${initialCents} = 0) or t.date >= ${initialDate})
+      and ((${type} = 'credit_card' and ${initialCents} = 0) or t.date > ${initialDate})
   ), 0)`;
 }

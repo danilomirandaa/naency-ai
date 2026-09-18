@@ -12,6 +12,7 @@ import {
   updateAccount,
 } from './accounts';
 import { acceptInvitation, createInvitation } from './members';
+import { createTransaction } from './transactions';
 import { createWorkspace } from './workspaces';
 
 type User = Awaited<ReturnType<typeof createUser>>;
@@ -102,6 +103,29 @@ describe('contas: CRUD', () => {
         card: null,
       },
     ]);
+  });
+
+  it('o saldo informado é o do fim do dia: o que é do mesmo dia não soma de novo', async () => {
+    const { id } = await createAccount(workspaceId, { ...input, initialBalanceCents: 201_595, initialBalanceDate: '2026-09-18' });
+    const lancamento = (date: string, amountCents: number) =>
+      createTransaction(workspaceId, {
+        kind: 'expense',
+        accountId: id,
+        amountCents,
+        date,
+        description: 'Compra',
+        categoryId: null,
+        status: 'cleared',
+        notes: null,
+      });
+    // Extrato do próprio dia: esses valores já estão no saldo que o banco mostrou.
+    await lancamento('2026-09-18', 10_000);
+    await lancamento('2026-09-17', 5_000);
+    expect((await listAccounts(workspaceId))[0]?.balanceCents).toBe(201_595);
+
+    // Só o que vem depois muda o saldo.
+    await lancamento('2026-09-19', 1_000);
+    expect((await listAccounts(workspaceId))[0]?.balanceCents).toBe(200_595);
   });
 
   it('edita todos os campos', async () => {
