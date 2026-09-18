@@ -1,4 +1,5 @@
 import { AccountAvatar } from '@/components/finance/AccountAvatar';
+import { MoneyValue } from '@/components/finance/MoneyValue';
 import { Icon } from '@/components/ui/Icon';
 import { Sidebar } from '@/components/ui/Sidebar';
 import type { AccountType } from '@/lib/accounts';
@@ -9,6 +10,8 @@ export type NavAccount = {
   name: string;
   type: AccountType;
   institution: { name: string; color: string } | null;
+  /** Saldo da conta; no cartão, a dívida (negativa). */
+  balanceCents: number;
 };
 
 export type NavAccountsProps = {
@@ -31,10 +34,20 @@ export function NavAccounts({ accounts, canCreate }: NavAccountsProps) {
       <Sidebar.Menu>
         {accounts.map((account) => (
           <Sidebar.MenuItem key={account.id}>
-            <Sidebar.MenuButton asChild>
+            <Sidebar.MenuButton asChild size="lg">
               <Link href={`/contas#conta-${account.id}`}>
                 <AccountAvatar type={account.type} institution={account.institution} size="sm" />
-                <span>{account.name}</span>
+                <div className="grid flex-1 text-left leading-tight">
+                  <span className="truncate">{account.name}</span>
+                  <MoneyValue
+                    cents={account.balanceCents}
+                    // Negativo é dívida (cartão) ou conta no vermelho.
+                    kind={account.balanceCents < 0 ? 'expense' : 'neutral'}
+                    size="xs"
+                    weight="normal"
+                    className="truncate"
+                  />
+                </div>
               </Link>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>

@@ -48,6 +48,15 @@ export function AccountsScreen({
   const [dialog, setDialog] = React.useState<DialogState>(
     canEdit && startCreating ? { mode: 'create', card: startCreating === 'card' } : null,
   );
+  // Clicar em "Nova conta" já estando nesta página só muda o parâmetro da URL:
+  // sem reagir à mudança, o formulário não abriria de novo.
+  const [lastStartCreating, setLastStartCreating] = React.useState(startCreating);
+  if (startCreating !== lastStartCreating) {
+    setLastStartCreating(startCreating);
+    if (canEdit && startCreating) {
+      setDialog({ mode: 'create', card: startCreating === 'card' });
+    }
+  }
   const [archiveFailed, setArchiveFailed] = React.useState(false);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: accountsQuery.all(workspaceId) });

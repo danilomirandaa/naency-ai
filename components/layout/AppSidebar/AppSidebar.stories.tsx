@@ -25,8 +25,16 @@ const meta: Meta<typeof AppSidebar> = {
         name: 'Nubank',
         type: 'checking',
         institution: { name: 'Nubank', color: '#820AD1' },
+        balanceCents: 284_440,
       },
-      { id: 'carteira', name: 'Carteira', type: 'cash', institution: null },
+      { id: 'carteira', name: 'Carteira', type: 'cash', institution: null, balanceCents: 0 },
+      {
+        id: 'xp-black',
+        name: 'XP Black',
+        type: 'credit_card',
+        institution: { name: 'XP', color: '#000000' },
+        balanceCents: -141_524,
+      },
     ],
     canCreateAccount: true,
   },
@@ -89,10 +97,12 @@ export const Accounts: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('link', { name: 'Contas' })).toHaveAttribute('href', '/contas');
-    await expect(canvas.getByRole('link', { name: 'Nubank' })).toHaveAttribute(
-      'href',
-      '/contas#conta-nubank',
-    );
+    // Cada conta mostra o saldo embaixo do nome; no cartão, a dívida.
+    const nubank = canvas.getByRole('link', { name: /Nubank/ });
+    await expect(nubank).toHaveAttribute('href', '/contas#conta-nubank');
+    await expect(within(nubank).getByText('R$ 2.844,40')).toBeInTheDocument();
+    await expect(within(canvas.getByRole('link', { name: /Carteira/ })).getByText('R$ 0,00')).toBeInTheDocument();
+    await expect(within(canvas.getByRole('link', { name: /XP Black/ })).getByText('-R$ 1.415,24')).toBeInTheDocument();
     await expect(canvas.getByRole('link', { name: 'Nova conta' })).toHaveAttribute(
       'href',
       '/contas?nova=1',
