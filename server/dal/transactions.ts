@@ -97,10 +97,16 @@ export async function listTransactions(
     paidAt: sql`${transactions.paidAt}`,
   };
   const byOtherColumn = filters.sort && filters.sort.key !== 'date';
+  // Dentro do dia, a hora do extrato manda (quem não tem hora vai depois);
+  // o empate final é a ordem em que entrou no sistema.
+  const withinDay = byOtherColumn
+    ? [sql`${desc(transactions.occurredTime)} nulls last`]
+    : [sql`${dir(transactions.occurredTime)} nulls last`];
   const orderBy = [
     ...(byOtherColumn && filters.sort ? [sql`${dir(sortColumns[filters.sort.key])} nulls last`] : []),
     // Empate (ou ordem por data): a data na direção pedida; em outra coluna, mais recentes primeiro.
     byOtherColumn ? desc(transactions.date) : dir(transactions.date),
+    ...withinDay,
     desc(transactions.createdAt),
     desc(transactions.id),
   ];
@@ -111,6 +117,7 @@ export async function listTransactions(
       kind: transactions.kind,
       amountCents: transactions.amountCents,
       date: transactions.date,
+      occurredTime: transactions.occurredTime,
       description: transactions.description,
       notes: transactions.notes,
       status: transactions.status,
@@ -187,6 +194,7 @@ export async function listTransactions(
     kind: row.kind,
     amountCents: row.amountCents,
     date: row.date,
+    occurredTime: row.occurredTime,
     description: row.description,
     notes: row.notes,
     status: row.status,

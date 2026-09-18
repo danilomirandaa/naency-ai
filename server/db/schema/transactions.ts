@@ -10,6 +10,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   uniqueIndex,
   uuid,
@@ -43,6 +44,8 @@ export const transactions = pgTable(
     /** Centavos com sinal: receita > 0, despesa < 0. */
     amountCents: bigint('amount_cents', { mode: 'number' }).notNull(),
     date: date('date', { mode: 'string' }).notNull(),
+    /** Hora do extrato ("HH:MM:SS"), quando o banco informa: ordena o dia. */
+    occurredTime: time('occurred_time'),
     description: text('description').notNull(),
     rawDescription: text('raw_description'),
     categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),

@@ -71,6 +71,8 @@ export type CsvLayout = {
   invertSign: boolean;
   /** Coluna "Parcela" ("3 de 12"), quando a fatura traz. */
   installment?: number;
+  /** Coluna "Hora", que alguns extratos trazem. */
+  time?: number;
 };
 
 const SYNONYMS = {
@@ -80,7 +82,21 @@ const SYNONYMS = {
   debit: ['debito', 'saida', 'debit'],
   credit: ['credito', 'entrada', 'credit'],
   installment: ['parcela', 'parcelas'],
+  time: ['hora', 'horario', 'time', 'hora lancamento'],
 };
+
+/** "04:57:10" ou "4:57" → "04:57:10". Fora disso, `null`. */
+export function parseStatementTime(value: string | undefined) {
+  const match = /^\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*$/.exec(value ?? '');
+  if (!match) {
+    return null;
+  }
+  const [hours, minutes, seconds = '00'] = [match[1] ?? '', match[2] ?? '', match[3]];
+  if (Number(hours) > 23 || Number(minutes) > 59 || Number(seconds) > 59) {
+    return null;
+  }
+  return `${hours.padStart(2, '0')}:${minutes}:${seconds}`;
+}
 
 /** "3 de 12" → terceira de doze. "-", vazio ou " de 1" (sem número) não é parcelamento. */
 export function parseInstallment(value: string | undefined) {
@@ -114,6 +130,7 @@ export function detectCsvLayout(rawHeaders: string[]): CsvLayout | null {
   const description = findColumn(headers, SYNONYMS.description);
   const amount = findColumn(headers, SYNONYMS.amount);
   const installment = findColumn(headers, SYNONYMS.installment);
+  const time = findColumn(headers, SYNONYMS.time);
   const debit = findColumn(headers, SYNONYMS.debit);
   const credit = findColumn(headers, SYNONYMS.credit);
   if (date < 0 || description < 0) {
@@ -127,6 +144,7 @@ export function detectCsvLayout(rawHeaders: string[]): CsvLayout | null {
       amount: { column: amount },
       invertSign: false,
       ...(installment >= 0 ? { installment } : {}),
+      ...(time >= 0 ? { time } : {}),
     };
   }
   if (debit >= 0 && credit >= 0) {
@@ -175,6 +193,7 @@ export function parseCsvStatement(text: string): { layout: string; rows: ParsedS
       amountCents: layout.invertSign ? -amount : amount,
       description: description || 'Sem descrição',
       externalId: null,
+      time: layout.time === undefined ? null : parseStatementTime(record[layout.time]),
       installment: layout.installment === undefined ? null : parseInstallment(record[layout.installment]),
       invoicePayment: false,
     };

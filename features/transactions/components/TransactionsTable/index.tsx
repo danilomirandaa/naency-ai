@@ -138,9 +138,16 @@ export function TransactionsTable({
       header: 'Data',
       sortable: true,
       cell: (item) => (
-        <Text size="sm" className="whitespace-nowrap tabular-nums">
-          {formatIsoDate(item.date)}
-        </Text>
+        <div className="flex flex-col whitespace-nowrap">
+          <Text size="sm" className="tabular-nums">
+            {formatIsoDate(item.date)}
+          </Text>
+          {item.occurredTime && (
+            <Text size="xs" color="secondary" className="tabular-nums">
+              {item.occurredTime.slice(0, 5)}
+            </Text>
+          )}
+        </div>
       ),
     },
     {

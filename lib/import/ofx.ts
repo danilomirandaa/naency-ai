@@ -13,6 +13,18 @@ function ofxDate(value: string | null) {
   return date && isIsoDate(date) ? date : null;
 }
 
+/** DTPOSTED costuma trazer a hora junto ("20260902143000"); sem ela, `null`. */
+function ofxTime(value: string | null) {
+  const match = value ? /^\d{8}(\d{2})(\d{2})(\d{2})?/.exec(value) : null;
+  if (!match) {
+    return null;
+  }
+  const [hours, minutes, seconds = '00'] = [match[1] ?? '', match[2] ?? '', match[3]];
+  // Muito banco manda "000000" quando não tem hora: meia-noite exata não ordena nada.
+  const time = `${hours}:${minutes}:${seconds}`;
+  return Number(hours) > 23 || Number(minutes) > 59 || time === '00:00:00' ? null : time;
+}
+
 /** Valor do OFX: "-45.90", "1234.5" ou, em alguns bancos, "-45,90". */
 function ofxAmount(value: string | null) {
   if (!value) {
@@ -41,7 +53,8 @@ export function parseOfx(text: string): ParsedStatementRow[] {
   const rows: ParsedStatementRow[] = [];
   for (const [index, rawBlock] of blocks.entries()) {
     const block = rawBlock.split(/<\/STMTTRN>|<\/BANKTRANLIST>/i)[0] ?? '';
-    const date = ofxDate(tag(block, 'DTPOSTED'));
+    const posted = tag(block, 'DTPOSTED');
+    const date = ofxDate(posted);
     const amountCents = ofxAmount(tag(block, 'TRNAMT'));
     if (!date || amountCents === null) {
       throw new StatementParseError('invalid-row', `Lançamento ${index + 1} do OFX sem data ou valor válidos.`);
@@ -52,6 +65,7 @@ export function parseOfx(text: string): ParsedStatementRow[] {
       amountCents,
       description,
       externalId: tag(block, 'FITID') || null,
+      time: ofxTime(posted),
       installment: null,
       invoicePayment: false,
     });

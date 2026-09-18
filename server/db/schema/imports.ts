@@ -9,6 +9,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   uniqueIndex,
   uuid,
@@ -55,6 +56,8 @@ export const importRows = pgTable(
       .references(() => importBatches.id, { onDelete: 'cascade' }),
     position: integer('position').notNull(),
     date: date('date', { mode: 'string' }).notNull(),
+    /** Hora do extrato, quando o arquivo traz. */
+    occurredTime: time('occurred_time'),
     amountCents: bigint('amount_cents', { mode: 'number' }).notNull(),
     description: text('description').notNull(),
     rawDescription: text('raw_description').notNull(),

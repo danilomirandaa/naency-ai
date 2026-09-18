@@ -68,6 +68,8 @@ export const Editor: Story = {
     const row = (description: string) => within(rows.find((item) => within(item).queryAllByText(description).length > 0) as HTMLElement);
     // Situação derivada de hoje: vencida é atrasada; futura, a pagar; efetivada, paga/recebida.
     await expect(row('Conta de luz').getByText('Atrasada')).toBeInTheDocument();
+    // Hora do extrato embaixo da data: é ela que ordena o dia.
+    await expect(row('Conta de luz').getByText('04:57')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('A pagar')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('Recorrente')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('Boleto')).toBeInTheDocument();

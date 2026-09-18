@@ -132,6 +132,7 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
     return {
       position: index + 1,
       date: row.date,
+      occurredTime: row.time,
       amountCents: row.amountCents,
       description: row.description,
       rawDescription: row.description,
@@ -353,6 +354,7 @@ export async function commitImportBatch(workspaceId: string, batchId: string) {
         description: row.description,
         rawDescription: row.rawDescription,
         categoryId: row.categoryId,
+        occurredTime: row.occurredTime,
         status: 'cleared',
         paidAt: row.date,
         paymentMethod: inferPaymentMethod(row.rawDescription, account?.type ?? ''),

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { detectCsvLayout, parseCsvRecords, parseStatementDate } from './csv';
+import { detectCsvLayout, parseCsvRecords, parseStatementDate, parseStatementTime } from './csv';
 import { decodeStatement } from './decode';
 import { parseStatement } from './parse';
 import { StatementParseError } from './types';
@@ -55,15 +55,46 @@ describe('fatura de cartão', () => {
   });
 });
 
+describe('hora do lançamento', () => {
+  it('lê a coluna Hora do extrato e ordena o dia por ela', () => {
+    const { rows } = parseStatement('extrato.csv', fixture('xp-conta.csv'));
+    expect(rows.map((row) => [row.date, row.time, row.amountCents])).toEqual([
+      ['2026-09-18', '04:57:10', -96_022],
+      ['2026-09-18', '15:22:03', -10_000],
+      ['2026-09-17', '19:38:57', -4_019],
+    ]);
+  });
+
+  it('OFX traz a hora no DTPOSTED quando existe', () => {
+    const comHora = parseStatement(
+      'extrato.ofx',
+      '<OFX><STMTTRN><DTPOSTED>20260902143005<TRNAMT>-45.90<MEMO>Padaria</STMTTRN></OFX>',
+    );
+    expect(comHora.rows[0]).toMatchObject({ date: '2026-09-02', time: '14:30:05' });
+    const semHora = parseStatement(
+      'extrato.ofx',
+      '<OFX><STMTTRN><DTPOSTED>20260902<TRNAMT>-45.90<MEMO>Padaria</STMTTRN></OFX>',
+    );
+    expect(semHora.rows[0]?.time).toBeNull();
+  });
+
+  it('hora inválida não vira lixo', () => {
+    expect(parseStatementTime('25:00')).toBeNull();
+    expect(parseStatementTime('-')).toBeNull();
+    expect(parseStatementTime('')).toBeNull();
+    expect(parseStatementTime('4:57')).toBe('04:57:00');
+  });
+});
+
 describe('OFX', () => {
   it('lê OFX 1.x (SGML, tags sem fechar) com valores em ponto e vírgula', () => {
     expect(parseStatement('extrato.ofx', fixture('conta-sgml.ofx'))).toEqual({
       format: 'ofx',
       layout: 'ofx',
       rows: [
-        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1', installment: null, invoicePayment: false },
-        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2', installment: null, invoicePayment: false },
-        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3', installment: null, invoicePayment: false },
+        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1', time: null, installment: null, invoicePayment: false },
+        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2', time: null, installment: null, invoicePayment: false },
+        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3', time: null, installment: null, invoicePayment: false },
       ],
     });
   });
@@ -89,8 +120,8 @@ describe('CSV', () => {
     const { layout, rows } = parseStatement('nubank.csv', fixture('nubank-conta.csv'));
     expect(layout).toBe('nubank-conta');
     expect(rows).toEqual([
-      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null, installment: null, invoicePayment: false },
-      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null, installment: null, invoicePayment: false },
+      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null, time: null, installment: null, invoicePayment: false },
+      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null, time: null, installment: null, invoicePayment: false },
     ]);
   });
 

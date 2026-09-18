@@ -9,6 +9,8 @@ export type TransactionItem = {
   amountCents: number;
   /** "AAAA-MM-DD" */
   date: string;
+  /** Hora do extrato ("HH:MM:SS"), quando o banco informou. */
+  occurredTime: string | null;
   description: string;
   notes: string | null;
   status: TransactionStatus;

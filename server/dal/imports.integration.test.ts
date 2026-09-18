@@ -231,6 +231,26 @@ describe('importação: confirmar', () => {
     expect(parcelada).toMatchObject({ description: 'SMILETECH TECNOLOGIA O', installment: { number: 3, total: 12 } });
   });
 
+  it('extrato com hora: o dia sai em ordem cronológica, do mais recente para o mais antigo', async () => {
+    const csv = readFileSync(path.resolve('lib/import/__fixtures__/xp-conta.csv'), 'utf8');
+    const { id } = await createImportBatch(workspaceId, { accountId: nubank, fileName: 'extrato.csv', text: csv });
+    await commitImportBatch(workspaceId, id);
+    const page = await listTransactions(workspaceId, { ...september, from: '2026-09-01', to: '2026-09-30' });
+    expect(page.items.map((item) => [item.date, item.occurredTime])).toEqual([
+      ['2026-09-18', '15:22:03'],
+      ['2026-09-18', '04:57:10'],
+      ['2026-09-17', '19:38:57'],
+    ]);
+    // Ordenando por data crescente, o dia também inverte.
+    const asc = await listTransactions(workspaceId, {
+      ...september,
+      from: '2026-09-01',
+      to: '2026-09-30',
+      sort: { key: 'date', dir: 'asc' },
+    });
+    expect(asc.items.map((item) => item.occurredTime)).toEqual(['19:38:57', '04:57:10', '15:22:03']);
+  });
+
   it('descartar encerra sem criar nada; histórico lista as importações', async () => {
     const batch = await importOfx();
     await discardImportBatch(workspaceId, batch.id);
