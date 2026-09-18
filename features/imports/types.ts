@@ -21,11 +21,17 @@ export type ImportRowItem = {
   duplicate: 'exact' | 'possible' | null;
 };
 
+export type ImportJob = 'suggest' | 'commit';
+
 export type ImportBatchDetail = {
   id: string;
   fileName: string;
   layout: string;
   status: 'review' | 'committed' | 'discarded';
+  /** Trabalho rodando no servidor; a tela acompanha até terminar. */
+  job: ImportJob | null;
+  /** Erro do último trabalho. */
+  jobError: string | null;
   account: { id: string; name: string; type: AccountType; institution: { name: string; color: string } | null };
   rows: ImportRowItem[];
   summary: {
@@ -42,6 +48,7 @@ export type ImportBatchSummary = {
   id: string;
   fileName: string;
   status: 'review' | 'committed' | 'discarded';
+  job: ImportJob | null;
   accountName: string;
   rowCount: number;
   createdAt: string;

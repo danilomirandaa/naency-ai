@@ -168,3 +168,12 @@ A escolha final de modelo por tarefa sai de medição, não de suposição.
   chamada grava `ai_usage_events`. Sugestões com categoria de outro tipo ou id
   inexistente são descartadas.
 - Falta: PDF e CSV desconhecido com AI, e o eval com extratos reais em `.samples/`.
+
+**Trabalho em segundo plano**: "Sugerir com AI" e "Importar" respondem na hora e
+seguem rodando no servidor com `after()` (Next 16). O estado fica no lote
+(`import_batches.job`, `job_error`), então dá para recarregar ou sair da página
+sem perder nada; a tela acompanha por polling enquanto houver `job` e avisa por
+notificação do navegador quando termina fora da aba. Um lote aceita um trabalho
+por vez.
+
+**Execução na Vercel**

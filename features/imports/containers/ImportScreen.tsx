@@ -32,6 +32,22 @@ export type ImportScreenProps = {
   aiEnabled: boolean;
 };
 
+/** Pede permissão de notificação no clique (só o navegador aceita pedir assim). */
+async function askForNotifications() {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'default') {
+    return;
+  }
+  await Notification.requestPermission().catch(() => undefined);
+}
+
+/** Avisa quem saiu da aba; com a aba aberta, a própria tela já mostra o resultado. */
+function notifyDone(title: string) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !document.hidden) {
+    return;
+  }
+  new Notification(title, { body: 'Naency', tag: 'naency-import' });
+}
+
 /** Container: envio do arquivo, revisão do lote (?lote=) e conclusão. */
 export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreenProps) {
   const router = useRouter();
@@ -44,8 +60,16 @@ export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreen
   const accounts = useQuery(accountsQuery.options(workspaceId, { includeArchived: true }));
   const categories = useQuery(categoriesQuery.options(workspaceId, { includeArchived: false }));
   const history = useQuery({ ...importsQuery.list(workspaceId), enabled: !batchId });
-  const batch = useQuery({ ...importsQuery.batch(workspaceId, batchId ?? ''), enabled: Boolean(batchId) });
+  const batch = useQuery({
+    ...importsQuery.batch(workspaceId, batchId ?? ''),
+    enabled: Boolean(batchId),
+    // Enquanto o servidor trabalha, a tela acompanha sozinha (e sobrevive ao F5).
+    refetchInterval: (query) => (query.state.data?.job ? 2_000 : false),
+  });
   const [message, setMessage] = React.useState<string | null>(null);
+  const data = batch.data;
+  const previousJob = React.useRef<string | null>(null);
+
 
   const goTo = (query: string) => router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
 
@@ -58,6 +82,28 @@ export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreen
         cardsQuery.all(workspaceId),
       ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
     );
+
+  React.useEffect(() => {
+    if (!data) {
+      return;
+    }
+    const finished = previousJob.current && !data.job;
+    previousJob.current = data.job;
+    if (!finished) {
+      return;
+    }
+    setMessage(data.jobError);
+    if (data.jobError) {
+      return;
+    }
+    notifyDone(data.status === 'committed' ? 'Importação concluída' : 'Sugestões prontas');
+    void refreshAfterCommit();
+    if (data.status === 'committed') {
+      router.push(`/transacoes?conta=${data.account.id}`);
+    }
+    // Só reage ao fim do trabalho no servidor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.job, data?.status, data?.jobError]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -103,18 +149,15 @@ export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreen
             batch={batch.data}
             canEdit={canImport}
             onCommit={async () => {
+              await askForNotifications();
               const result = await commitImportAction(workspaceId, batch.data.id);
-              if (!result.ok) {
-                setMessage(result.message);
-                return;
-              }
-              setMessage(null);
-              await refreshAfterCommit();
-              router.push(`/transacoes?conta=${result.accountId}`);
+              setMessage(result.ok ? null : result.message);
+              await queryClient.invalidateQueries({ queryKey: importsQuery.batch(workspaceId, batch.data.id).queryKey });
             }}
             onSuggest={
               aiEnabled
                 ? async () => {
+                    await askForNotifications();
                     const result = await suggestImportCategoriesAction(workspaceId, batch.data.id);
                     setMessage(result.ok ? null : result.message);
                     await queryClient.invalidateQueries({ queryKey: importsQuery.batch(workspaceId, batch.data.id).queryKey });

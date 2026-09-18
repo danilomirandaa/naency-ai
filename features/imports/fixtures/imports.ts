@@ -13,6 +13,8 @@ export const importBatchFixture: ImportBatchDetail = {
   fileName: 'nubank-setembro.ofx',
   layout: 'ofx',
   status: 'review',
+  job: null,
+  jobError: null,
   account: { id: nubank.id, name: nubank.name, type: nubank.type, institution: nubank.institution },
   rows: [
     {
@@ -146,6 +148,7 @@ export const importHistoryFixture: ImportBatchSummary[] = [
     id: importBatchFixture.id,
     fileName: 'nubank-setembro.ofx',
     status: 'review',
+    job: null,
     accountName: 'Nubank',
     rowCount: 3,
     createdAt: '2026-09-16T12:00:00.000Z',
@@ -154,6 +157,7 @@ export const importHistoryFixture: ImportBatchSummary[] = [
     id: '0000000d-0000-4000-8000-000000000099',
     fileName: 'fatura-agosto.csv',
     status: 'committed',
+    job: null,
     accountName: 'Nubank Roxinho',
     rowCount: 48,
     createdAt: '2026-09-01T12:00:00.000Z',

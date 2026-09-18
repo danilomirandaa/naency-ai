@@ -39,6 +39,17 @@ export const Reviewing: Story = {
   },
 };
 
+export const Processing: Story = {
+  args: { batch: { ...importBatchFixture, job: 'suggest' }, onSuggest: fn(async () => {}) },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Trabalho rodando no servidor: botões travados e aviso de que dá para sair.
+    await expect(canvas.getByRole('button', { name: 'Sugerindo…' })).toBeDisabled();
+    await expect(canvas.getByRole('button', { name: /Importar/ })).toBeDisabled();
+    await expect(canvas.getByText(/Pode fechar a página/)).toBeInTheDocument();
+  },
+};
+
 export const Committed: Story = {
   args: { batch: { ...importBatchFixture, status: 'committed' } },
   play: async ({ canvasElement }) => {

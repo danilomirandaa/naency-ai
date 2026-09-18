@@ -19,6 +19,7 @@ import { categories } from './categories';
 import { profiles, workspaces } from './workspaces';
 
 export const importBatchStatus = pgEnum('import_batch_status', ['review', 'committed', 'discarded']);
+export const importJob = pgEnum('import_job', ['suggest', 'commit']);
 export const ruleMatchType = pgEnum('rule_match_type', ['contains', 'exact']);
 export const ruleSource = pgEnum('rule_source', ['user', 'ai']);
 
@@ -37,6 +38,11 @@ export const importBatches = pgTable(
     format: text('format').notNull(),
     layout: text('layout').notNull(),
     status: importBatchStatus('status').notNull().default('review'),
+    /** Trabalho em andamento no servidor ("suggest" ou "commit"); `null` quando parado. */
+    job: importJob('job'),
+    /** Erro do último trabalho, mostrado na revisão. */
+    jobError: text('job_error'),
+    jobFinishedAt: timestamp('job_finished_at', { withTimezone: true }),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => profiles.id),

@@ -8,11 +8,14 @@ import {
   commitImportBatch,
   createImportBatch,
   discardImportBatch,
+  finishImportJob,
+  startImportJob,
   suggestImportCategories,
   updateImportRow,
 } from '@/server/dal/imports';
 import Anthropic from '@anthropic-ai/sdk';
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { ZodError } from 'zod';
 import type { CreateImportInput, UpdateImportRowInput } from './schemas';
 
@@ -57,17 +60,26 @@ export async function updateImportRowAction(
   }
 }
 
-export async function commitImportAction(
-  workspaceId: string,
-  batchId: string,
-): Promise<Result<{ created: number; accountId: string }>> {
+/**
+ * Começa a importação e responde na hora: o trabalho continua no servidor
+ * (`after`) e o estado fica no lote, então dá para sair da tela ou recarregar.
+ */
+export async function commitImportAction(workspaceId: string, batchId: string): Promise<Result> {
   try {
-    const result = await commitImportBatch(workspaceId, batchId);
-    revalidatePath('/', 'layout');
-    return { ok: true, ...result };
+    await startImportJob(workspaceId, batchId, 'commit');
   } catch (error) {
     return failure(error, 'Não foi possível concluir a importação.');
   }
+  after(async () => {
+    try {
+      await commitImportBatch(workspaceId, batchId);
+      await finishImportJob(workspaceId, batchId);
+      revalidatePath('/', 'layout');
+    } catch (error) {
+      await finishImportJob(workspaceId, batchId, failure(error, 'Não foi possível concluir a importação.').message);
+    }
+  });
+  return { ok: true };
 }
 
 export async function discardImportAction(workspaceId: string, batchId: string): Promise<Result> {
@@ -80,22 +92,29 @@ export async function discardImportAction(workspaceId: string, batchId: string):
   }
 }
 
-export async function suggestImportCategoriesAction(
-  workspaceId: string,
-  batchId: string,
-): Promise<Result<{ suggested: number }>> {
+/** Mesma ideia do commit: a AI demora, então a tela não fica presa esperando. */
+export async function suggestImportCategoriesAction(workspaceId: string, batchId: string): Promise<Result> {
   const config = getAiConfig();
   if (!config.enabled) {
     return { ok: false, message: 'Sugestões com AI desligadas: falta configurar a ANTHROPIC_API_KEY.' };
   }
   try {
-    const enricher = createAnthropicEnricher(new Anthropic(), config.models.enrich);
-    const result = await suggestImportCategories(workspaceId, batchId, { enricher, model: config.models.enrich });
-    return { ok: true, ...result };
+    await startImportJob(workspaceId, batchId, 'suggest');
   } catch (error) {
-    if (error instanceof Anthropic.APIError) {
-      return { ok: false, message: 'A AI não respondeu agora. Tente de novo em instantes.' };
-    }
     return failure(error, 'Não foi possível sugerir categorias.');
   }
+  after(async () => {
+    try {
+      const enricher = createAnthropicEnricher(new Anthropic(), config.models.enrich);
+      await suggestImportCategories(workspaceId, batchId, { enricher, model: config.models.enrich });
+      await finishImportJob(workspaceId, batchId);
+    } catch (error) {
+      const message =
+        error instanceof Anthropic.APIError
+          ? 'A AI não respondeu agora. Tente de novo em instantes.'
+          : failure(error, 'Não foi possível sugerir categorias.').message;
+      await finishImportJob(workspaceId, batchId, message);
+    }
+  });
+  return { ok: true };
 }

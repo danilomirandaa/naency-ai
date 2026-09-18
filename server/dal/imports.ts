@@ -28,9 +28,17 @@ import { fingerprintAll } from '@/server/import/fingerprint';
 import { and, asc, count, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
+export type ImportJob = 'suggest' | 'commit';
+
 export class ImportError extends Error {
   constructor(
-    public readonly code: 'not-found' | 'invalid-account' | 'parse' | 'not-in-review' | 'invalid-category',
+    public readonly code:
+      | 'not-found'
+      | 'invalid-account'
+      | 'parse'
+      | 'not-in-review'
+      | 'invalid-category'
+      | 'job-running',
     message: string,
   ) {
     super(message);
@@ -170,6 +178,35 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
   });
 }
 
+/**
+ * Marca o lote como "em processamento". O trabalho roda depois da resposta
+ * (`after`), então quem fechar a aba ou recarregar não perde nada: o estado
+ * está no banco. Um lote só aceita um trabalho por vez.
+ */
+export async function startImportJob(workspaceId: string, batchId: string, job: ImportJob) {
+  await requireMembership(workspaceId, 'import.run');
+  const batch = await findBatch(workspaceId, batchId);
+  if (batch.status !== 'review') {
+    throw new ImportError('not-in-review', 'Esta importação já foi concluída.');
+  }
+  const [updated] = await getDb()
+    .update(importBatches)
+    .set({ job, jobError: null, jobFinishedAt: null })
+    .where(and(eq(importBatches.id, batch.id), isNull(importBatches.job)))
+    .returning({ id: importBatches.id });
+  if (!updated) {
+    throw new ImportError('job-running', 'Esta importação já está sendo processada.');
+  }
+}
+
+/** Encerra o trabalho, guardando o erro quando houver. */
+export async function finishImportJob(workspaceId: string, batchId: string, error?: string | null) {
+  await getDb()
+    .update(importBatches)
+    .set({ job: null, jobError: error ?? null, jobFinishedAt: new Date() })
+    .where(and(eq(importBatches.id, batchId), eq(importBatches.workspaceId, workspaceId)));
+}
+
 async function findBatch(workspaceId: string, batchId: string) {
   if (!z.uuid().safeParse(batchId).success) {
     throw new ImportError('not-found', 'Importação não encontrada.');
@@ -259,6 +296,8 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
     fileName: batch.fileName,
     layout: batch.layout,
     status: batch.status,
+    job: batch.job,
+    jobError: batch.jobError,
     account: {
       id: account.id,
       name: account.name,
@@ -419,6 +458,7 @@ export async function listImportBatches(workspaceId: string): Promise<ImportBatc
       id: importBatches.id,
       fileName: importBatches.fileName,
       status: importBatches.status,
+      job: importBatches.job,
       accountName: accounts.name,
       createdAt: importBatches.createdAt,
       rowCount: count(importRows.id),

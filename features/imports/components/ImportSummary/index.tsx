@@ -31,7 +31,10 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [isSuggesting, startSuggest] = useTransition();
   const { summary } = batch;
-  const busy = isCommitting || isDiscarding || isSuggesting;
+  // O trabalho roda no servidor: o lote diz o que está acontecendo, mesmo depois de recarregar.
+  const committing = isCommitting || batch.job === 'commit';
+  const suggesting = isSuggesting || batch.job === 'suggest';
+  const busy = committing || suggesting || isDiscarding;
   const reviewing = batch.status === 'review';
 
   return (
@@ -58,6 +61,12 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
             </Text>
           </div>
         </div>
+        {batch.job && (
+          <Text size="xs" color="secondary" className="w-full md:w-auto">
+            {batch.job === 'suggest' ? 'A AI está lendo os lançamentos.' : 'Criando os lançamentos.'} Pode fechar a
+            página: o trabalho continua e avisamos quando terminar.
+          </Text>
+        )}
         {!reviewing ? (
           <Panel.RowBadge color={batch.status === 'committed' ? 'green' : 'gray'}>
             {batch.status === 'committed' ? 'Importado' : 'Descartado'}
@@ -67,8 +76,8 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
             <div className="flex flex-wrap items-center gap-2">
               {onSuggest && summary.uncategorized > 0 && (
                 <Button variant="secondary" disabled={busy} onClick={() => startSuggest(onSuggest)}>
-                  {isSuggesting ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="category" data-icon="inline-start" />}
-                  {isSuggesting ? 'Sugerindo…' : 'Sugerir com AI'}
+                  {suggesting ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="category" data-icon="inline-start" />}
+                  {suggesting ? 'Sugerindo…' : 'Sugerir com AI'}
                 </Button>
               )}
               <Button variant="outline" disabled={busy} onClick={() => setConfirmingDiscard(true)}>
@@ -76,8 +85,8 @@ export function ImportSummary({ batch, canEdit, onCommit, onDiscard, onSuggest }
                 Descartar
               </Button>
               <Button disabled={busy || summary.included === 0} onClick={() => startCommit(onCommit)}>
-                {isCommitting ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="check" data-icon="inline-start" />}
-                {isCommitting ? 'Importando…' : `Importar ${summary.included}`}
+                {committing ? <Spinner label={null} data-icon="inline-start" /> : <Icon icon="check" data-icon="inline-start" />}
+                {committing ? 'Importando…' : `Importar ${summary.included}`}
               </Button>
             </div>
           )

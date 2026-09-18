@@ -12,8 +12,10 @@ import {
   commitImportBatch,
   createImportBatch,
   discardImportBatch,
+  finishImportJob,
   getImportBatch,
   listImportBatches,
+  startImportJob,
   suggestImportCategories,
   updateImportRow,
 } from './imports';
@@ -249,6 +251,26 @@ describe('importação: confirmar', () => {
       sort: { key: 'date', dir: 'asc' },
     });
     expect(asc.items.map((item) => item.occurredTime)).toEqual(['19:38:57', '04:57:10', '15:22:03']);
+  });
+
+  it('trabalho em segundo plano: marca o lote, recusa dois ao mesmo tempo e guarda o erro', async () => {
+    const batch = await importOfx();
+    await startImportJob(workspaceId, batch.id, 'suggest');
+    expect((await getImportBatch(workspaceId, batch.id)).job).toBe('suggest');
+    // O estado fica no banco: recarregar a página mostra o mesmo, e outro clique não dispara de novo.
+    await expect(startImportJob(workspaceId, batch.id, 'commit')).rejects.toMatchObject({ code: 'job-running' });
+    expect((await listImportBatches(workspaceId))[0]).toMatchObject({ job: 'suggest' });
+
+    await finishImportJob(workspaceId, batch.id, 'A AI não respondeu agora.');
+    expect(await getImportBatch(workspaceId, batch.id)).toMatchObject({
+      job: null,
+      jobError: 'A AI não respondeu agora.',
+    });
+
+    // Depois do erro dá para tentar de novo, e o sucesso limpa a mensagem.
+    await startImportJob(workspaceId, batch.id, 'commit');
+    await finishImportJob(workspaceId, batch.id);
+    expect(await getImportBatch(workspaceId, batch.id)).toMatchObject({ job: null, jobError: null });
   });
 
   it('descartar encerra sem criar nada; histórico lista as importações', async () => {
