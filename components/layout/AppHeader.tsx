@@ -22,7 +22,9 @@ export function AppHeader({ periodCookie = null, today }: AppHeaderProps) {
   const trail = getBreadcrumb(pathname);
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 px-4">
+    // Fixo no topo ao rolar. Gruda em top-0: com a margem do cartão de conteúdo
+    // (Sidebar.Inset), qualquer folga deixaria o conteúdo passar acima dele.
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-border-neutral-subtle border-b bg-background px-4 md:rounded-t-2xl">
       <Sidebar.Trigger className="-ml-1" />
       <Separator
         orientation="vertical"

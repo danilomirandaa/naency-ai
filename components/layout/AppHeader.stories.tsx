@@ -42,6 +42,27 @@ export const NestedRoute: Story = {
   },
 };
 
+export const StaysOnTopWhileScrolling: Story = {
+  parameters: { nextjs: { appDirectory: true, navigation: { pathname: '/' } } },
+  render: (args) => (
+    <div className="w-full">
+      <AppHeader {...args} />
+      <div className="h-[200vh] p-4">Conteúdo longo</div>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const header = canvasElement.querySelector('header') as HTMLElement;
+    const before = header.getBoundingClientRect().top;
+    window.scrollTo(0, 600);
+    await waitFor(() => expect(window.scrollY).toBeGreaterThan(0));
+    // Continua colado no topo (8px no desktop, pela margem do cartão de conteúdo).
+    await waitFor(() => expect(header.getBoundingClientRect().top).toBeLessThanOrEqual(8));
+    await expect(header.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
+    await expect(before).toBeLessThanOrEqual(8);
+    window.scrollTo(0, 0);
+  },
+};
+
 export const TopLevelRoute: Story = {
   parameters: {
     nextjs: { appDirectory: true, navigation: { pathname: '/' } },
