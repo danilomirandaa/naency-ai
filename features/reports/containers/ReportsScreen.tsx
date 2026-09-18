@@ -20,7 +20,7 @@ export function ReportsScreen({ workspaceId, periodCookie }: { workspaceId: stri
 
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Relatórios"
         description="Para onde foi o dinheiro no período e como os meses se comparam."

@@ -33,7 +33,7 @@ export default async function MembersPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Membros"
         description={`Quem tem acesso a ${active.name}.`}

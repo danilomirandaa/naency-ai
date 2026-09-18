@@ -43,7 +43,7 @@ export function RecurringScreen({ workspaceId, canEdit, today }: { workspaceId: 
   const action = React.useMemo(() => saveRecurringRuleAction.bind(null, workspaceId, editingId), [workspaceId, editingId]);
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Recorrentes"
         description="Contas e receitas que se repetem viram lançamentos previstos."

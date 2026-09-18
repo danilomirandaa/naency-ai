@@ -60,7 +60,7 @@ export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreen
     );
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Importar extrato"
         description="Leia o OFX ou CSV do banco, revise e importe de uma vez."

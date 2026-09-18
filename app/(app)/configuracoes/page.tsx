@@ -23,7 +23,7 @@ export default async function SettingsPage() {
   const ai = getAiConfig();
   const usage = await getAiUsageSummary(active.id, currentMonth());
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader title="Configurações" description={active.name} />
       <WorkspaceSettingsForm
         name={active.name}

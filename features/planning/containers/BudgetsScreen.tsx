@@ -30,7 +30,7 @@ export function BudgetsScreen({
   const [editing, setEditing] = React.useState<BudgetLine | null>(null);
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Orçamentos"
         description={`Quanto gastar por mês em cada categoria · ${formatMonth(month)}`}

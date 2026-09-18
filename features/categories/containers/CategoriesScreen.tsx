@@ -54,7 +54,7 @@ export function CategoriesScreen({ workspaceId, canEdit }: CategoriesScreenProps
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Categorias"
         description="Como os lançamentos são organizados nos relatórios."

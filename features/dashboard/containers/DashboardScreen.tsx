@@ -38,7 +38,7 @@ export function DashboardScreen({ workspaceId, workspaceName, canEdit, today, pe
 
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Visão geral"
         description={workspaceName}

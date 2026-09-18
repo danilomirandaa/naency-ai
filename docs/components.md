@@ -16,6 +16,11 @@ Cada camada só importa das camadas de cima desta tabela:
 | `features/<feature>/components/` | Composições de uma feature | `TransactionForm`, `TransactionTable`, `ImportReviewTable`, `InvoiceCard` |
 | `app/**/page.tsx` | **Só compõe**: busca ou faz prefetch dos dados e monta componentes, sem markup de UI próprio | |
 
+**Largura das telas**: toda tela ocupa a largura disponível
+(`flex w-full flex-col gap-4`), sem `mx-auto max-w-*`. O respiro de 16px vem do
+layout (`app/(app)/layout.tsx`), e o conteúdo começa alinhado à esquerda, como em
+Transações.
+
 Uma feature nunca importa componente de outra feature. Se duas precisam, ele sobe
 para `components/finance/`.
 

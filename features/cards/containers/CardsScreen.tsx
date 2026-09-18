@@ -14,7 +14,7 @@ const NEW_CARD_HREF = '/contas?nova=cartao';
 export function CardsScreen({ workspaceId, canEdit }: { workspaceId: string; canEdit: boolean }) {
   const cards = useQuery(cardsQuery.list(workspaceId));
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Cartões"
         description="Faturas, vencimentos e limite de cada cartão."

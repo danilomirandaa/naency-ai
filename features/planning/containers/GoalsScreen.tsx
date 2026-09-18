@@ -25,7 +25,7 @@ export function GoalsScreen({ workspaceId, canEdit }: { workspaceId: string; can
   const refresh = () => queryClient.invalidateQueries({ queryKey: planningQuery.goalsAll(workspaceId) });
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <PageHeader
         title="Metas"
         description="Acompanhe quanto já guardou para cada objetivo."
