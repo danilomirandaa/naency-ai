@@ -572,17 +572,21 @@ export async function setTransactionStatus(
 }
 
 /**
- * Soma que entra no saldo de cada conta: efetivados e não excluídos. Em conta
- * comum, a partir da data do saldo inicial; em cartão de crédito, tudo, porque
- * cartão não tem saldo inicial e a fatura importada costuma ser mais antiga que
- * o cadastro do cartão.
+ * Soma que entra no saldo de cada conta: efetivados e não excluídos, a partir da
+ * data do saldo inicial. Cartão sem dívida declarada (saldo inicial zero) soma
+ * tudo: a fatura importada costuma ser mais antiga que o cadastro do cartão, e
+ * sem isso o limite usado ficaria zerado. Com dívida declarada, a data vale, para
+ * a dívida não ser contada duas vezes junto com as faturas antigas importadas.
  */
 export function accountMovementSql() {
+  const type = sql.raw('"accounts"."type"');
+  const initialCents = sql.raw('"accounts"."initial_balance_cents"');
+  const initialDate = sql.raw('"accounts"."initial_balance_date"');
   return sql<string>`coalesce((
     select sum(t.amount_cents) from ${transactions} t
     where t.account_id = ${sql.raw('"accounts"."id"')}
       and t.deleted_at is null
       and t.status = 'cleared'
-      and (${sql.raw('"accounts"."type"')} = 'credit_card' or t.date >= ${sql.raw('"accounts"."initial_balance_date"')})
+      and ((${type} = 'credit_card' and ${initialCents} = 0) or t.date >= ${initialDate})
   ), 0)`;
 }

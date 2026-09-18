@@ -137,9 +137,13 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
       rawDescription: row.description,
       categoryId: useRule ? ruleCategory.id : null,
       ruleId: useRule ? (rule?.id ?? null) : null,
-      include: !possible,
+      // Pagamento de fatura entra desmarcado: no Naency isso é "Pagar fatura".
+      include: !possible && !row.invoicePayment,
       fingerprint,
       duplicateOfTransactionId: possible?.id ?? null,
+      installmentNumber: row.installment?.number ?? null,
+      installmentTotal: row.installment?.total ?? null,
+      invoicePayment: row.invoicePayment,
     };
   });
 
@@ -211,6 +215,9 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
         fingerprint: importRows.fingerprint,
         duplicateOfTransactionId: importRows.duplicateOfTransactionId,
         duplicateFingerprint: transactions.fingerprint,
+        installmentNumber: importRows.installmentNumber,
+        installmentTotal: importRows.installmentTotal,
+        invoicePayment: importRows.invoicePayment,
       })
       .from(importRows)
       .leftJoin(transactions, eq(transactions.id, importRows.duplicateOfTransactionId))
@@ -233,6 +240,11 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
     suggestedByAi: row.aiSuggested,
     include: row.include,
     rememberCategory: row.rememberCategory,
+    installment:
+      row.installmentNumber !== null && row.installmentTotal !== null
+        ? { number: row.installmentNumber, total: row.installmentTotal }
+        : null,
+    invoicePayment: row.invoicePayment,
     duplicate: row.duplicateOfTransactionId
       ? row.duplicateFingerprint === row.fingerprint
         ? 'exact'
@@ -322,6 +334,14 @@ export async function commitImportBatch(workspaceId: string, batchId: string) {
       .select({ type: accounts.type })
       .from(accounts)
       .where(eq(accounts.id, batch.accountId));
+    // A fatura lista parcelas com a data da compra original ("3 de 12"). O arquivo
+    // é de uma fatura só, então ela manda: todas as linhas entram na fatura do
+    // lançamento mais recente, e não cada uma na fatura da sua data.
+    const invoiceDate =
+      account?.type === 'credit_card'
+        ? rows.reduce((latest, row) => (row.date > latest ? row.date : latest), rows[0]?.date ?? '')
+        : null;
+    const invoiceId = invoiceDate ? await resolveInvoiceId(tx, workspaceId, batch.accountId, invoiceDate) : null;
     for (const row of rows) {
       const kind = row.amountCents > 0 ? 'income' : 'expense';
       await tx.insert(transactions).values({
@@ -338,7 +358,9 @@ export async function commitImportBatch(workspaceId: string, batchId: string) {
         paymentMethod: inferPaymentMethod(row.rawDescription, account?.type ?? ''),
         importBatchId: batch.id,
         fingerprint: row.fingerprint,
-        invoiceId: await resolveInvoiceId(tx, workspaceId, batch.accountId, row.date),
+        invoiceId,
+        installmentNumber: row.installmentNumber,
+        installmentTotal: row.installmentTotal,
         createdBy: user.id,
         updatedBy: user.id,
       });

@@ -15,6 +15,14 @@ export function normalizeCardSigns(rows: ParsedStatementRow[]): ParsedStatementR
   return positive > negative ? rows.map((row) => ({ ...row, amountCents: -row.amountCents })) : rows;
 }
 
+/**
+ * Pagamento da fatura anterior, que o banco lista como crédito dentro da fatura.
+ * Não é compra nem estorno: no Naency, pagar fatura é transferência.
+ */
+export function isInvoicePayment(description: string) {
+  return /\b(pagamento|pagto|pgto)\b.*\bfatura\b/i.test(description.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+}
+
 /** Detecta o formato pelo nome e pelo conteúdo e lê o extrato. */
 export function parseStatement(
   fileName: string,
@@ -22,7 +30,16 @@ export function parseStatement(
   { accountType }: { accountType?: string } = {},
 ): ParsedStatement {
   const statement = readStatement(fileName, text);
-  return accountType === 'credit_card' ? { ...statement, rows: normalizeCardSigns(statement.rows) } : statement;
+  if (accountType !== 'credit_card') {
+    return statement;
+  }
+  return {
+    ...statement,
+    rows: normalizeCardSigns(statement.rows).map((row) => ({
+      ...row,
+      invoicePayment: row.amountCents > 0 && isInvoicePayment(row.description),
+    })),
+  };
 }
 
 function readStatement(fileName: string, text: string): ParsedStatement {

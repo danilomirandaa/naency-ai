@@ -170,6 +170,34 @@ describe('cartão: faturas', () => {
     expect((await listAccounts(workspaceId)).find((item) => item.name === 'Poupança')?.balanceCents).toBe(0);
   });
 
+  it('com dívida declarada, a data vale: o que é anterior não conta duas vezes', async () => {
+    const { id: comDivida } = await createAccount(workspaceId, {
+      ...cardInput,
+      name: 'Cartão com dívida',
+      // Dívida de R$ 1.000 em 01/09; o formulário manda positivo e o schema inverte.
+      initialBalanceCents: -100_000,
+      initialBalanceDate: '2026-09-01',
+      defaultPaymentAccountId: null,
+    });
+    const compra = (date: string, amountCents: number) =>
+      createTransaction(workspaceId, {
+        kind: 'expense',
+        accountId: comDivida,
+        amountCents,
+        date,
+        description: 'Compra',
+        categoryId: null,
+        status: 'cleared',
+        notes: null,
+      });
+    await compra('2026-08-20', 50_000);
+    await compra('2026-09-10', 30_000);
+
+    const summary = (await listCards(workspaceId, { today: TODAY })).find((item) => item.name === 'Cartão com dívida');
+    // Só a compra de setembro soma à dívida declarada: 1.000 + 300.
+    expect(summary).toMatchObject({ balanceCents: -130_000, availableCents: 370_000 });
+  });
+
   it('cartão sem compra mostra a fatura atual vazia', async () => {
     const invoices = await listCardInvoices(workspaceId, card, { today: TODAY });
     expect(invoices).toEqual([

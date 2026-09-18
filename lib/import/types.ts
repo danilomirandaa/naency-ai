@@ -7,6 +7,10 @@ export type ParsedStatementRow = {
   description: string;
   /** Identificador do banco (FITID do OFX), quando houver. */
   externalId: string | null;
+  /** Compra parcelada, quando a fatura informa ("3 de 12"). */
+  installment: { number: number; total: number } | null;
+  /** Linha de pagamento da fatura anterior, que a fatura lista como crédito. */
+  invoicePayment: boolean;
 };
 
 export type StatementFormat = 'ofx' | 'csv';

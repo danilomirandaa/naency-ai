@@ -182,6 +182,8 @@ export const CreateCard: Story = {
     await choose(dialog, 'Vencimento', 'Dia 5');
     await userEvent.type(dialog.getByLabelText('Limite'), '800000');
     await choose(dialog, 'Pagar a fatura com', /Nubank/);
+    // Cartão não tem saldo inicial, e sim quanto já está usado do limite.
+    await userEvent.type(dialog.getByLabelText('Dívida atual'), '141524');
     await userEvent.click(dialog.getByRole('button', { name: 'Criar conta' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -191,7 +193,7 @@ export const CreateCard: Story = {
       dueDay: '5',
       limitCents: '800000',
       defaultPaymentAccountId: accountsFixture[0]?.id,
-      initialBalanceCents: '0',
+      initialBalanceCents: '141524',
     });
   },
 };

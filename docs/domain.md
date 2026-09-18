@@ -160,6 +160,13 @@ Regras (`lib/cards.ts`, com testes):
 
 Regras:
 
+- **Dívida do cartão no cadastro**: cartão não tem saldo inicial; o formulário
+  pede "dívida atual" (positiva) e grava `initial_balance_cents` negativo. Serve
+  para quem não vai importar todas as faturas antigas: o limite usado já começa
+  certo. **Sem dívida declarada**, o saldo do cartão soma todos os lançamentos
+  efetivados, sem cortar pela data (a fatura importada é mais antiga que o
+  cadastro, e o limite usado ficaria zerado). **Com dívida declarada**, vale a
+  data: o que é anterior não entra, para não contar duas vezes.
 - **Fatura aberta ao entrar no cartão**: a atual (aberta e ainda não vencida) ou,
   na falta dela, a mais recente (`currentInvoiceOf`). Fatura antiga não paga, comum
   depois de importar histórico, não sequestra a navegação.

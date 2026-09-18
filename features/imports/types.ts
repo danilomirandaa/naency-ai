@@ -14,6 +14,10 @@ export type ImportRowItem = {
   suggestedByAi: boolean;
   include: boolean;
   rememberCategory: boolean;
+  /** Compra parcelada, quando a fatura informa ("3 de 12"). */
+  installment: { number: number; total: number } | null;
+  /** Pagamento da fatura anterior listado dentro da fatura. */
+  invoicePayment: boolean;
   duplicate: 'exact' | 'possible' | null;
 };
 

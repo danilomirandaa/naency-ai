@@ -18,11 +18,31 @@ describe('fatura de cartão', () => {
     expect(layout).toBe('generico');
     expect(rows.map((row) => [row.description, row.amountCents])).toEqual([
       ['PADOCA REAL.', -2592],
-      ['DISNEY PLUS', -2990],
       ['SMILETECH TECNOLOGIA O', -68333],
-      ['PAGAMENTO FATURA', 120000],
+      ['DISNEY PLUS', -2990],
+      ['Pagamento de fatura', 120000],
       ['ESTORNO LOJA', 1000],
     ]);
+  });
+
+  it('lê a coluna Parcela e marca só o pagamento da fatura', () => {
+    const { rows } = parseStatement('Fatura2026-10-05.csv', fixture('cartao-generico.csv'), {
+      accountType: 'credit_card',
+    });
+    expect(rows.map((row) => [row.description, row.installment, row.invoicePayment])).toEqual([
+      ['PADOCA REAL.', null, false],
+      // Parcela mantém a data da compra original: por isso a fatura manda na hora de importar.
+      ['SMILETECH TECNOLOGIA O', { number: 3, total: 12 }, false],
+      ['DISNEY PLUS', null, false],
+      ['Pagamento de fatura', null, true],
+      // Estorno é crédito, mas não é pagamento de fatura.
+      ['ESTORNO LOJA', null, false],
+    ]);
+  });
+
+  it('em conta comum, crédito com "pagamento de fatura" na descrição não é marcado', () => {
+    const { rows } = parseStatement('extrato.csv', fixture('cartao-generico.csv'), { accountType: 'checking' });
+    expect(rows.every((row) => !row.invoicePayment)).toBe(true);
   });
 
   it('não inverte o que já vem com compra negativa (OFX, Nubank cartão) nem conta corrente', () => {
@@ -41,9 +61,9 @@ describe('OFX', () => {
       format: 'ofx',
       layout: 'ofx',
       rows: [
-        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1' },
-        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2' },
-        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3' },
+        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1', installment: null, invoicePayment: false },
+        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2', installment: null, invoicePayment: false },
+        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3', installment: null, invoicePayment: false },
       ],
     });
   });
@@ -69,8 +89,8 @@ describe('CSV', () => {
     const { layout, rows } = parseStatement('nubank.csv', fixture('nubank-conta.csv'));
     expect(layout).toBe('nubank-conta');
     expect(rows).toEqual([
-      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null },
-      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null },
+      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null, installment: null, invoicePayment: false },
+      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null, installment: null, invoicePayment: false },
     ]);
   });
 

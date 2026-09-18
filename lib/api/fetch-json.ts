@@ -24,8 +24,11 @@ export async function fetchJson<T>(path: string, params: SearchParams = {}): Pro
     headers: { accept: 'application/json' },
   });
   if (response.status === 401 && typeof window !== 'undefined') {
-    // Sessão expirada: volta para o login guardando a página atual.
+    // Sessão expirada: volta para o login guardando a página atual. É recarga
+    // inteira de propósito — o router do Next reaproveitaria a sessão já perdida,
+    // e quem renova o cookie é o proxy, no servidor.
     const next = `${window.location.pathname}${window.location.search}`;
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.assign(`/entrar?next=${encodeURIComponent(next)}`);
   }
   if (!response.ok) {

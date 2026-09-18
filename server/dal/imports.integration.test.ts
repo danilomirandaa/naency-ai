@@ -159,10 +159,12 @@ describe('importação: confirmar', () => {
     const csv = readFileSync(path.resolve('lib/import/__fixtures__/nubank-cartao.csv'), 'utf8');
     const { id } = await createImportBatch(workspaceId, { accountId: card, fileName: 'fatura.csv', text: csv });
     await commitImportBatch(workspaceId, id);
+    // Arquivo de fatura: tudo entra na fatura do lançamento mais recente.
     const invoices = await listCardInvoices(workspaceId, card, { today: '2026-09-16' });
     expect(invoices.map((invoice) => [invoice.referenceMonth, invoice.totalCents])).toEqual([
-      ['2026-10', -10_535],
-      ['2026-09', -8_990],
+      ['2026-10', -19_525],
+      // A fatura atual aparece mesmo vazia.
+      ['2026-09', 0],
     ]);
   });
 
@@ -179,7 +181,7 @@ describe('importação: confirmar', () => {
     const csv = readFileSync(path.resolve('lib/import/__fixtures__/cartao-generico.csv'), 'utf8');
     const { id } = await createImportBatch(workspaceId, { accountId: card, fileName: 'Fatura2026-10-05.csv', text: csv });
     const batch = await getImportBatch(workspaceId, id);
-    expect(batch.rows.map((row) => row.amountCents)).toEqual([-2592, -2990, -68333, 120000, 1000]);
+    expect(batch.rows.map((row) => row.amountCents)).toEqual([-2592, -68333, -2990, 120000, 1000]);
     expect(batch.summary.expenseCents).toBe(-73_915);
 
     await expect(
@@ -191,6 +193,42 @@ describe('importação: confirmar', () => {
         }),
       }),
     ).resolves.toEqual({ suggested: 3 });
+  });
+
+  it('fatura: parcela antiga entra na fatura do arquivo e o pagamento fica de fora', async () => {
+    const { id: card } = await createAccount(workspaceId, {
+      name: 'XP Black',
+      type: 'credit_card',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: '2026-01-01',
+      closingDay: 28,
+      dueDay: 5,
+    });
+    const csv = readFileSync(path.resolve('lib/import/__fixtures__/cartao-generico.csv'), 'utf8');
+    const { id } = await createImportBatch(workspaceId, { accountId: card, fileName: 'Fatura2026-10-05.csv', text: csv });
+    const batch = await getImportBatch(workspaceId, id);
+
+    // A linha de pagamento vem marcada e desmarcada; a parcela traz o número.
+    expect(batch.rows.map((row) => [row.description, row.include, row.invoicePayment, row.installment])).toEqual([
+      ['PADOCA REAL.', true, false, null],
+      ['SMILETECH TECNOLOGIA O', true, false, { number: 3, total: 12 }],
+      ['DISNEY PLUS', true, false, null],
+      ['Pagamento de fatura', false, true, null],
+      ['ESTORNO LOJA', true, false, null],
+    ]);
+    expect(batch.summary).toMatchObject({ total: 5, included: 4 });
+
+    await expect(commitImportBatch(workspaceId, id)).resolves.toMatchObject({ created: 4 });
+
+    // Tudo na fatura de outubro, inclusive a compra parcelada de junho.
+    const invoices = await listCardInvoices(workspaceId, card, { today: '2026-09-17' });
+    expect(invoices.map((invoice) => [invoice.referenceMonth, invoice.totalCents])).toEqual([['2026-10', -72_915]]);
+    // O pagamento não entrou: a dívida é a soma das compras (739,15) menos o estorno (10,00).
+    expect((await listAccounts(workspaceId)).find((item) => item.name === 'XP Black')?.balanceCents).toBe(-72_915);
+    // A parcela fica registrada no lançamento.
+    const parcelada = (await listTransactions(workspaceId, { ...september, ...monthRange('2026-06'), accountId: card })).items[0];
+    expect(parcelada).toMatchObject({ description: 'SMILETECH TECNOLOGIA O', installment: { number: 3, total: 12 } });
   });
 
   it('descartar encerra sem criar nada; histórico lista as importações', async () => {

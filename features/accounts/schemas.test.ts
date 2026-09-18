@@ -48,6 +48,23 @@ describe('parseAccountForm', () => {
     ).toMatchObject({ success: true, data: { closingDay: 25, dueDay: 5, limitCents: 500000 } });
   });
 
+  it('no cartão, a dívida digitada vira saldo negativo', () => {
+    const card = { ...valid, type: 'credit_card', closingDay: '25', dueDay: '5' };
+    expect(parseAccountForm(form({ ...card, initialBalanceCents: '141524' }))).toMatchObject({
+      success: true,
+      data: { initialBalanceCents: -141_524 },
+    });
+    // Já negativo (ou vazio) continua valendo como dívida.
+    expect(parseAccountForm(form({ ...card, initialBalanceCents: '-141524' }))).toMatchObject({
+      success: true,
+      data: { initialBalanceCents: -141_524 },
+    });
+    expect(parseAccountForm(form({ ...card, initialBalanceCents: '' }))).toMatchObject({
+      success: true,
+      data: { initialBalanceCents: 0 },
+    });
+  });
+
   it('saldo vazio vira zero e aceita negativo (conta no cheque especial)', () => {
     const empty = parseAccountForm(form({ ...valid, initialBalanceCents: '' }));
     const negative = parseAccountForm(form({ ...valid, initialBalanceCents: '-5000' }));

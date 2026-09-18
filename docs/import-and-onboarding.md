@@ -54,6 +54,16 @@ próxima importação do mesmo banco sai mais barata.
    fatura de cartão), além do período coberto.
 3. **Leitura e normalização**: cada linha vira data (`date`), valor em centavos com
    sinal e descrição original, gravados em `import_rows.parsed`.
+   - **Fatura de cartão**: se a maioria das linhas vier positiva, o arquivo usa
+     "compra = positivo" e o sinal é invertido (`normalizeCardSigns`).
+   - **Coluna "Parcela"** ("3 de 12") vira `installment_number`/`installment_total`.
+   - **"Pagamento de fatura"** dentro da fatura é o pagamento da anterior: a linha
+     entra **desmarcada**, com selo na revisão. Pagar fatura é transferência, feita
+     em "Pagar fatura" ([domínio](./domain.md)).
+   - **Toda a fatura vai para a mesma fatura**: o arquivo é de um ciclo só, e a
+     fatura usada é a do lançamento mais recente. Sem isso, uma parcela com a data
+     da compra original (junho) cairia na fatura de junho, e não na que está sendo
+     importada.
 4. **Memória de categorização**: `categorization_rules` resolve o que já é conhecido.
 5. **Enriquecimento com AI**, só para as linhas não resolvidas:
    - nome limpo (`PAG*JOSEDASILVA` → `José da Silva`);

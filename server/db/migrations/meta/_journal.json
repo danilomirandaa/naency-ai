@@ -92,6 +92,13 @@
       "when": 1789650150553,
       "tag": "0012_transactions_payment_method_paid_at",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789723371896,
+      "tag": "0013_import_rows_installment_and_payment",
+      "breakpoints": true
     }
   ]
 }

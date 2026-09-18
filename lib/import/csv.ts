@@ -69,6 +69,8 @@ export type CsvLayout = {
   amount: { column: number } | { debit: number; credit: number };
   /** Cartão exporta compra como valor positivo: inverte o sinal. */
   invertSign: boolean;
+  /** Coluna "Parcela" ("3 de 12"), quando a fatura traz. */
+  installment?: number;
 };
 
 const SYNONYMS = {
@@ -77,7 +79,16 @@ const SYNONYMS = {
   amount: ['valor', 'amount', 'valor (r$)', 'valor r$'],
   debit: ['debito', 'saida', 'debit'],
   credit: ['credito', 'entrada', 'credit'],
+  installment: ['parcela', 'parcelas'],
 };
+
+/** "3 de 12" → terceira de doze. "-", vazio ou " de 1" (sem número) não é parcelamento. */
+export function parseInstallment(value: string | undefined) {
+  const match = /^\s*(\d+)\s*(?:de|\/)\s*(\d+)\s*$/.exec(value ?? '');
+  const number = Number(match?.[1]);
+  const total = Number(match?.[2]);
+  return match && total > 1 && number >= 1 && number <= total ? { number, total } : null;
+}
 
 function findColumn(headers: string[], names: string[]) {
   return headers.findIndex((header) => names.includes(header));
@@ -102,13 +113,21 @@ export function detectCsvLayout(rawHeaders: string[]): CsvLayout | null {
   const date = findColumn(headers, SYNONYMS.date);
   const description = findColumn(headers, SYNONYMS.description);
   const amount = findColumn(headers, SYNONYMS.amount);
+  const installment = findColumn(headers, SYNONYMS.installment);
   const debit = findColumn(headers, SYNONYMS.debit);
   const credit = findColumn(headers, SYNONYMS.credit);
   if (date < 0 || description < 0) {
     return null;
   }
   if (amount >= 0) {
-    return { id: 'generico', date, description, amount: { column: amount }, invertSign: false };
+    return {
+      id: 'generico',
+      date,
+      description,
+      amount: { column: amount },
+      invertSign: false,
+      ...(installment >= 0 ? { installment } : {}),
+    };
   }
   if (debit >= 0 && credit >= 0) {
     return { id: 'generico', date, description, amount: { debit, credit }, invertSign: false };
@@ -156,6 +175,8 @@ export function parseCsvStatement(text: string): { layout: string; rows: ParsedS
       amountCents: layout.invertSign ? -amount : amount,
       description: description || 'Sem descrição',
       externalId: null,
+      installment: layout.installment === undefined ? null : parseInstallment(record[layout.installment]),
+      invoicePayment: false,
     };
   });
   return { layout: layout.id, rows: rows.filter((row) => row.amountCents !== 0) };

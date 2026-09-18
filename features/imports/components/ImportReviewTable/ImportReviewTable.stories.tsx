@@ -1,6 +1,6 @@
 import { categoriesFixture, categoryFixtureId } from '@/features/categories/fixtures/categories';
 import { ImportReviewTable } from '@/features/imports/components/ImportReviewTable';
-import { importBatchFixture } from '@/features/imports/fixtures/imports';
+import { importBatchFixture, invoiceBatchFixture } from '@/features/imports/fixtures/imports';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, fn, screen, userEvent, waitFor, within } from 'storybook/test';
 
@@ -43,6 +43,19 @@ export const Review: Story = {
     });
     await expect(padaria).toBeDefined();
     (document.activeElement as HTMLElement | null)?.blur();
+  },
+};
+
+export const CardInvoice: Story = {
+  args: { rows: invoiceBatchFixture.rows },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // A parcela avisa por que a data é antiga, e o pagamento da fatura vem fora.
+    await expect(canvas.getByText('Parcela 3/12')).toBeInTheDocument();
+    // Um texto é a descrição da linha; o outro é o selo que explica por que ela ficou fora.
+    await expect(canvas.getAllByText('Pagamento de fatura')).toHaveLength(2);
+    await expect(canvas.getByRole('checkbox', { name: 'Incluir Pagamento de fatura' })).not.toBeChecked();
+    await expect(canvas.getByRole('checkbox', { name: 'Incluir Smiletech Tecnologia' })).toBeChecked();
   },
 };
 

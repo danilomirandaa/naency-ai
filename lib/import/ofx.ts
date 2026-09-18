@@ -47,7 +47,14 @@ export function parseOfx(text: string): ParsedStatementRow[] {
       throw new StatementParseError('invalid-row', `Lançamento ${index + 1} do OFX sem data ou valor válidos.`);
     }
     const description = tag(block, 'MEMO') || tag(block, 'NAME') || 'Sem descrição';
-    rows.push({ date, amountCents, description, externalId: tag(block, 'FITID') || null });
+    rows.push({
+      date,
+      amountCents,
+      description,
+      externalId: tag(block, 'FITID') || null,
+      installment: null,
+      invoicePayment: false,
+    });
   }
   if (rows.length === 0) {
     throw new StatementParseError('empty', 'Nenhum lançamento encontrado no OFX.');

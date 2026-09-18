@@ -55,6 +55,16 @@ export function ImportReviewTable({ rows, categories, onRowChange, readOnly = fa
                         {row.duplicate === 'exact' ? 'Já importado' : 'Possível duplicado'}
                       </Panel.RowBadge>
                     )}
+                    {row.installment && (
+                      <Panel.RowBadge color="gray" title="A fatura traz a data da compra original">
+                        Parcela {row.installment.number}/{row.installment.total}
+                      </Panel.RowBadge>
+                    )}
+                    {row.invoicePayment && (
+                      <Panel.RowBadge color="yellow" title="Registre o pagamento em Pagar fatura">
+                        Pagamento de fatura
+                      </Panel.RowBadge>
+                    )}
                     {row.suggestedByRule && <Panel.RowBadge color="blue">Categoria lembrada</Panel.RowBadge>}
                     {row.suggestedByAi && <Panel.RowBadge color="gray">Sugerido pela AI</Panel.RowBadge>}
                     {row.description !== row.rawDescription && (

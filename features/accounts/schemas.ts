@@ -47,7 +47,12 @@ export const accountInputSchema = z.object({
   if (value.dueDay === null) {
     ctx.addIssue({ code: 'custom', path: ['dueDay'], message: 'Informe o dia de vencimento (1 a 31).' });
   }
-});
+}).transform((value) =>
+  // No cartão o campo é "dívida": o usuário digita positivo e o saldo é negativo.
+  value.type === 'credit_card'
+    ? { ...value, initialBalanceCents: value.initialBalanceCents === 0 ? 0 : -Math.abs(value.initialBalanceCents) }
+    : value,
+);
 
 export type AccountInput = z.infer<typeof accountInputSchema>;
 /** Entrada aceita pelo DAL (campos de cartão opcionais). */

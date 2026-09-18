@@ -68,6 +68,11 @@ export const importRows = pgTable(
     rememberCategory: boolean('remember_category').notNull().default(false),
     fingerprint: text('fingerprint').notNull(),
     duplicateOfTransactionId: uuid('duplicate_of_transaction_id'),
+    /** Compra parcelada, quando a fatura informa ("3 de 12"). */
+    installmentNumber: integer('installment_number'),
+    installmentTotal: integer('installment_total'),
+    /** Pagamento da fatura anterior listado dentro da fatura: entra desmarcado. */
+    invoicePayment: boolean('invoice_payment').notNull().default(false),
   },
   (table) => [uniqueIndex('import_rows_batch_position_idx').on(table.batchId, table.position)],
 ).enableRLS();

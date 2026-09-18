@@ -289,10 +289,30 @@ function AccountFormFields({
               )}
             </Field>
           </div>
-          <input type="hidden" name="initialBalanceCents" value="0" />
-          <input type="hidden" name="initialBalanceDate" value={values.initialBalanceDate || today} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Dívida atual"
+              description="Quanto já está usado do limite nesta data."
+              error={fieldErrors.initialBalanceCents}
+            >
+              {(control) => (
+                <MoneyInput
+                  {...control}
+                  name="initialBalanceCents"
+                  defaultValue={values.initialBalanceCents === null ? null : Math.abs(values.initialBalanceCents)}
+                  placeholder="0,00"
+                />
+              )}
+            </Field>
+            <Field label="Na data" error={fieldErrors.initialBalanceDate}>
+              {(control) => (
+                <DatePicker {...control} name="initialBalanceDate" defaultValue={values.initialBalanceDate || null} max={today} />
+              )}
+            </Field>
+          </div>
           <Panel.Callout variant="neutral" icon="info-icon" className="mt-0">
-            Compras até o dia do fechamento entram na fatura que vence no mês; depois, na seguinte.
+            Compras até o dia do fechamento entram na fatura que vence no mês; depois, na seguinte. Deixe a dívida
+            zerada se você for importar todas as faturas em aberto.
           </Panel.Callout>
         </>
       ) : (
