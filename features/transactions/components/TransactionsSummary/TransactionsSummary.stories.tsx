@@ -59,7 +59,10 @@ export const AllKindsPositive: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText('+R$ 7.970,10')).toBeInTheDocument();
+    const resultado = canvas.getByText('+R$ 7.970,10');
+    await expect(resultado).toBeInTheDocument();
+    // Sobrou: verde, como as receitas.
+    await expect(resultado).toHaveClass('text-typography-finance-income');
     await expect(canvas.getByText('-R$ 529,90')).toBeInTheDocument();
   },
 };
@@ -70,7 +73,10 @@ export const AllKindsNegative: Story = {
     totals: { incomeCents: 100_000, expenseCents: -250_000, pending: { cents: 0, count: 0 }, paid: { cents: 0, count: 0 } },
   },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByText('-R$ 1.500,00')).toBeInTheDocument();
+    const resultado = within(canvasElement).getByText('-R$ 1.500,00');
+    await expect(resultado).toBeInTheDocument();
+    // Faltou: vermelho.
+    await expect(resultado).toHaveClass('text-typography-finance-expense');
   },
 };
 

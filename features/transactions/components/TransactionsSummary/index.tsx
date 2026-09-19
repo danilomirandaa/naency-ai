@@ -120,9 +120,10 @@ function cardsFor(kind: TransactionKind | null, totals: TransactionsPage['totals
     {
       label: 'Resultado',
       icon: 'wallet',
-      tone: 'neutral',
+      // Sobrou é verde, faltou é vermelho: o valor não fica sem cor ao lado dos outros.
+      tone: result < 0 ? 'expense' : 'income',
       cents: result,
-      moneyKind: result < 0 ? 'expense' : 'neutral',
+      moneyKind: result < 0 ? 'expense' : 'income',
       showPlusSign: result > 0,
     },
   ];
