@@ -42,6 +42,23 @@ export function formatMoney(
   return formatterFor(currency, signDisplay).format(cents / 100);
 }
 
+const compactFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: DEFAULT_CURRENCY,
+  notation: 'compact',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
+
+/**
+ * "R$ 2,4 mil": valor curto para eixo de gráfico, onde o número exato não cabe
+ * e nem importa (o tooltip mostra o exato).
+ */
+export function formatMoneyCompact(cents: number) {
+  assertCents(cents);
+  return compactFormatter.format(cents / 100);
+}
+
 /** "1.234,56" sem símbolo, para o valor dentro de um campo. */
 export function formatMoneyInput(cents: number) {
   assertCents(cents);

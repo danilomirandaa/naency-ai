@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertCents,
   formatMoney,
+  formatMoneyCompact,
   formatMoneyInput,
   maskMoneyInput,
   parseMoneyInput,
@@ -29,6 +30,22 @@ describe('formatMoney', () => {
   it('recusa valor que não é centavo inteiro', () => {
     expect(() => formatMoney(10.5)).toThrow(RangeError);
     expect(() => formatMoney(Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe('formatMoneyCompact', () => {
+  it.each([
+    [0, 'R$ 0'],
+    [99_900, 'R$ 999'],
+    [240_000, 'R$ 2,4 mil'],
+    [-240_000, '-R$ 2,4 mil'],
+    [120_000_000, 'R$ 1,2 mi'],
+  ])('%i centavos → %s', (cents, expected) => {
+    expect(formatMoneyCompact(cents)).toBe(nbsp(expected));
+  });
+
+  it('recusa valor que não é centavo inteiro', () => {
+    expect(() => formatMoneyCompact(10.5)).toThrow(RangeError);
   });
 });
 

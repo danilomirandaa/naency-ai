@@ -3,8 +3,8 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { dashboardQuery } from '@/features/dashboard/api/dashboard.queries';
 import { CategoryBreakdown } from '@/features/dashboard/components/CategoryBreakdown';
-import { MonthResult } from '@/features/dashboard/components/MonthResult';
 import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvolution';
+import { PeriodSummary } from '@/features/dashboard/components/PeriodSummary';
 import { rangeParams, resolveRange } from '@/lib/periods';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
@@ -25,7 +25,14 @@ export function ReportsScreen({ workspaceId, periodCookie }: { workspaceId: stri
         title="Relatórios"
         description="Para onde foi o dinheiro no período e como os meses se comparam."
       />
-      <MonthResult data={result.data} isLoading={result.isPending} isError={result.isError} />
+      <PeriodSummary
+        result={result.data}
+        withBalance={false}
+        isLoading={result.isPending}
+        transactionsHref={(kind) =>
+          `${kind === null ? '/transacoes' : `/transacoes/${kind === 'income' ? 'receitas' : 'despesas'}`}?${query}`
+        }
+      />
       <MonthlyEvolution data={evolution.data} isLoading={evolution.isPending} isError={evolution.isError} months={12} />
       <CategoryBreakdown
         data={categories.data}

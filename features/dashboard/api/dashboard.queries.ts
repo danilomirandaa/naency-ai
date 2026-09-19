@@ -1,5 +1,6 @@
 import type {
   BalanceData,
+  CashflowPoint,
   CategorySlice,
   EvolutionPoint,
   MonthResultData,
@@ -15,6 +16,7 @@ export type DashboardBlocks = {
   resultado: MonthResultData;
   categorias: CategorySlice[];
   evolucao: EvolutionPoint[];
+  fluxo: CashflowPoint[];
   'evolucao-anual': EvolutionPoint[];
   'a-vencer': UpcomingItem[];
   saldos: BalanceData;
@@ -28,6 +30,7 @@ export const DASHBOARD_BLOCKS: DashboardBlock[] = [
   'resultado',
   'categorias',
   'evolucao',
+  'fluxo',
   'evolucao-anual',
   'a-vencer',
   'saldos',

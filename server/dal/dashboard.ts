@@ -1,6 +1,7 @@
 import 'server-only';
 import type {
   BalanceData,
+  CashflowPoint,
   CategorySlice,
   EvolutionPoint,
   MonthResultData,
@@ -126,6 +127,39 @@ function addDays(date: string, days: number) {
   const value = new Date(`${date}T00:00:00Z`);
   value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
+}
+
+/** Um ponto por dia mesmo sem movimento: a curva do acumulado não pode ter buraco. */
+const CASHFLOW_MAX_POINTS = 400;
+
+/**
+ * Dia a dia do período: o que entrou, o que saiu e quanto sobrou até ali.
+ * A linha acumulada começa em zero no primeiro dia do período — ela responde
+ * "o período está no azul?", não "quanto tenho na conta" (isso é o saldo).
+ */
+export async function getCashflow(workspaceId: string, range: DateRange): Promise<CashflowPoint[]> {
+  await requireMembership(workspaceId, 'workspace.read');
+  const rows = await getDb()
+    .select({
+      date: transactions.date,
+      incomeCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'income' then ${transactions.amountCents} end), 0)`,
+      expenseCents: sql<string>`coalesce(sum(case when ${transactions.kind} = 'expense' then ${transactions.amountCents} end), 0)`,
+    })
+    .from(transactions)
+    .where(realized(workspaceId, range.from, range.to))
+    .groupBy(transactions.date);
+
+  const byDate = new Map(rows.map((row) => [row.date, row]));
+  const points: CashflowPoint[] = [];
+  let cumulative = 0;
+  for (let date = range.from; date <= range.to && points.length < CASHFLOW_MAX_POINTS; date = addDays(date, 1)) {
+    const row = byDate.get(date);
+    const incomeCents = Number(row?.incomeCents ?? 0);
+    const expenseCents = Number(row?.expenseCents ?? 0);
+    cumulative += incomeCents + expenseCents;
+    points.push({ date, incomeCents, expenseCents, cumulativeCents: cumulative });
+  }
+  return points;
 }
 
 /** Contas previstas (atrasadas e dos próximos dias) e faturas a vencer, por data. */

@@ -24,6 +24,18 @@ export type CategorySlice = {
 
 export type EvolutionPoint = { month: string } & MonthTotals;
 
+/** Um dia do período: o que entrou, o que saiu e quanto sobrou até ali. */
+export type CashflowPoint = {
+  /** "AAAA-MM-DD" */
+  date: string;
+  /** Receitas do dia (positivo). */
+  incomeCents: number;
+  /** Despesas do dia (negativo). */
+  expenseCents: number;
+  /** Resultado somado do primeiro dia do período até este. */
+  cumulativeCents: number;
+};
+
 export type UpcomingItem =
   | {
       type: 'transaction';

@@ -8,13 +8,28 @@ Entidades em [domínio](./domain.md).
 
 | Pergunta | Bloco | Fonte |
 | --- | --- | --- |
-| Quanto temos agora? | **Saldo total** e saldo por conta (cartões à parte, como dívida) | `accounts` + `transactions` efetivadas |
-| Ganhamos mais do que gastamos? | **Receitas × despesas × resultado** do mês, comparado ao mês anterior | `transactions` (sem transferências) |
+| Quanto temos agora? | **Saldo em contas** na faixa do topo (`PeriodSummary`) e saldo por conta na lateral (cartões à parte, como dívida) | `accounts` + `transactions` efetivadas |
+| Ganhamos mais do que gastamos? | **Receitas × despesas × resultado** na faixa do topo, cada um com a variação sobre o período anterior | `transactions` (sem transferências) |
+| O mês está no azul? | **Curva do que sobrou, dia a dia** (`Cashflow`), com o melhor e o pior dia | `transactions` agrupadas por data |
 | Para onde foi o dinheiro? | **Despesas por categoria**, com subcategorias ao aprofundar | `transactions` + `categories` |
 | Estamos melhorando? | **Evolução de 6 a 12 meses** (receitas, despesas, resultado) | `transactions` |
 | Quanto devemos no cartão? | **Faturas**: aberta atual, próximo vencimento, limite usado | `card_invoices`, `credit_card_details` |
 | O que vence em breve? | **Próximas contas e parcelas** (7 a 30 dias) | lançamentos `planned`, `recurring_rules`, `installment_groups` |
 | O que mudou? | **Últimos lançamentos** com quem lançou | `transactions` + `activity_log` |
+
+## Leitura da tela
+
+A ordem é a ordem em que a pergunta aparece na cabeça de quem abre o app:
+
+1. **Faixa do topo** (`PeriodSummary`, largura cheia): saldo em contas, receitas,
+   despesas e resultado. Cada card é link para a lista por trás do número, e os
+   três do período trazem a variação sobre o anterior — subir é bom em receitas e
+   ruim em despesas, e a cor da seta diz qual é o caso.
+2. **Curva do período** (`Cashflow`), o bloco de maior área: mostra a tendência,
+   que nenhum número sozinho mostra. Começa em zero no primeiro dia do período —
+   ela responde "o período está no azul?", não "quanto tenho na conta".
+3. **Para onde foi o dinheiro** e **evolução dos meses**, na mesma coluna.
+4. **Coluna lateral**: saldo por conta, o que vence e os últimos lançamentos.
 
 ## Regras
 
@@ -33,16 +48,20 @@ Entidades em [domínio](./domain.md).
 
 - `features/dashboard/components`: um componente por bloco, todos sobre `DashboardCard`
   (título + estados). Stories em `DashboardBlocks.stories.tsx`.
-- `server/dal/dashboard.ts`: uma função por bloco; `/api/workspaces/[id]/dashboard/[bloco]?mes=`.
-- Gráficos em CSS (barras), sem biblioteca: determinísticos nos screenshots e com
-  tabela para leitores de tela. Trocar por biblioteca só se surgir um gráfico que
-  CSS não resolva.
+- `components/finance/StatCard`: o card de indicador da faixa do topo, dentro de
+  `StatCard.Group`. É o mesmo componente do resumo da tela
+  de Transações (`TransactionsSummary`), então os dois não divergem de aparência.
+- `server/dal/dashboard.ts`: uma função por bloco; `/api/workspaces/[id]/dashboard/[bloco]?de=&ate=`.
+  O bloco `fluxo` devolve **um ponto por dia**, inclusive os dias sem movimento,
+  para a curva não ter buraco (limite de 400 pontos).
 
 ## Visualização
 
 Gráficos com EvilCharts sobre Recharts ([padrão](./components.md#gráficos)):
-Evolução em colunas (`EvolutionChart`) e categorias em rosca com o total no
-centro (`CategoryDonut`), acima da lista com barras. Ao criar um gráfico novo,
+curva do período em área (`CashflowChart`, cor vermelha quando fecha no vermelho),
+evolução em colunas (`EvolutionChart`) e categorias em rosca com o total no
+centro (`CategoryDonut`), acima da lista com barras. Valor no eixo usa
+`formatMoneyCompact` ("R$ 2,4 mil"); o exato fica no tooltip. Ao criar um gráfico novo,
 carregar a skill `dataviz` e usar os tokens `chart-*` (escalas) e `finance-*`
 (receita, despesa, transferência) de `app/globals.css`. Os gráficos precisam
 funcionar em light e dark.

@@ -1,13 +1,16 @@
 import { BalanceOverview } from '@/features/dashboard/components/BalanceOverview';
+import { Cashflow, extremes } from '@/features/dashboard/components/Cashflow';
 import { CategoryBreakdown } from '@/features/dashboard/components/CategoryBreakdown';
 import { DashboardCard } from '@/features/dashboard/components/DashboardCard';
-import { MonthResult, expenseTrend } from '@/features/dashboard/components/MonthResult';
 import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvolution';
+import { PeriodSummary, percentChange } from '@/features/dashboard/components/PeriodSummary';
 import { RecentTransactions } from '@/features/dashboard/components/RecentTransactions';
 import { SetupChecklist } from '@/features/dashboard/components/SetupChecklist';
 import { UpcomingBills } from '@/features/dashboard/components/UpcomingBills';
 import {
   balanceFixture,
+  cashflowFixture,
+  cashflowNegativeFixture,
   categoryBreakdownFixture,
   evolutionFixture,
   monthResultFixture,
@@ -20,8 +23,9 @@ import { expect, userEvent, within } from 'storybook/test';
 const meta: Meta = {
   title: 'Features/Dashboard/Blocks',
   decorators: [
-    (Story) => (
-      <div className="max-w-xl">
+    // Blocos de coluna cabem em max-w-xl; a faixa do topo ocupa a largura da tela.
+    (Story, { parameters }) => (
+      <div className={parameters.wide ? 'max-w-5xl' : 'max-w-xl'}>
         <Story />
       </div>
     ),
@@ -50,14 +54,63 @@ export const BalanceEmpty: Story = {
 };
 
 export const Result: Story = {
-  render: () => <MonthResult data={monthResultFixture} />,
+  parameters: { wide: true },
+  render: () => (
+    <PeriodSummary
+      result={monthResultFixture}
+      balances={balanceFixture}
+      transactionsHref={(kind) => `/transacoes/${kind ?? ''}`}
+    />
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText('+R$ 2.376,60')).toBeInTheDocument();
-    await expect(canvas.getByText('Despesas 13% maiores que no mês anterior')).toBeInTheDocument();
-    await expect(expenseTrend(-90, -100)).toBe('Despesas 10% menores que no mês anterior');
-    await expect(expenseTrend(-100, -100)).toBe('Despesas iguais às do mês anterior');
-    await expect(expenseTrend(-100, 0)).toBeNull();
+    await expect(canvas.getByText(/\+R\$.2\.376,60/)).toBeInTheDocument();
+    // Receita igual ao mês anterior não ganha seta; despesa maior é má notícia.
+    await expect(canvas.getByText('igual')).toBeInTheDocument();
+    await expect(canvas.getByText('+13%')).toBeInTheDocument();
+    await expect(canvas.getByRole('link', { name: /Saldo em contas/ })).toHaveAttribute('href', '/contas');
+    await expect(percentChange(-90, -100)).toBe(-10);
+    await expect(percentChange(-100, 0)).toBeNull();
+  },
+};
+
+export const ResultWithoutBalance: Story = {
+  parameters: { wide: true },
+  render: () => <PeriodSummary result={monthResultFixture} withBalance={false} />,
+  play: async ({ canvasElement }) => {
+    // Em Relatórios o saldo não entra: a tela fala só do período.
+    await expect(within(canvasElement).queryByText('Saldo em contas')).toBeNull();
+  },
+};
+
+export const CashflowBlock: Story = {
+  render: () => <Cashflow data={cashflowFixture} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const summary = within(canvas.getByLabelText('Resumo do período'));
+    await expect(summary.getByText(/\+R\$.2\.377,60/)).toBeInTheDocument();
+    // O melhor e o pior dia explicam os degraus da curva.
+    await expect(summary.getByText(/\+R\$.8\.175,50/)).toBeInTheDocument();
+    await expect(summary.getByText(/-R\$.2\.389,90/)).toBeInTheDocument();
+    // A tabela para leitores de tela só lista os dias com movimento.
+    const table = canvas.getByRole('table', { name: 'O que sobrou a cada dia do período' });
+    await expect(within(table).getAllByRole('row')).toHaveLength(11);
+    await expect(extremes([])).toBeNull();
+  },
+};
+
+export const CashflowNegative: Story = {
+  render: () => <Cashflow data={cashflowNegativeFixture} />,
+  play: async ({ canvasElement }) => {
+    const summary = within(within(canvasElement).getByLabelText('Resumo do período'));
+    await expect(summary.getByText(/-R\$.4\.622,40/)).toBeInTheDocument();
+  },
+};
+
+export const CashflowEmpty: Story = {
+  render: () => <Cashflow data={[]} />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText('Sem lançamentos no período')).toBeInTheDocument();
   },
 };
 

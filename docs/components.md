@@ -67,6 +67,7 @@ components/ui/Button, Select, Popover,     portados do shadcn/ui com os tokens d
 components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
 components/ui/Toast/                      avisos temporários (Radix Toast): ToastProvider + useToast()
 components/finance/<Nome>/                peças de domínio reutilizáveis
+components/finance/StatCard/              card de indicador (rótulo, valor, variação), em StatCard.Group
 components/evilcharts/{ui,charts}/        gráficos do EvilCharts (Recharts), instalados pelo registry; ver "Gráficos"
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
 components/layout/navigation.ts           itens do menu e trilha do breadcrumb

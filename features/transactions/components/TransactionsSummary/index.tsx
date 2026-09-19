@@ -1,11 +1,8 @@
-import { MoneyValue, type MoneyValueProps } from '@/components/finance/MoneyValue';
-import { Icon, type Icons } from '@/components/ui/Icon';
-import { Panel } from '@/components/ui/Panel';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { Text } from '@/components/ui/Text';
+import type { MoneyValueProps } from '@/components/finance/MoneyValue';
+import { StatCard, type StatTone } from '@/components/finance/StatCard';
+import type { Icons } from '@/components/ui/Icon';
 import type { TransactionsPage } from '@/features/transactions/types';
 import type { TransactionKind } from '@/lib/transactions';
-import { classMerge } from '@/lib/utils';
 
 export type TransactionsSummaryProps = {
   /** Página de despesas ou receitas mostra por situação; sem tipo, receitas × despesas. */
@@ -14,20 +11,10 @@ export type TransactionsSummaryProps = {
   isLoading?: boolean;
 };
 
-type Tone = 'warning' | 'income' | 'expense' | 'neutral';
-
-// Cor sutil: fundo do ícone com 12% da cor.
-const TONE_CLASSES: Record<Tone, string> = {
-  warning: 'bg-icon-status-warning-rest/12 text-icon-status-warning-rest',
-  income: 'bg-icon-finance-income/12 text-icon-finance-income',
-  expense: 'bg-icon-finance-expense/12 text-icon-finance-expense',
-  neutral: 'bg-background-neutral-100 text-icon-neutral-rest',
-};
-
 type Card = {
   label: string;
   icon: Icons;
-  tone: Tone;
+  tone: StatTone;
   cents: number;
   moneyKind: MoneyValueProps['kind'];
   /** Cor do valor quando não é a do tipo (ex.: pendente em amarelo). */
@@ -129,48 +116,6 @@ function cardsFor(kind: TransactionKind | null, totals: TransactionsPage['totals
   ];
 }
 
-function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
-  return (
-    <div className="flex items-start justify-between gap-3 bg-background-neutral-000 px-4 py-3">
-      <dl className="flex min-w-0 flex-col gap-1">
-        <dt>
-          <Text size="xs" color="secondary">
-            {card.label}
-          </Text>
-        </dt>
-        <dd className="flex flex-col gap-0.5">
-          {isLoading ? (
-            <Skeleton className="h-6 w-24" />
-          ) : (
-            <MoneyValue
-              cents={card.cents}
-              kind={card.moneyKind}
-              showPlusSign={card.showPlusSign}
-              size="lg"
-              weight="semibold"
-              className={classMerge('tabular-nums', card.valueClassName)}
-            />
-          )}
-          {card.detail && !isLoading && (
-            <Text size="xs" color="secondary">
-              {card.detail}
-            </Text>
-          )}
-        </dd>
-      </dl>
-      <span
-        aria-hidden
-        className={classMerge(
-          'flex size-7 shrink-0 items-center justify-center rounded-full [&_svg]:size-3.5',
-          TONE_CLASSES[card.tone],
-        )}
-      >
-        <Icon icon={card.icon} />
-      </span>
-    </div>
-  );
-}
-
 /**
  * Resumo do topo da página de lançamentos. Em despesas e receitas: pendentes,
  * pagas e total do período, com quantidades; em "Todas": receitas, despesas e
@@ -178,12 +123,21 @@ function Stat({ card, isLoading }: { card: Card; isLoading: boolean }) {
  */
 export function TransactionsSummary({ kind, totals, isLoading = false }: TransactionsSummaryProps) {
   return (
-    <Panel.Root>
-      <Panel.Body className="grid grid-cols-1 gap-px bg-border-neutral-subtle sm:grid-cols-3">
-        {cardsFor(kind, totals).map((card) => (
-          <Stat key={card.label} card={card} isLoading={isLoading} />
-        ))}
-      </Panel.Body>
-    </Panel.Root>
+    <StatCard.Group>
+      {cardsFor(kind, totals).map((card) => (
+        <StatCard
+          key={card.label}
+          label={card.label}
+          icon={card.icon}
+          tone={card.tone}
+          cents={card.cents}
+          moneyKind={card.moneyKind}
+          valueClassName={card.valueClassName}
+          showPlusSign={card.showPlusSign}
+          detail={card.detail}
+          isLoading={isLoading}
+        />
+      ))}
+    </StatCard.Group>
   );
 }

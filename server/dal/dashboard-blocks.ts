@@ -3,6 +3,7 @@ import type { DashboardBlock, DashboardBlocks } from '@/features/dashboard/api/d
 import type { DateRange } from '@/lib/periods';
 import {
   getBalances,
+  getCashflow,
   getCategoryBreakdown,
   getPeriodResult,
   getMonthlyEvolution,
@@ -23,6 +24,7 @@ export function loadDashboardBlock<B extends DashboardBlock>(
     resultado: () => getPeriodResult(workspaceId, range),
     categorias: () => getCategoryBreakdown(workspaceId, range),
     evolucao: () => getMonthlyEvolution(workspaceId, month),
+    fluxo: () => getCashflow(workspaceId, range),
     'evolucao-anual': () => getMonthlyEvolution(workspaceId, month, 12),
     'a-vencer': () => getUpcoming(workspaceId),
     saldos: () => getBalances(workspaceId),

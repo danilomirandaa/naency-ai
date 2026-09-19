@@ -5,8 +5,10 @@ import { IconAlertCircle } from '@devigner-ui/icons/AlertCircle';
 import { IconArchive } from '@devigner-ui/icons/Archive';
 import { IconArchiveUp } from '@devigner-ui/icons/ArchiveUp';
 import { IconArrowLeftDown } from '@devigner-ui/icons/ArrowLeftDown';
+import { IconArrowDown } from '@devigner-ui/icons/ArrowDown';
 import { IconArrowRight } from '@devigner-ui/icons/ArrowRight';
 import { IconArrowRightUp } from '@devigner-ui/icons/ArrowRightUp';
+import { IconArrowUp } from '@devigner-ui/icons/ArrowUp';
 import { IconBackspace } from '@devigner-ui/icons/Backspace';
 import { IconBag } from '@devigner-ui/icons/Bag';
 import { IconBank } from '@devigner-ui/icons/Bank';
@@ -120,6 +122,8 @@ export const icons = {
 
   // Navegação
   'arrow-right': IconArrowRight,
+  'arrow-up': IconArrowUp,
+  'arrow-down': IconArrowDown,
   'chevron-up': IconChevronUp,
   'chevron-down': IconChevronDown,
   'chevron-left': IconChevronLeft,

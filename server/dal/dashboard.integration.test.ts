@@ -7,6 +7,7 @@ import { listCardInvoices } from './cards';
 import { listCategories } from './categories';
 import {
   getBalances,
+  getCashflow,
   getCategoryBreakdown,
   getPeriodResult,
   getMonthlyEvolution,
@@ -139,6 +140,40 @@ describe('dashboard: evolução', () => {
     expect(points.map((point) => point.month)).toEqual(['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09']);
     expect(points[0]).toEqual({ month: '2026-04', incomeCents: 100, expenseCents: 0 });
     expect(points[5]).toEqual({ month: '2026-09', incomeCents: 0, expenseCents: -50 });
+  });
+});
+
+describe('dashboard: fluxo do período', () => {
+  it('um ponto por dia, com o acumulado somando do primeiro dia até o último', async () => {
+    await tx('income', 500_000, '2026-09-05');
+    await tx('expense', 120_000, '2026-09-05');
+    await tx('expense', 80_000, '2026-09-20');
+    // Fora do período: não entra nem no dia nem no acumulado.
+    await tx('expense', 999_999, '2026-08-31');
+
+    const points = await getCashflow(workspaceId, monthRange('2026-09'));
+    expect(points).toHaveLength(30);
+    expect(points[0]).toEqual({ date: '2026-09-01', incomeCents: 0, expenseCents: 0, cumulativeCents: 0 });
+    // O dia soma entradas e saídas separadas; o acumulado já traz o que veio antes.
+    expect(points[4]).toEqual({
+      date: '2026-09-05',
+      incomeCents: 500_000,
+      expenseCents: -120_000,
+      cumulativeCents: 380_000,
+    });
+    // Dia sem movimento repete o acumulado: a curva não tem buraco.
+    expect(points[5]).toEqual({ date: '2026-09-06', incomeCents: 0, expenseCents: 0, cumulativeCents: 380_000 });
+    expect(points.at(-1)).toEqual({
+      date: '2026-09-30',
+      incomeCents: 0,
+      expenseCents: 0,
+      cumulativeCents: 300_000,
+    });
+  });
+
+  it('quem não é membro não vê o fluxo', async () => {
+    await createUser('estranho@exemplo.com', { signIn: true });
+    await expect(getCashflow(workspaceId, monthRange('2026-09'))).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
 

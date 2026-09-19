@@ -2,6 +2,7 @@ import { accountsFixture } from '@/features/accounts/fixtures/accounts';
 import { categoryFixtureId } from '@/features/categories/fixtures/categories';
 import type {
   BalanceData,
+  CashflowPoint,
   CategorySlice,
   EvolutionPoint,
   MonthResultData,
@@ -36,6 +37,40 @@ export const monthResultFixture: MonthResultData = {
   current: { incomeCents: 850_000, expenseCents: -612_340 },
   previous: { incomeCents: 850_000, expenseCents: -540_000 },
 };
+
+/**
+ * Setembro de 2026 dia a dia: salário no dia 5, aluguel no 10, mercado espalhado
+ * e uma fatura alta no 20 — o bastante para a curva ter subida, queda e platô.
+ */
+const CASHFLOW_MOVEMENTS: Record<string, { incomeCents?: number; expenseCents?: number }> = {
+  '2026-09-03': { expenseCents: -18_900 },
+  '2026-09-05': { incomeCents: 850_000, expenseCents: -32_450 },
+  '2026-09-08': { expenseCents: -12_700 },
+  '2026-09-10': { expenseCents: -238_990 },
+  '2026-09-12': { expenseCents: -45_120 },
+  '2026-09-15': { expenseCents: -28_600 },
+  '2026-09-18': { expenseCents: -9_450 },
+  '2026-09-20': { expenseCents: -184_300 },
+  '2026-09-24': { expenseCents: -21_800 },
+  '2026-09-27': { expenseCents: -19_930 },
+};
+
+export const cashflowFixture: CashflowPoint[] = Array.from({ length: 30 }, (_, index) => {
+  const date = `2026-09-${String(index + 1).padStart(2, '0')}`;
+  const movement = CASHFLOW_MOVEMENTS[date] ?? {};
+  return { date, incomeCents: movement.incomeCents ?? 0, expenseCents: movement.expenseCents ?? 0, cumulativeCents: 0 };
+}).map((point, index, points) => ({
+  ...point,
+  cumulativeCents: points
+    .slice(0, index + 1)
+    .reduce((sum, item) => sum + item.incomeCents + item.expenseCents, 0),
+}));
+
+/** Mesmo período, mas fechando no vermelho: a curva cruza o zero e muda de cor. */
+export const cashflowNegativeFixture: CashflowPoint[] = cashflowFixture.map((point) => ({
+  ...point,
+  cumulativeCents: point.cumulativeCents - 700_000,
+}));
 
 export const categoryBreakdownFixture: CategorySlice[] = [
   {
