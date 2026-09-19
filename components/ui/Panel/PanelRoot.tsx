@@ -10,9 +10,9 @@ export function PanelRoot({ className, ...props }: PanelRootProps) {
   return (
     <div
       className={classMerge(
-        'flex flex-col rounded-2xl border border-border-neutral-subtle bg-background-surface-sunken py-0.5',
-        inGrid &&
-          'row-span-2 grid grid-cols-[minmax(0,1fr)] grid-rows-subgrid gap-y-0',
+        // Naency: sem borda no cartão; o contraste entre o fundo afundado e o corpo já separa.
+        'flex flex-col rounded-2xl bg-background-surface-sunken py-0.5',
+        inGrid && 'row-span-2 grid grid-cols-[minmax(0,1fr)] grid-rows-subgrid gap-y-0',
         className,
       )}
       {...props}
@@ -22,23 +22,12 @@ export function PanelRoot({ className, ...props }: PanelRootProps) {
 PanelRoot.displayName = 'Panel.Root';
 
 export function PanelFixedRoot({ className, ...props }: PanelRootProps) {
-  return (
-    <PanelRoot
-      className={classMerge('h-[calc(100vh-10rem)] min-h-[810px]', className)}
-      {...props}
-    />
-  );
+  return <PanelRoot className={classMerge('h-[calc(100vh-10rem)] min-h-[810px]', className)} {...props} />;
 }
 PanelFixedRoot.displayName = 'Panel.FixedRoot';
 
 export function PanelMain({ className, ...props }: PanelMainProps) {
-  return (
-    <div
-      data-panel-main=""
-      className={classMerge('flex min-h-0 flex-1 flex-col', className)}
-      {...props}
-    />
-  );
+  return <div data-panel-main="" className={classMerge('flex min-h-0 flex-1 flex-col', className)} {...props} />;
 }
 PanelMain.displayName = 'Panel.Main';
 

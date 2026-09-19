@@ -3,6 +3,7 @@
 import { getBreadcrumb } from '@/components/layout/navigation';
 import { HeaderPeriodPicker } from '@/components/layout/HeaderPeriodPicker';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { NotificationsMenu } from '@/features/notifications/containers/NotificationsMenu';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Separator } from '@/components/ui/Separator';
 import { Sidebar } from '@/components/ui/Sidebar';
@@ -11,13 +12,15 @@ import { usePathname } from 'next/navigation';
 import { Fragment } from 'react';
 
 export type AppHeaderProps = {
+  /** Espaço ativo, para os avisos do sino. */
+  workspaceId?: string;
   /** Cookie do período global (lido no layout). */
   periodCookie?: string | null;
   /** "AAAA-MM-DD" de hoje, para os atalhos de período. */
   today: string;
 };
 
-export function AppHeader({ periodCookie = null, today }: AppHeaderProps) {
+export function AppHeader({ workspaceId, periodCookie = null, today }: AppHeaderProps) {
   const pathname = usePathname();
   const trail = getBreadcrumb(pathname);
 
@@ -57,6 +60,7 @@ export function AppHeader({ periodCookie = null, today }: AppHeaderProps) {
         <div className="hidden overflow-x-auto md:block">
           <HeaderPeriodPicker periodCookie={periodCookie} today={today} />
         </div>
+        {workspaceId && <NotificationsMenu workspaceId={workspaceId} />}
         <ThemeToggle />
       </div>
     </header>

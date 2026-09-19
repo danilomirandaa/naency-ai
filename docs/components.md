@@ -49,6 +49,10 @@ para `components/finance/`.
    `BudgetDialog`) ou no container que recebe `onDelete` (ex.:
    `TransactionsManager`). A story prova que nada acontece antes de confirmar.
    Arquivar não é exclusão (volta com um clique) e dispensa o modal.
+9. **Toda ação assíncrona termina com aviso.** Nada que demora (importar,
+   sugerir categorias, salvar em lote) acaba em silêncio: quem dispara recebe
+   um toast (`useToast()`), e o que continua pendente aparece no sino do header.
+   Ver [avisos](#avisos-toast-e-sino).
 
 ## Onde fica cada coisa
 
@@ -61,6 +65,7 @@ components/ui/List/                       linhas de lista (mídia, texto que tru
 components/ui/Button, Select, Popover,     portados do shadcn/ui com os tokens do Naency (Button no estilo radix-vega:
   Calendar, Spinner                       ícone como filho com data-icon, carregando = disabled + Spinner)
 components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
+components/ui/Toast/                      avisos temporários (Radix Toast): ToastProvider + useToast()
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/evilcharts/{ui,charts}/        gráficos do EvilCharts (Recharts), instalados pelo registry; ver "Gráficos"
 components/layout/                        casca do app: AppSidebar, AppHeader, ThemeToggle
@@ -125,6 +130,46 @@ motor ECharts só entra se um gráfico específico passar de milhares de pontos.
   bloco entrega os mesmos números em tabela `sr-only` ou lista.
 - Animação: `isAnimationActive: 'auto'` respeita "reduzir movimento", que a
   regressão visual liga para ter capturas estáveis.
+
+## Avisos: toast e sino
+
+Dois canais, com papéis diferentes:
+
+| Canal | Componente | Para quê | Vida |
+|---|---|---|---|
+| Toast | `components/ui/Toast` | resposta a uma ação (terminou, falhou) | some sozinho |
+| Sino | `features/notifications` | o que continua pendente (atrasadas, fatura fechada, importação recente) | fica até resolver |
+| Sistema | `features/imports/jobs.ts` | avisar com a aba fechada/em segundo plano | notificação do SO |
+
+**Toast.** `ToastProvider` fica em `app/(app)/providers.tsx` (dentro do
+`QueryClientProvider`) e só um por app. Dentro de qualquer componente client:
+
+```tsx
+const toast = useToast();
+toast({ title: 'Importação concluída', description: '142 lançamentos entraram em Nubank.', variant: 'success' });
+```
+
+Variantes: `neutral` (padrão), `success`, `critical`. Toast **não substitui**
+tratamento de erro na tela: o formulário continua mostrando o erro no campo; o
+toast é o aviso de que algo que rodava longe do olho terminou. `duration: null`
+deixa o aviso fixo até fechar (use só em erro que precisa de ação).
+
+**Sino.** `NotificationsBell` é puro (recebe `items` e `lastSeenAt` por props);
+quem busca é `NotificationsMenu`, que guarda a última abertura em `localStorage`
+(`naency-notificacoes-vistas`) — por isso o "novo" é por dispositivo, não por
+usuário. A lista não vem de tabela: `server/dal/notifications.ts` **deriva** os
+avisos dos dados (importações finalizadas nos últimos 7 dias, contas vencidas e
+não pagas, faturas fechadas sem pagamento). Aviso novo = regra nova nesse DAL,
+com teste de integração; nunca um insert.
+
+**Trabalho em segundo plano.** Importar e sugerir categorias respondem na hora e
+seguem em `after()` ([arquitetura](./architecture.md#trabalho-depois-da-resposta)).
+Quem avisa o fim é o `ImportJobsWatcher`, montado no layout do app: ele observa
+os lotes do espaço inteiro, então o aviso chega mesmo se a pessoa saiu da tela de
+importação ou deu F5. A lógica pura (`finishedBatches`, `jobNotice`,
+`notifyOutsideTab`) vive em `features/imports/jobs.ts`, com teste unitário; o
+container só liga ao TanStack Query. Notificação do SO só sai com permissão dada
+em um clique e com a aba em segundo plano — nunca pedimos permissão ao carregar.
 
 ## Regras
 

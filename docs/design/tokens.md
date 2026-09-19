@@ -94,7 +94,7 @@ esses nomes nos nossos componentes.
 
 | Onde | Claro | Escuro | Token |
 |---|---|---|---|
-| Fundo padrão da página | `#FFFFFF` | `#151618` | `background` |
+| Fundo padrão da página | `#FFFFFF` | `#1C1C1E` | `background` |
 | Sidebar | `#F8F9FB` | `#111112` | `background-surface-sunken` |
 | Cabeçalho dos cards (`Panel.Root`) | `#F8F9FB` | `#111112` | `background-surface-sunken` |
-| Corpo dos cards (`Panel.Body`, tabelas) | `#FFFFFF` | `#151618` | `background-neutral-000` (igual ao fundo da página) |
+| Corpo dos cards (`Panel.Body`, tabelas) | `#FFFFFF` | `#1C1C1E` | `background-neutral-000` (igual ao fundo da página) |

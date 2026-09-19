@@ -15,6 +15,7 @@ import {
   updateImportRowAction,
 } from '@/features/imports/actions';
 import { importsQuery } from '@/features/imports/api/imports.queries';
+import { askForNotifications } from '@/features/imports/jobs';
 import { ImportHistory } from '@/features/imports/components/ImportHistory';
 import { ImportReviewTable } from '@/features/imports/components/ImportReviewTable';
 import { ImportSummary } from '@/features/imports/components/ImportSummary';
@@ -31,22 +32,6 @@ export type ImportScreenProps = {
   /** AI configurada no servidor (ANTHROPIC_API_KEY). */
   aiEnabled: boolean;
 };
-
-/** Pede permissão de notificação no clique (só o navegador aceita pedir assim). */
-async function askForNotifications() {
-  if (typeof Notification === 'undefined' || Notification.permission !== 'default') {
-    return;
-  }
-  await Notification.requestPermission().catch(() => undefined);
-}
-
-/** Avisa quem saiu da aba; com a aba aberta, a própria tela já mostra o resultado. */
-function notifyDone(title: string) {
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !document.hidden) {
-    return;
-  }
-  new Notification(title, { body: 'Naency', tag: 'naency-import' });
-}
 
 /** Container: envio do arquivo, revisão do lote (?lote=) e conclusão. */
 export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreenProps) {
@@ -96,7 +81,6 @@ export function ImportScreen({ workspaceId, canImport, aiEnabled }: ImportScreen
     if (data.jobError) {
       return;
     }
-    notifyDone(data.status === 'committed' ? 'Importação concluída' : 'Sugestões prontas');
     void refreshAfterCommit();
     if (data.status === 'committed') {
       router.push(`/transacoes?conta=${data.account.id}`);

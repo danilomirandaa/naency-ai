@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/layout/AppHeader';
+import { ImportJobsWatcher } from '@/features/imports/containers/ImportJobsWatcher';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { signOutAction } from '@/features/auth/actions';
 import { selectWorkspaceAction } from '@/features/workspaces/actions';
@@ -50,8 +51,14 @@ export default async function AppLayout({
           accounts={accounts}
           canCreateAccount={can(active.role, 'finance.write')}
         />
+        {/* Avisa quando a importação termina, esteja a pessoa em qualquer tela. */}
+        <ImportJobsWatcher workspaceId={active.id} />
         <Sidebar.Inset>
-          <AppHeader periodCookie={cookieStore.get(PERIOD_COOKIE)?.value ?? null} today={todayIsoDate()} />
+          <AppHeader
+            workspaceId={active.id}
+            periodCookie={cookieStore.get(PERIOD_COOKIE)?.value ?? null}
+            today={todayIsoDate()}
+          />
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
         </Sidebar.Inset>
       </Sidebar.Provider>

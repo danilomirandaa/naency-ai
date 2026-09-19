@@ -479,6 +479,7 @@ export async function listImportBatches(workspaceId: string): Promise<ImportBatc
       fileName: importBatches.fileName,
       status: importBatches.status,
       job: importBatches.job,
+      jobError: importBatches.jobError,
       accountName: accounts.name,
       createdAt: importBatches.createdAt,
       rowCount: count(importRows.id),

@@ -311,13 +311,13 @@
 
 .dark {
   /* Fundo padrão (escuro). */
-  --background: #151618;
+  --background: #1C1C1E;
   --ring: oklch(0.8034 0.129 174.69);
   --destructive: oklch(0.6189 0.2069 23.39);
   --text-link: oklch(0.75 0.14 233);
 
   /* Corpo dos cards = fundo da página, como no claro. */
-  --background-neutral-000: #151618;
+  --background-neutral-000: #1C1C1E;
   --background-neutral-100: oklch(0.274 0.006 286.033);
   --background-neutral-200: oklch(0.3 0.006 286);
   --background-neutral-300: oklch(0.37 0.008 286);

@@ -1,5 +1,6 @@
 'use client';
 
+import { ToastProvider } from '@/components/ui/Toast';
 import { makeQueryClient } from '@/lib/query-client';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -17,5 +18,9 @@ function getQueryClient() {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  return <QueryClientProvider client={getQueryClient()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={getQueryClient()}>
+      <ToastProvider>{children}</ToastProvider>
+    </QueryClientProvider>
+  );
 }

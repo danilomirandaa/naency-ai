@@ -175,8 +175,11 @@ A escolha final de modelo por tarefa sai de medição, não de suposição.
 **Trabalho em segundo plano**: "Sugerir com AI" e "Importar" respondem na hora e
 seguem rodando no servidor com `after()` (Next 16). O estado fica no lote
 (`import_batches.job`, `job_error`), então dá para recarregar ou sair da página
-sem perder nada; a tela acompanha por polling enquanto houver `job` e avisa por
-notificação do navegador quando termina fora da aba. Um lote aceita um trabalho
-por vez.
+sem perder nada. Quem acompanha é o `ImportJobsWatcher`, montado no layout do app
+(não na tela de importação): ele faz polling enquanto houver `job` e, no fim,
+mostra um toast, dispara notificação do navegador se a aba estiver em segundo
+plano e alimenta o sino do header. Um lote aceita um trabalho por vez. Detalhes
+em [componentes](./components.md#avisos-toast-e-sino) e
+[arquitetura](./architecture.md#trabalho-depois-da-resposta).
 
 **Execução na Vercel**

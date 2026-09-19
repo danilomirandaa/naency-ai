@@ -32,13 +32,14 @@ app/
   (onboarding)/                   primeira configuração do espaço
   (app)/                          páginas com sidebar
     layout.tsx                    Sidebar.Provider + AppSidebar + providers
-    providers.tsx                 QueryClientProvider
+    providers.tsx                 QueryClientProvider + ToastProvider
   api/workspaces/[workspaceId]/   Route Handlers de leitura (GET) para o TanStack Query
 components/
   ui/                             design system genérico
   finance/                        peças de domínio reutilizáveis entre features
   layout/                         casca do app (sidebar, header, tema)
-features/<feature>/               accounts, transactions, cards, categories, imports, dashboard, workspaces
+features/<feature>/               accounts, transactions, cards, categories, imports, dashboard,
+                                  notifications, planning, reports, workspaces
   api/<feature>.queries.ts        contratos de query (key + options + tag)
   actions.ts                      Server Actions ('use server'), finas, delegam ao DAL
   schemas.ts                      Zod: entrada e saída da feature
@@ -61,8 +62,11 @@ hooks/                            hooks genéricos de UI
 tests/                            e2e/ e visual/ (ver testes)
 ```
 
-`features/` nunca importa de outra feature. O que for compartilhado sobe para
-`components/finance/`, `lib/` ou `server/`.
+Componentes de uma feature nunca importam de outra: o que for compartilhado sobe
+para `components/finance/`, `lib/` ou `server/`. A exceção são os **containers**,
+que podem usar o contrato de query, os tipos e as fixtures de outra feature para
+compor ou invalidar (ex.: `ImportJobsWatcher` invalida `transactionsQuery` e
+`accountsQuery` quando a importação entra).
 
 ## Fluxo de dados
 
@@ -119,6 +123,27 @@ Regras:
 - **Escrita**: Server Action que valida a entrada com Zod e chama o DAL. A action
   não contém regra de negócio nem SQL.
 - Retornam só DTOs (o necessário para a tela), nunca a linha crua do banco.
+
+### Trabalho depois da resposta
+
+Nada que demora prende a tela. Importar e sugerir categorias com AI seguem este
+desenho:
+
+1. A action marca o lote como processando (`startImportJob`) e **responde na hora**.
+2. O trabalho roda dentro de `after()` (de `next/server`), já fora da resposta.
+3. No fim, `finishImportJob(workspaceId, batchId, erro?)` limpa a marca e grava
+   o erro, se houve.
+
+Quem observa é o `ImportJobsWatcher`, montado no layout de `app/(app)`: ele
+consulta a lista de lotes a cada 3s **enquanto existe algum processando** e para
+sozinho depois. Como o estado está no banco e não na memória do navegador, a
+pessoa pode dar F5, trocar de tela ou fechar a aba sem perder nada — ao voltar,
+o aviso continua lá. Quando o lote termina, o watcher invalida as queries
+afetadas (transações, contas, cartões e os avisos do sino).
+
+Não usamos Service Worker: o trabalho é do servidor, não do navegador. O que a
+aba faz é só perguntar como está, e a notificação do SO (com permissão) cobre o
+caso de a pessoa estar em outra aba.
 
 ## Segurança
 

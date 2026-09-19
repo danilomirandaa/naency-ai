@@ -49,6 +49,7 @@ export type ImportBatchSummary = {
   fileName: string;
   status: 'review' | 'committed' | 'discarded';
   job: ImportJob | null;
+  jobError: string | null;
   accountName: string;
   rowCount: number;
   createdAt: string;

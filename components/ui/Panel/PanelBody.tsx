@@ -10,7 +10,8 @@ export function PanelBody({ className, ...props }: PanelBodyProps) {
       <div
         data-panel-body=""
         className={classMerge(
-          'mx-0.5 flex flex-col overflow-hidden rounded-[14px] bg-background-neutral-000 shadow-panel-body ring-1 ring-[rgba(25,28,33,0.04)] dark:shadow-panel-body-dark dark:ring-black/20',
+          // Naency: sem anel de contorno; o cartão se separa pelo fundo e pela sombra.
+          'mx-0.5 flex flex-col overflow-hidden rounded-[14px] bg-background-neutral-000 shadow-panel-body dark:shadow-panel-body-dark',
           className,
         )}
         {...props}

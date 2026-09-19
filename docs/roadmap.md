@@ -92,6 +92,7 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
 - [x] /configuracoes: renomear espaço (admin), estado e consumo da AI, créditos
 - [x] /relatorios: resultado do mês, evolução de 12 meses e categorias
+- [x] Avisos: toast (`components/ui/Toast`), sino no header derivado dos dados (importações, contas atrasadas, faturas fechadas) e notificação do navegador quando um job termina fora da aba ([componentes](./components.md#avisos-toast-e-sino))
 
 ## Antes do lançamento público
 
