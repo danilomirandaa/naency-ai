@@ -166,6 +166,10 @@ export const SideBySide: Story = {
     const [balance, evolution] = Array.from(canvasElement.querySelectorAll('[data-panel-body]'));
     // Os dois corpos terminam na mesma linha: nenhum deixa faixa de fundo sobrando.
     await expect(balance?.getBoundingClientRect().bottom).toBe(evolution?.getBoundingClientRect().bottom);
+    // E o conteúdo acompanha: o gráfico cresce até o fim do corpo, sem vão no meio.
+    const chart = within(canvasElement).getByTestId('evolution-chart');
+    const gap = (evolution?.getBoundingClientRect().bottom ?? 0) - chart.getBoundingClientRect().bottom;
+    await expect(gap).toBeLessThanOrEqual(16);
   },
 };
 

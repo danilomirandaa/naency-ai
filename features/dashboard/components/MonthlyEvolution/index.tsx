@@ -27,8 +27,15 @@ export function MonthlyEvolution({ data, isLoading, isError, months = 6 }: Month
       emptyIcon="reports"
       emptyMessage="Sem lançamentos nos últimos meses"
     >
-      <div className="flex flex-col gap-3 px-4 py-3">
-        <EvolutionChart points={points} />
+      <div className="flex grow flex-col gap-3 px-4 py-3">
+        {/*
+          O invólucro é quem tem altura: `h-48` dá um valor concreto (o gráfico usa
+          100% e `min-height` não resolve percentual — com ele o gráfico some) e
+          `grow` ocupa a sobra quando o card estica ao lado de um bloco mais alto.
+        */}
+        <div className="h-48 grow">
+          <EvolutionChart points={points} className="h-full" />
+        </div>
         <table className="sr-only">
           <caption>Receitas e despesas por mês</caption>
           <thead>
