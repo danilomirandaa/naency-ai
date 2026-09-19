@@ -118,6 +118,7 @@ stories). O motor **ECharts** é a exceção, hoje só na curva do dashboard
 | Cores | `var(--token)` resolvido pelo CSS | `var(--token)` lido do DOM no mount; a lib re-resolve ao trocar o tema |
 | Tooltip | React | HTML (`formatValue` devolve string, não `ReactNode`) |
 | Animação | `isAnimationActive: 'auto'` | `animation={false}`, senão a captura visual oscila |
+| Preenchimento | alpha do próprio gráfico | `GRADIENT_FILL_ALPHA` (ajuste local): o 0.1 do registro some com uma série só |
 | Story | conta nós de `svg` | espera o `canvas` com `waitFor` |
 
 - Instalar: `npx shadcn@latest add @evilcharts/recharts-<gráfico>`. O

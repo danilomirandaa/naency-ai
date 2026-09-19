@@ -591,6 +591,13 @@ function patternFadeTexture(
 
 // Resolves the area fill for a variant into an ECharts color value. `size` is the
 // full renderer size, used to bake 2D gradients for multi-color series.
+/**
+ * Naency: o alpha do registry era 0.1 e, com a opacidade 0.8 da série, dava 8% —
+ * invisível com uma série só (no site do EvilCharts a área "aparece" porque são
+ * várias empilhadas). Aqui a curva do dashboard é uma série sozinha.
+ */
+const GRADIENT_FILL_ALPHA = 0.35;
+
 function fillPaint(
   variant: AreaVariant,
   showUnselected: boolean,
@@ -617,8 +624,8 @@ function fillPaint(
         if (texture) return { image: texture, repeat: "no-repeat" };
       }
       return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: withAlpha(base, reverse ? 0 : 0.1) },
-        { offset: 1, color: withAlpha(base, reverse ? 0.1 : 0) },
+        { offset: 0, color: withAlpha(base, reverse ? 0 : GRADIENT_FILL_ALPHA) },
+        { offset: 1, color: withAlpha(base, reverse ? GRADIENT_FILL_ALPHA : 0) },
       ]);
     }
     case "solid": {

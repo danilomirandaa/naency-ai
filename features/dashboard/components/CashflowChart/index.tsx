@@ -72,7 +72,7 @@ export function CashflowChart({ points, className }: CashflowChartProps) {
         {/* Milhares bastam no eixo: o valor exato sai no tooltip. */}
         <EChartsAreaChart.YAxis tickFormatter={(value: number) => formatMoneyCompact(value)} hideDots />
         <EChartsAreaChart.Tooltip />
-        <EChartsAreaChart.Area dataKey="balance" variant="gradient" strokeVariant="solid" strokeWidth={2}>
+        <EChartsAreaChart.Area dataKey="balance" variant="gradient-reverse" strokeVariant="dashed" strokeWidth={2}>
           <EChartsAreaChart.ActiveDot variant="default" />
         </EChartsAreaChart.Area>
       </EChartsAreaChart>
