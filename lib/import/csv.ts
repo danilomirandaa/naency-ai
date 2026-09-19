@@ -195,7 +195,7 @@ export function parseCsvStatement(text: string): { layout: string; rows: ParsedS
       externalId: null,
       time: layout.time === undefined ? null : parseStatementTime(record[layout.time]),
       installment: layout.installment === undefined ? null : parseInstallment(record[layout.installment]),
-      invoicePayment: false,
+      invoiceMovement: null,
     };
   });
   return { layout: layout.id, rows: rows.filter((row) => row.amountCents !== 0) };

@@ -11,9 +11,19 @@ export type ParsedStatementRow = {
   time: string | null;
   /** Compra parcelada, quando a fatura informa ("3 de 12"). */
   installment: { number: number; total: number } | null;
-  /** Linha de pagamento da fatura anterior, que a fatura lista como crédito. */
-  invoicePayment: boolean;
+  /** Linha que é movimento da própria fatura, não compra (ver `InvoiceMovement`). */
+  invoiceMovement: InvoiceMovement | null;
 };
+
+/**
+ * O que a fatura lista mas não é gasto do mês:
+ * - `payment`: o pagamento da fatura anterior, que o banco mostra como crédito.
+ * - `carried-over`: o saldo da fatura anterior que não foi pago e veio junto.
+ *
+ * Os dois se anulam no total da fatura; importados como lançamento, inflariam
+ * receitas e despesas com dinheiro que não entrou nem saiu neste mês.
+ */
+export type InvoiceMovement = 'payment' | 'carried-over';
 
 export type StatementFormat = 'ofx' | 'csv';
 

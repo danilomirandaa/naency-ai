@@ -113,6 +113,13 @@
       "when": 1789772998999,
       "tag": "0015_import_background_job",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789793911201,
+      "tag": "0016_import_rows_invoice_movement",
+      "breakpoints": true
     }
   ]
 }

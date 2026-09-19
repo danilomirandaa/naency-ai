@@ -1,4 +1,5 @@
 import type { AccountType } from '@/lib/accounts';
+import type { InvoiceMovement } from '@/lib/import/types';
 
 export type ImportRowItem = {
   id: string;
@@ -16,8 +17,8 @@ export type ImportRowItem = {
   rememberCategory: boolean;
   /** Compra parcelada, quando a fatura informa ("3 de 12"). */
   installment: { number: number; total: number } | null;
-  /** Pagamento da fatura anterior listado dentro da fatura. */
-  invoicePayment: boolean;
+  /** Movimento da própria fatura (pagamento ou saldo trazido), não compra. */
+  invoiceMovement: InvoiceMovement | null;
   duplicate: 'exact' | 'possible' | null;
 };
 

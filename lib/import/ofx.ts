@@ -67,7 +67,7 @@ export function parseOfx(text: string): ParsedStatementRow[] {
       externalId: tag(block, 'FITID') || null,
       time: ofxTime(posted),
       installment: null,
-      invoicePayment: false,
+      invoiceMovement: null,
     });
   }
   if (rows.length === 0) {

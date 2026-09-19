@@ -55,6 +55,11 @@ export const CardInvoice: Story = {
     // Um texto é a descrição da linha; o outro é o selo que explica por que ela ficou fora.
     await expect(canvas.getAllByText('Pagamento de fatura')).toHaveLength(2);
     await expect(canvas.getByRole('checkbox', { name: 'Incluir Pagamento de fatura' })).not.toBeChecked();
+    // O saldo da fatura anterior também fica fora: já foi gasto no mês passado.
+    await expect(canvas.getByText('Fatura anterior')).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('checkbox', { name: 'Incluir Valor pendente do mês anterior' }),
+    ).not.toBeChecked();
     await expect(canvas.getByRole('checkbox', { name: 'Incluir Smiletech Tecnologia' })).toBeChecked();
   },
 };

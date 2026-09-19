@@ -29,20 +29,34 @@ describe('fatura de cartão', () => {
     const { rows } = parseStatement('Fatura2026-10-05.csv', fixture('cartao-generico.csv'), {
       accountType: 'credit_card',
     });
-    expect(rows.map((row) => [row.description, row.installment, row.invoicePayment])).toEqual([
-      ['PADOCA REAL.', null, false],
+    expect(rows.map((row) => [row.description, row.installment, row.invoiceMovement])).toEqual([
+      ['PADOCA REAL.', null, null],
       // Parcela mantém a data da compra original: por isso a fatura manda na hora de importar.
-      ['SMILETECH TECNOLOGIA O', { number: 3, total: 12 }, false],
-      ['DISNEY PLUS', null, false],
-      ['Pagamento de fatura', null, true],
+      ['SMILETECH TECNOLOGIA O', { number: 3, total: 12 }, null],
+      ['DISNEY PLUS', null, null],
+      ['Pagamento de fatura', null, 'payment'],
       // Estorno é crédito, mas não é pagamento de fatura.
-      ['ESTORNO LOJA', null, false],
+      ['ESTORNO LOJA', null, null],
+    ]);
+  });
+
+  it('na fatura do Nubank, pagamento e valor pendente não são compra', () => {
+    // As duas linhas se anulam no total; importadas virariam receita e despesa
+    // de dinheiro que não entrou nem saiu neste mês.
+    const { rows } = parseStatement('Nubank_2026-10-08.csv', fixture('nubank-cartao-pendente.csv'), {
+      accountType: 'credit_card',
+    });
+    expect(rows.map((row) => [row.description, row.amountCents, row.invoiceMovement])).toEqual([
+      ['Pagamento recebido', 12_000, 'payment'],
+      ['Juros por fatura atrasada', -350, null],
+      ['Mercado do Bairro', -4510, null],
+      ['Valor pendente do mês anterior', -12_000, 'carried-over'],
     ]);
   });
 
   it('em conta comum, crédito com "pagamento de fatura" na descrição não é marcado', () => {
     const { rows } = parseStatement('extrato.csv', fixture('cartao-generico.csv'), { accountType: 'checking' });
-    expect(rows.every((row) => !row.invoicePayment)).toBe(true);
+    expect(rows.every((row) => row.invoiceMovement === null)).toBe(true);
   });
 
   it('não inverte o que já vem com compra negativa (OFX, Nubank cartão) nem conta corrente', () => {
@@ -92,9 +106,9 @@ describe('OFX', () => {
       format: 'ofx',
       layout: 'ofx',
       rows: [
-        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1', time: null, installment: null, invoicePayment: false },
-        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2', time: null, installment: null, invoicePayment: false },
-        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3', time: null, installment: null, invoicePayment: false },
+        { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - PADARIA SAO JOAO', externalId: '6512a1', time: null, installment: null, invoiceMovement: null },
+        { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA LTDA', externalId: '6512a2', time: null, installment: null, invoiceMovement: null },
+        { date: '2026-09-10', amountCents: -12050, description: 'Pix enviado - Maria', externalId: '6512a3', time: null, installment: null, invoiceMovement: null },
       ],
     });
   });
@@ -120,8 +134,8 @@ describe('CSV', () => {
     const { layout, rows } = parseStatement('nubank.csv', fixture('nubank-conta.csv'));
     expect(layout).toBe('nubank-conta');
     expect(rows).toEqual([
-      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null, time: null, installment: null, invoicePayment: false },
-      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null, time: null, installment: null, invoicePayment: false },
+      { date: '2026-09-02', amountCents: -4590, description: 'Compra no débito - Padaria São João', externalId: null, time: null, installment: null, invoiceMovement: null },
+      { date: '2026-09-05', amountCents: 850000, description: 'Transferência recebida - EMPRESA, LTDA', externalId: null, time: null, installment: null, invoiceMovement: null },
     ]);
   });
 

@@ -156,13 +156,13 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
       rawDescription: row.description,
       categoryId: useRule ? ruleCategory.id : null,
       ruleId: useRule ? (rule?.id ?? null) : null,
-      // Pagamento de fatura entra desmarcado: no Naency isso é "Pagar fatura".
-      include: !possible && !row.invoicePayment,
+      // Movimento da própria fatura entra desmarcado: não é gasto do mês.
+      include: !possible && row.invoiceMovement === null,
       fingerprint,
       duplicateOfTransactionId: possible?.id ?? null,
       installmentNumber: row.installment?.number ?? null,
       installmentTotal: row.installment?.total ?? null,
-      invoicePayment: row.invoicePayment,
+      invoiceMovement: row.invoiceMovement,
     };
   });
 
@@ -275,7 +275,7 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
         duplicateFingerprint: transactions.fingerprint,
         installmentNumber: importRows.installmentNumber,
         installmentTotal: importRows.installmentTotal,
-        invoicePayment: importRows.invoicePayment,
+        invoiceMovement: importRows.invoiceMovement,
       })
       .from(importRows)
       .leftJoin(transactions, eq(transactions.id, importRows.duplicateOfTransactionId))
@@ -302,7 +302,7 @@ export async function getImportBatch(workspaceId: string, batchId: string): Prom
       row.installmentNumber !== null && row.installmentTotal !== null
         ? { number: row.installmentNumber, total: row.installmentTotal }
         : null,
-    invoicePayment: row.invoicePayment,
+    invoiceMovement: row.invoiceMovement,
     duplicate: row.duplicateOfTransactionId
       ? row.duplicateFingerprint === row.fingerprint
         ? 'exact'

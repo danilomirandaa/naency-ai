@@ -212,12 +212,12 @@ describe('importação: confirmar', () => {
     const batch = await getImportBatch(workspaceId, id);
 
     // A linha de pagamento vem marcada e desmarcada; a parcela traz o número.
-    expect(batch.rows.map((row) => [row.description, row.include, row.invoicePayment, row.installment])).toEqual([
-      ['PADOCA REAL.', true, false, null],
-      ['SMILETECH TECNOLOGIA O', true, false, { number: 3, total: 12 }],
-      ['DISNEY PLUS', true, false, null],
-      ['Pagamento de fatura', false, true, null],
-      ['ESTORNO LOJA', true, false, null],
+    expect(batch.rows.map((row) => [row.description, row.include, row.invoiceMovement, row.installment])).toEqual([
+      ['PADOCA REAL.', true, null, null],
+      ['SMILETECH TECNOLOGIA O', true, null, { number: 3, total: 12 }],
+      ['DISNEY PLUS', true, null, null],
+      ['Pagamento de fatura', false, 'payment', null],
+      ['ESTORNO LOJA', true, null, null],
     ]);
     expect(batch.summary).toMatchObject({ total: 5, included: 4 });
 
@@ -231,6 +231,36 @@ describe('importação: confirmar', () => {
     // A parcela fica registrada no lançamento.
     const parcelada = (await listTransactions(workspaceId, { ...september, ...monthRange('2026-06'), accountId: card })).items[0];
     expect(parcelada).toMatchObject({ description: 'SMILETECH TECNOLOGIA O', installment: { number: 3, total: 12 } });
+  });
+
+  it('fatura do Nubank: pagamento e valor pendente ficam de fora, e só as compras viram gasto', async () => {
+    const { id: card } = await createAccount(workspaceId, {
+      name: 'Nubank Crédito',
+      type: 'credit_card',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: '2026-01-01',
+      closingDay: 28,
+      dueDay: 8,
+    });
+    const csv = readFileSync(path.resolve('lib/import/__fixtures__/nubank-cartao-pendente.csv'), 'utf8');
+    const { id } = await createImportBatch(workspaceId, {
+      accountId: card,
+      fileName: 'Nubank_2026-10-08.csv',
+      text: csv,
+    });
+    const batch = await getImportBatch(workspaceId, id);
+
+    expect(batch.rows.map((row) => [row.description, row.include, row.invoiceMovement])).toEqual([
+      ['Pagamento recebido', false, 'payment'],
+      ['Juros por fatura atrasada', true, null],
+      ['Mercado do Bairro', true, null],
+      ['Valor pendente do mês anterior', false, 'carried-over'],
+    ]);
+
+    await expect(commitImportBatch(workspaceId, id)).resolves.toMatchObject({ created: 2 });
+    // Só juros (3,50) e a compra (45,10): o que a fatura repete do mês anterior não conta de novo.
+    expect((await listAccounts(workspaceId)).find((item) => item.name === 'Nubank Crédito')?.balanceCents).toBe(-4860);
   });
 
   it('extrato com hora: o dia sai em ordem cronológica, do mais recente para o mais antigo', async () => {

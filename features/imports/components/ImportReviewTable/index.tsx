@@ -6,9 +6,21 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Panel } from '@/components/ui/Panel';
 import { Text } from '@/components/ui/Text';
 import type { ImportRowItem } from '@/features/imports/types';
+import type { InvoiceMovement } from '@/lib/import/types';
 import type { UpdateImportRowInput } from '@/features/imports/schemas';
 import { formatIsoDate } from '@/lib/dates';
 import { classMerge } from '@/lib/utils';
+
+/** A fatura lista essas linhas, mas elas não são gasto do mês. */
+const invoiceMovementLabel: Record<InvoiceMovement, string> = {
+  payment: 'Pagamento de fatura',
+  'carried-over': 'Fatura anterior',
+};
+
+const invoiceMovementHint: Record<InvoiceMovement, string> = {
+  payment: 'Registre o pagamento em Pagar fatura',
+  'carried-over': 'Este valor já foi lançado na fatura do mês passado',
+};
 
 export type ImportReviewTableProps = {
   rows: ImportRowItem[];
@@ -60,9 +72,9 @@ export function ImportReviewTable({ rows, categories, onRowChange, readOnly = fa
                         Parcela {row.installment.number}/{row.installment.total}
                       </Panel.RowBadge>
                     )}
-                    {row.invoicePayment && (
-                      <Panel.RowBadge color="yellow" title="Registre o pagamento em Pagar fatura">
-                        Pagamento de fatura
+                    {row.invoiceMovement && (
+                      <Panel.RowBadge color="yellow" title={invoiceMovementHint[row.invoiceMovement]}>
+                        {invoiceMovementLabel[row.invoiceMovement]}
                       </Panel.RowBadge>
                     )}
                     {row.suggestedByRule && <Panel.RowBadge color="blue">Categoria lembrada</Panel.RowBadge>}

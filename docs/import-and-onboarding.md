@@ -57,9 +57,18 @@ próxima importação do mesmo banco sai mais barata.
    - **Fatura de cartão**: se a maioria das linhas vier positiva, o arquivo usa
      "compra = positivo" e o sinal é invertido (`normalizeCardSigns`).
    - **Coluna "Parcela"** ("3 de 12") vira `installment_number`/`installment_total`.
-   - **"Pagamento de fatura"** dentro da fatura é o pagamento da anterior: a linha
-     entra **desmarcada**, com selo na revisão. Pagar fatura é transferência, feita
-     em "Pagar fatura" ([domínio](./domain.md)).
+   - **Movimento da própria fatura** (`import_rows.invoice_movement`): a fatura
+     lista duas coisas que não são gasto do mês, e as duas entram **desmarcadas**,
+     com selo na revisão:
+
+     | Valor | O que é | Exemplos de descrição |
+     |---|---|---|
+     | `payment` (crédito) | pagamento da fatura anterior | "Pagamento de fatura", "Pagamento recebido" (Nubank) |
+     | `carried-over` (débito) | saldo da fatura anterior que não foi pago e voltou | "Valor pendente do mês anterior" |
+
+     As duas se anulam no total da fatura; importadas, virariam receita e despesa
+     de dinheiro que não entrou nem saiu neste mês, inflando os relatórios. Pagar
+     fatura é transferência, feita em "Pagar fatura" ([domínio](./domain.md)).
    - **Toda a fatura vai para a mesma fatura**: o arquivo é de um ciclo só, e a
      fatura usada é a do lançamento mais recente. Sem isso, uma parcela com a data
      da compra original (junho) cairia na fatura de junho, e não na que está sendo

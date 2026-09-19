@@ -1,6 +1,6 @@
 import { parseCsvStatement } from './csv';
 import { looksLikeOfx, parseOfx } from './ofx';
-import { type ParsedStatement, type ParsedStatementRow, StatementParseError } from './types';
+import { type InvoiceMovement, type ParsedStatement, type ParsedStatementRow, StatementParseError } from './types';
 
 /**
  * Fatura de cartão: compra é saída (negativa). Muitos bancos exportam a fatura
@@ -15,12 +15,42 @@ export function normalizeCardSigns(rows: ParsedStatementRow[]): ParsedStatementR
   return positive > negative ? rows.map((row) => ({ ...row, amountCents: -row.amountCents })) : rows;
 }
 
+function withoutAccents(text: string) {
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 /**
  * Pagamento da fatura anterior, que o banco lista como crédito dentro da fatura.
  * Não é compra nem estorno: no Naency, pagar fatura é transferência.
  */
 export function isInvoicePayment(description: string) {
-  return /\b(pagamento|pagto|pgto)\b.*\bfatura\b/i.test(description.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+  const text = withoutAccents(description);
+  // "Pagamento de fatura", mas também o "Pagamento recebido" do Nubank. A regra
+  // só vale dentro de uma fatura, então "recebido" aqui não é receita.
+  return /\b(pagamento|pagto|pgto)\b.*\b(fatura|recebid[oa])\b/i.test(text);
+}
+
+/**
+ * Saldo da fatura anterior que não foi pago e a fatura nova traz de volta.
+ * Já foi lançado no mês passado: importar de novo contaria o gasto duas vezes.
+ */
+export function isCarriedOverBalance(description: string) {
+  const text = withoutAccents(description);
+  return /\b(valor|saldo)\b.*\b(pendente|remanescente|anterior|nao pago)\b/i.test(text) || /\bfatura anterior\b/i.test(text);
+}
+
+/**
+ * Classifica a linha da fatura que não é compra. O sinal decide o lado: o que
+ * entra como crédito é o pagamento; o que entra como débito é o saldo trazido.
+ */
+export function invoiceMovementKind(description: string, amountCents: number): InvoiceMovement | null {
+  if (amountCents > 0) {
+    return isInvoicePayment(description) ? 'payment' : null;
+  }
+  if (amountCents < 0) {
+    return isCarriedOverBalance(description) ? 'carried-over' : null;
+  }
+  return null;
 }
 
 /** Detecta o formato pelo nome e pelo conteúdo e lê o extrato. */
@@ -37,7 +67,7 @@ export function parseStatement(
     ...statement,
     rows: normalizeCardSigns(statement.rows).map((row) => ({
       ...row,
-      invoicePayment: row.amountCents > 0 && isInvoicePayment(row.description),
+      invoiceMovement: invoiceMovementKind(row.description, row.amountCents),
     })),
   };
 }

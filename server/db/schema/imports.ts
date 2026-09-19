@@ -1,3 +1,4 @@
+import type { InvoiceMovement } from '@/lib/import/types';
 import { sql } from 'drizzle-orm';
 import {
   bigint,
@@ -80,8 +81,16 @@ export const importRows = pgTable(
     /** Compra parcelada, quando a fatura informa ("3 de 12"). */
     installmentNumber: integer('installment_number'),
     installmentTotal: integer('installment_total'),
-    /** Pagamento da fatura anterior listado dentro da fatura: entra desmarcado. */
+    /**
+     * Obsoleta: substituída por `invoice_movement`, que distingue o pagamento
+     * do saldo trazido. Fica declarada só porque a coluna existe no banco.
+     */
     invoicePayment: boolean('invoice_payment').notNull().default(false),
+    /**
+     * Linha da fatura que não é compra ('payment' ou 'carried-over'): entra
+     * desmarcada, para não virar receita nem despesa do mês.
+     */
+    invoiceMovement: text('invoice_movement').$type<InvoiceMovement>(),
   },
   (table) => [uniqueIndex('import_rows_batch_position_idx').on(table.batchId, table.position)],
 ).enableRLS();
