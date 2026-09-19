@@ -58,7 +58,8 @@ A ordem é a ordem em que a pergunta aparece na cabeça de quem abre o app:
 ## Visualização
 
 Gráficos com EvilCharts sobre Recharts ([padrão](./components.md#gráficos)):
-curva do período em área (`CashflowChart`, cor vermelha quando fecha no vermelho),
+curva do período em área (`CashflowChart`, **o único sobre ECharts**, com a cor
+virando vermelha quando o período fecha no vermelho),
 evolução em colunas (`EvolutionChart`) e categorias em rosca com o total no
 centro (`CategoryDonut`), acima da lista com barras. Valor no eixo usa
 `formatMoneyCompact` ("R$ 2,4 mil"); o exato fica no tooltip. Ao criar um gráfico novo,

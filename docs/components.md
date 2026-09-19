@@ -106,16 +106,31 @@ tokens e reaproveitando Button, Tooltip, DropdownMenu, Skeleton.
 
 ## Gráficos
 
-Gráficos usam o [EvilCharts](https://evilcharts.com) sobre **Recharts** (SVG no
-DOM: cores por variável CSS, light/dark sem re-render, testável nas stories). O
-motor ECharts só entra se um gráfico específico passar de milhares de pontos.
+Gráficos usam o [EvilCharts](https://evilcharts.com). O padrão é **Recharts**
+(SVG no DOM: cores por variável CSS, light/dark sem re-render, testável nas
+stories). O motor **ECharts** é a exceção, hoje só na curva do dashboard
+(`CashflowChart`), e tem regras próprias:
+
+| | Recharts (padrão) | ECharts |
+|---|---|---|
+| Desenho | SVG no DOM | `<canvas>` |
+| Instalar | `@evilcharts/recharts-<gráfico>` | `@evilcharts/echarts-<gráfico>` |
+| Cores | `var(--token)` resolvido pelo CSS | `var(--token)` lido do DOM no mount; a lib re-resolve ao trocar o tema |
+| Tooltip | React | HTML (`formatValue` devolve string, não `ReactNode`) |
+| Animação | `isAnimationActive: 'auto'` | `animation={false}`, senão a captura visual oscila |
+| Story | conta nós de `svg` | espera o `canvas` com `waitFor` |
 
 - Instalar: `npx shadcn@latest add @evilcharts/recharts-<gráfico>`. O
   `components.json` foi criado à mão só com o registry `@evilcharts`; **não rode
   `shadcn init`** (reescreve o `globals.css`). Os arquivos vão para
   `components/evilcharts/` e são código nosso: ajustes locais ficam marcados com
   `Naency:` no comentário (legenda na ordem das séries, `formatValue` no
-  `ChartConfig`, `key` fora do spread na pizza).
+  `ChartConfig` dos dois motores, `key` fora do spread na pizza, import morto
+  removido no gráfico de área). **Reinstalar um gráfico sobrescreve os arquivos
+  de `ui/` compartilhados**: confira o `git diff` depois e devolva os ajustes.
+- O arquivo `echarts-*.tsx` guarda o estado do canvas num ref lido no render, o
+  que a regra `react-hooks/refs` proíbe. A exceção está escopada a esses
+  arquivos no `eslint.config.mjs` — não vale para código nosso.
 - As partes compostas (`EvilBarChart.Bar`) vêm de módulo `'use client'`. Use-as
   só dentro de um componente client da feature (ex.:
   `features/dashboard/components/EvolutionChart`), que tem story; blocos que

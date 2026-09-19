@@ -1,7 +1,7 @@
 import { CashflowChart, dayLabel, spansMoreThanOneMonth } from '@/features/dashboard/components/CashflowChart';
 import { cashflowFixture, cashflowNegativeFixture } from '@/features/dashboard/fixtures/dashboard';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { expect, within } from 'storybook/test';
+import { expect, waitFor, within } from 'storybook/test';
 
 const meta: Meta<typeof CashflowChart> = {
   title: 'Features/Dashboard/CashflowChart',
@@ -22,11 +22,12 @@ type Story = StoryObj<typeof CashflowChart>;
 
 export const Positive: Story = {
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+    const screen = within(canvasElement);
     // O gráfico é decorativo: quem lê tela recebe os números pela tabela do bloco.
-    const chart = canvas.getByTestId('cashflow-chart');
+    const chart = screen.getByTestId('cashflow-chart');
     await expect(chart).toHaveAttribute('aria-hidden', 'true');
-    await expect(chart.querySelectorAll('svg').length).toBeGreaterThan(0);
+    // O ECharts desenha em canvas, então não há nós de SVG para inspecionar.
+    await waitFor(() => expect(chart.querySelectorAll('canvas').length).toBeGreaterThan(0));
   },
 };
 

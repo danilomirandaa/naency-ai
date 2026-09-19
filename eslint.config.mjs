@@ -19,6 +19,14 @@ const eslintConfig = defineConfig([
     "blob-report/**",
     "coverage/**",
   ]),
+  {
+    // O gráfico de ECharts guarda o estado imperativo do canvas num ref único e
+    // o lê durante o render — é o desenho da biblioteca, que chega pronta pelo
+    // registry do EvilCharts e é reinstalada por lá. Reescrever isso seria
+    // refazer a lib; a regra continua valendo para todo o resto do projeto.
+    files: ["components/evilcharts/charts/echarts-*.tsx"],
+    rules: { "react-hooks/refs": "off" },
+  },
 ]);
 
 export default eslintConfig;

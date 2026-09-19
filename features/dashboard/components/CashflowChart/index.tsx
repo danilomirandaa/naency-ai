@@ -1,6 +1,6 @@
 'use client';
 
-import { EvilAreaChart } from '@/components/evilcharts/charts/recharts-area-chart';
+import { type ChartConfig, EChartsAreaChart } from '@/components/evilcharts/charts/echarts-area-chart';
 import type { CashflowPoint } from '@/features/dashboard/types';
 import { formatMoney, formatMoneyCompact } from '@/lib/money';
 import { classMerge } from '@/lib/utils';
@@ -10,6 +10,14 @@ const formatValue = (cents: number) => formatMoney(cents);
 /** Dentro de um mês só o dia basta; em período maior, o dia precisa do mês. */
 export function dayLabel(date: string, withMonth: boolean) {
   return withMonth ? `${date.slice(8)}/${date.slice(5, 7)}` : date.slice(8);
+}
+
+/**
+ * De quantos em quantos dias mostrar o rótulo do eixo. Com um mês inteiro, 30
+ * marcas viram uma parede de números: mostramos cerca de oito.
+ */
+export function tickStep(count: number) {
+  return count <= 10 ? 1 : Math.ceil(count / 8);
 }
 
 export function spansMoreThanOneMonth(points: CashflowPoint[]) {
@@ -23,8 +31,9 @@ export type CashflowChartProps = {
 
 /**
  * A curva do que sobrou desde o primeiro dia do período (EvilCharts sobre
- * Recharts). Sobe quando entra mais do que sai; cruzar o zero é o sinal de que
- * o período está no vermelho — por isso a cor acompanha o fim da linha.
+ * **ECharts**, o único gráfico do Naency que não usa Recharts). Sobe quando
+ * entra mais do que sai; cruzar o zero é o sinal de que o período está no
+ * vermelho — por isso a cor acompanha o fim da linha.
  *
  * Decorativo para leitores de tela: o bloco entrega os mesmos números em texto.
  */
@@ -32,6 +41,7 @@ export function CashflowChart({ points, className }: CashflowChartProps) {
   const withMonth = spansMoreThanOneMonth(points);
   const isNegative = (points.at(-1)?.cumulativeCents ?? 0) < 0;
   const data = points.map((point) => ({ day: dayLabel(point.date, withMonth), balance: point.cumulativeCents }));
+  // O token já troca sozinho no escuro, e a lib re-resolve as cores ao mudar o tema.
   const config = {
     balance: {
       label: 'Sobrou até aqui',
@@ -40,27 +50,32 @@ export function CashflowChart({ points, className }: CashflowChartProps) {
       },
       formatValue,
     },
-  };
+  } satisfies ChartConfig;
 
   return (
     <div aria-hidden data-testid="cashflow-chart" className={classMerge('h-56', className)}>
-      <EvilAreaChart
+      <EChartsAreaChart
         data={data}
         config={config}
-        className="aspect-auto h-full"
+        className="h-full w-full"
+        xDataKey="day"
         curveType="monotone"
-        chartProps={{ accessibilityLayer: false, margin: { top: 8, right: 8, bottom: 0, left: 8 } }}
+        // Sem a animação de entrada: a captura da regressão visual tem de ser igual toda vez.
+        animation={false}
       >
-        <EvilAreaChart.Grid />
-        <EvilAreaChart.XAxis dataKey="day" />
-        <EvilAreaChart.YAxis
-          width={64}
-          // Milhares bastam no eixo: o valor exato sai no tooltip.
-          tickFormatter={(value: number) => formatMoneyCompact(value)}
+        <EChartsAreaChart.Grid />
+        <EChartsAreaChart.XAxis
+          dataKey="day"
+          hideDots
+          tickFormatter={(value, index) => (index % tickStep(data.length) === 0 ? value : '')}
         />
-        <EvilAreaChart.Tooltip />
-        <EvilAreaChart.Area dataKey="balance" variant="gradient" strokeVariant="solid" strokeWidth={2} />
-      </EvilAreaChart>
+        {/* Milhares bastam no eixo: o valor exato sai no tooltip. */}
+        <EChartsAreaChart.YAxis tickFormatter={(value: number) => formatMoneyCompact(value)} hideDots />
+        <EChartsAreaChart.Tooltip />
+        <EChartsAreaChart.Area dataKey="balance" variant="gradient" strokeVariant="solid" strokeWidth={2}>
+          <EChartsAreaChart.ActiveDot variant="default" />
+        </EChartsAreaChart.Area>
+      </EChartsAreaChart>
     </div>
   );
 }
