@@ -74,6 +74,9 @@ próxima importação do mesmo banco sai mais barata.
    - confiança de cada sugestão.
 6. **Deduplicação**: pelo `fingerprint` e por sobreposição com lançamentos existentes
    da mesma conta (mesmo valor, data ±2 dias). Duplicatas vêm marcadas como `skip`.
+   Em **cartão**, a comparação é só com o que já está **na mesma fatura**: a parcela
+   carrega a data da compra original, então a parcela 4 de 12 tem data e valor iguais
+   aos da 1 de 12, que veio numa fatura anterior, e seria descartada à toa.
 7. **Revisão**: tabela com filtros ("pedem atenção", "duplicadas"), edição em massa de
    categoria, e opção "lembrar para os próximos" ao corrigir.
 8. **Commit**: numa transação única, cria os lançamentos, liga transferências,

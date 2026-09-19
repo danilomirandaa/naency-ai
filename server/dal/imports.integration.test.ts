@@ -273,6 +273,45 @@ describe('importação: confirmar', () => {
     expect(await getImportBatch(workspaceId, batch.id)).toMatchObject({ job: null, jobError: null });
   });
 
+  it('parcela na fatura seguinte não é duplicada; reimportar o mesmo arquivo é', async () => {
+    const { id: card } = await createAccount(workspaceId, {
+      name: 'XP Black',
+      type: 'credit_card',
+      institutionId: null,
+      initialBalanceCents: 0,
+      initialBalanceDate: '2026-01-01',
+      closingDay: 28,
+      dueDay: 5,
+    });
+    const importFile = async (fixture: string, fileName: string) => {
+      const text = readFileSync(path.resolve(`lib/import/__fixtures__/${fixture}`), 'utf8');
+      const { id } = await createImportBatch(workspaceId, { accountId: card, fileName, text });
+      return getImportBatch(workspaceId, id);
+    };
+
+    const outubro = await importFile('cartao-generico.csv', 'Fatura2026-10-05.csv');
+    await commitImportBatch(workspaceId, outubro.id);
+
+    // Novembro traz a parcela 4 de 12 com a data da compra original (a mesma da 3 de 12).
+    const novembro = await importFile('cartao-generico-2.csv', 'Fatura2026-11-05.csv');
+    expect(novembro.rows.map((row) => [row.description, row.duplicate])).toEqual([
+      ['SMILETECH TECNOLOGIA O', null],
+      ['MERCADO NOVO', null],
+      ['Pagamento de fatura', null],
+    ]);
+    await commitImportBatch(workspaceId, novembro.id);
+    const invoices = await listCardInvoices(workspaceId, card, { today: '2026-10-20' });
+    expect(invoices.map((invoice) => [invoice.referenceMonth, invoice.totalCents])).toEqual([
+      ['2026-11', -80_333],
+      ['2026-10', -72_915],
+    ]);
+
+    // O mesmo arquivo de novo: tudo duplicado, nada incluído.
+    const denovo = await importFile('cartao-generico-2.csv', 'Fatura2026-11-05.csv');
+    expect(denovo.rows.filter((row) => row.duplicate === 'exact')).toHaveLength(2);
+    expect(denovo.summary.included).toBe(0);
+  });
+
   it('descartar encerra sem criar nada; histórico lista as importações', async () => {
     const batch = await importOfx();
     await discardImportBatch(workspaceId, batch.id);

@@ -6,6 +6,7 @@ import {
   updateImportRowSchema,
 } from '@/features/imports/schemas';
 import type { ImportBatchDetail, ImportBatchSummary, ImportRowItem } from '@/features/imports/types';
+import { invoiceForPurchase } from '@/lib/cards';
 import { parseStatement } from '@/lib/import/parse';
 import { matchRule, suggestRulePattern } from '@/lib/import/rules';
 import { StatementParseError } from '@/lib/import/types';
@@ -15,8 +16,10 @@ import { getDb } from '@/server/db/client';
 import {
   accounts,
   aiUsageEvents,
+  cardInvoices,
   categories,
   categorizationRules,
+  creditCardDetails,
   importBatches,
   importRows,
   institutions,
@@ -84,6 +87,10 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
 
   const rows = statement.rows.map((row) => ({ ...row, accountId: account.id, description: row.description }));
   const fingerprints = fingerprintAll(rows);
+  // Numa fatura, a parcela carrega a data da compra original: a parcela 4 de 12 tem a
+  // mesma data e o mesmo valor da 1 de 12, que veio na fatura anterior. Por isso, em
+  // cartão, um lançamento só pode ser duplicado de outro da mesma fatura.
+  const invoiceMonth = account.type === 'credit_card' ? await targetInvoiceMonth(account.id, rows) : null;
 
   const [rules, categoryKinds, existing] = await Promise.all([
     db
@@ -108,10 +115,13 @@ export async function createImportBatch(workspaceId: string, input: CreateImport
         fingerprint: transactions.fingerprint,
       })
       .from(transactions)
+      .leftJoin(cardInvoices, eq(cardInvoices.id, transactions.invoiceId))
       .where(
         and(
           eq(transactions.accountId, account.id),
           isNull(transactions.deletedAt),
+          // Cartão: só compara com o que já está na mesma fatura.
+          invoiceMonth ? eq(cardInvoices.referenceMonth, invoiceMonth) : undefined,
           gte(transactions.date, shiftDate(rows.reduce((min, row) => (row.date < min ? row.date : min), rows[0]?.date ?? '9999-12-31'), -DUPLICATE_WINDOW_DAYS)),
           lte(transactions.date, shiftDate(rows.reduce((max, row) => (row.date > max ? row.date : max), rows[0]?.date ?? '0000-01-01'), DUPLICATE_WINDOW_DAYS)),
         ),
@@ -205,6 +215,16 @@ export async function finishImportJob(workspaceId: string, batchId: string, erro
     .update(importBatches)
     .set({ job: null, jobError: error ?? null, jobFinishedAt: new Date() })
     .where(and(eq(importBatches.id, batchId), eq(importBatches.workspaceId, workspaceId)));
+}
+
+/** Mês de referência da fatura que o arquivo representa (pelo lançamento mais recente). */
+async function targetInvoiceMonth(accountId: string, rows: { date: string }[]) {
+  const [card] = await getDb()
+    .select({ closingDay: creditCardDetails.closingDay, dueDay: creditCardDetails.dueDay })
+    .from(creditCardDetails)
+    .where(eq(creditCardDetails.accountId, accountId));
+  const latest = rows.reduce((max, row) => (row.date > max ? row.date : max), rows[0]?.date ?? '');
+  return card && latest ? invoiceForPurchase(latest, card.closingDay, card.dueDay).referenceMonth : null;
 }
 
 async function findBatch(workspaceId: string, batchId: string) {
