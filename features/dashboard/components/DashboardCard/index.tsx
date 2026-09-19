@@ -1,4 +1,5 @@
 import { Panel } from '@/components/ui/Panel';
+import { classMerge } from '@/lib/utils';
 import type { Icons } from '@/components/ui/Icon';
 import type * as React from 'react';
 
@@ -33,7 +34,9 @@ export function DashboardCard({
   children,
 }: DashboardCardProps) {
   return (
-    <Panel.Root className={className}>
+    // `h-full` + `grow` no corpo: lado a lado na grade, o card acompanha a altura
+    // do vizinho sem deixar uma faixa do fundo afundado sobrando embaixo.
+    <Panel.Root className={classMerge('h-full', className)}>
       <Panel.Header>
         <Panel.HeaderText>
           <Panel.Title>{title}</Panel.Title>
@@ -41,7 +44,7 @@ export function DashboardCard({
         </Panel.HeaderText>
         {action}
       </Panel.Header>
-      <Panel.Body>
+      <Panel.Body className="grow">
         <Panel.QueryState
           isLoading={isLoading}
           isError={isError}

@@ -150,6 +150,25 @@ export const MonthlyBalanceWithDeficit: Story = {
   },
 };
 
+/**
+ * Reproduz o bug da faixa escura: lado a lado, o card mais baixo esticava até a
+ * altura do vizinho e deixava o fundo afundado aparecendo embaixo do corpo.
+ */
+export const SideBySide: Story = {
+  parameters: { wide: true },
+  render: () => (
+    <div className="grid gap-4 md:grid-cols-2">
+      <MonthlyBalance data={evolutionWithDeficitFixture} />
+      <MonthlyEvolution data={evolutionFixture} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const [balance, evolution] = Array.from(canvasElement.querySelectorAll('[data-panel-body]'));
+    // Os dois corpos terminam na mesma linha: nenhum deixa faixa de fundo sobrando.
+    await expect(balance?.getBoundingClientRect().bottom).toBe(evolution?.getBoundingClientRect().bottom);
+  },
+};
+
 export const Categories: Story = {
   render: () => (
     <CategoryBreakdown data={categoryBreakdownFixture} transactionsHref={(id) => `/transacoes?categoria=${id ?? ''}`} />
