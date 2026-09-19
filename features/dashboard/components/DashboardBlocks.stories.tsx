@@ -2,6 +2,8 @@ import { BalanceOverview } from '@/features/dashboard/components/BalanceOverview
 import { Cashflow, extremes } from '@/features/dashboard/components/Cashflow';
 import { CategoryBreakdown } from '@/features/dashboard/components/CategoryBreakdown';
 import { DashboardCard } from '@/features/dashboard/components/DashboardCard';
+import { MonthlyBalance, balanceSummary } from '@/features/dashboard/components/MonthlyBalance';
+import { barWidth } from '@/features/dashboard/components/MonthlyBalanceBars';
 import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvolution';
 import { PeriodSummary, percentChange } from '@/features/dashboard/components/PeriodSummary';
 import { RecentTransactions } from '@/features/dashboard/components/RecentTransactions';
@@ -13,6 +15,7 @@ import {
   cashflowNegativeFixture,
   categoryBreakdownFixture,
   evolutionFixture,
+  evolutionWithDeficitFixture,
   monthResultFixture,
   recentFixture,
   upcomingFixture,
@@ -111,6 +114,39 @@ export const CashflowEmpty: Story = {
   render: () => <Cashflow data={[]} />,
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByText('Sem lançamentos no período')).toBeInTheDocument();
+  },
+};
+
+export const MonthlyBalanceBlock: Story = {
+  render: () => <MonthlyBalance data={evolutionFixture} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const summary = within(canvas.getByLabelText('Resumo dos meses'));
+    await expect(summary.getByText(/\+R\$.2\.219,93/)).toBeInTheDocument();
+    await expect(summary.getByText('6 de 6 meses')).toBeInTheDocument();
+    // Com tudo no azul, o melhor mês é agosto.
+    await expect(summary.getByText('Agosto de 2026')).toBeInTheDocument();
+    // Uma linha por mês, com o valor escrito ao lado da barra.
+    const list = within(canvas.getByRole('list', { name: 'Resultado por mês' }));
+    await expect(list.getAllByRole('listitem')).toHaveLength(6);
+    await expect(list.getByText(/\+R\$.3\.100,00/)).toBeInTheDocument();
+    await expect(balanceSummary([])).toBeNull();
+    // A maior barra ocupa metade do trilho (o lado dela inteiro).
+    await expect(barWidth(-310_000, 310_000)).toBe(50);
+    await expect(barWidth(155_000, 310_000)).toBe(25);
+    await expect(barWidth(100, 0)).toBe(0);
+  },
+};
+
+export const MonthlyBalanceWithDeficit: Story = {
+  render: () => <MonthlyBalance data={evolutionWithDeficitFixture} />,
+  play: async ({ canvasElement }) => {
+    const summary = within(within(canvasElement).getByLabelText('Resumo dos meses'));
+    // Dois meses no vermelho derrubam a média, mas ela segue positiva.
+    await expect(summary.getByText(/\+R\$.586,60/)).toBeInTheDocument();
+    await expect(summary.getByText('4 de 6 meses')).toBeInTheDocument();
+    const list = within(within(canvasElement).getByRole('list', { name: 'Resultado por mês' }));
+    await expect(list.getByText(/-R\$.3\.582,00/)).toBeInTheDocument();
   },
 };
 

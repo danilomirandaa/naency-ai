@@ -5,6 +5,7 @@ import { dashboardQuery } from '@/features/dashboard/api/dashboard.queries';
 import { BalanceOverview } from '@/features/dashboard/components/BalanceOverview';
 import { Cashflow } from '@/features/dashboard/components/Cashflow';
 import { CategoryBreakdown } from '@/features/dashboard/components/CategoryBreakdown';
+import { MonthlyBalance } from '@/features/dashboard/components/MonthlyBalance';
 import { MonthlyEvolution } from '@/features/dashboard/components/MonthlyEvolution';
 import { PeriodSummary } from '@/features/dashboard/components/PeriodSummary';
 import { RecentTransactions } from '@/features/dashboard/components/RecentTransactions';
@@ -66,7 +67,10 @@ export function DashboardScreen({ workspaceId, workspaceName, canEdit, today, pe
               categoryId ? `${transactionsHref('expense')}&categoria=${categoryId}` : transactionsHref('expense')
             }
           />
-          <MonthlyEvolution data={evolution.data} isLoading={evolution.isPending} isError={evolution.isError} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <MonthlyBalance data={evolution.data} isLoading={evolution.isPending} isError={evolution.isError} />
+            <MonthlyEvolution data={evolution.data} isLoading={evolution.isPending} isError={evolution.isError} />
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           <BalanceOverview data={balances.data} isLoading={balances.isPending} isError={balances.isError} />

@@ -103,6 +103,16 @@ export const evolutionFixture: EvolutionPoint[] = [
   { month: '2026-09', incomeCents: 850_000, expenseCents: -612_340 },
 ];
 
+/** Com dois meses no vermelho: a barra muda de cor e a média cai. */
+export const evolutionWithDeficitFixture: EvolutionPoint[] = [
+  { month: '2026-04', incomeCents: 850_000, expenseCents: -702_000 },
+  { month: '2026-05', incomeCents: 620_000, expenseCents: -795_000 },
+  { month: '2026-06', incomeCents: 910_000, expenseCents: -720_500 },
+  { month: '2026-07', incomeCents: 540_000, expenseCents: -898_200 },
+  { month: '2026-08', incomeCents: 850_000, expenseCents: -540_000 },
+  { month: '2026-09', incomeCents: 850_000, expenseCents: -612_340 },
+];
+
 export const upcomingFixture: UpcomingItem[] = [
   { type: 'transaction', id: 'u1', date: '2026-09-14', description: 'Conta de luz', amountCents: -18_990, accountName: 'Nubank' },
   { type: 'transaction', id: 'u2', date: '2026-09-17', description: 'Internet', amountCents: -9_990, accountName: 'Nubank' },

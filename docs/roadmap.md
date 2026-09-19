@@ -79,7 +79,7 @@ mais um banco, em PDF, CSV e OFX, colocados em `.samples/`.
 
 - [x] Blocos do [dashboard](./dashboard.md): resultado do mês com comparação, categorias (com subcategorias), evolução de 6 meses, saldos e dívida de cartões, a vencer (previstos e faturas), últimos lançamentos e checklist de configuração; seletor de mês na URL; uma query por bloco
 - [x] "O que mudou": últimos lançamentos com quem lançou
-- [x] Visão geral redesenhada: faixa de indicadores com variação sobre o período anterior (`StatCard`) e curva do que sobrou dia a dia (`Cashflow`)
+- [x] Visão geral redesenhada: faixa de indicadores com variação sobre o período anterior (`StatCard`), curva do que sobrou dia a dia (`Cashflow`) e balanço mês a mês (`MonthlyBalance`)
 - [ ] `activity_log` para ações além de lançamentos (importações, convites, pagamentos)
 
 ## Fase 5 · Planejamento e assistente

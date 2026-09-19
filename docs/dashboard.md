@@ -12,7 +12,8 @@ Entidades em [domínio](./domain.md).
 | Ganhamos mais do que gastamos? | **Receitas × despesas × resultado** na faixa do topo, cada um com a variação sobre o período anterior | `transactions` (sem transferências) |
 | O mês está no azul? | **Curva do que sobrou, dia a dia** (`Cashflow`), com o melhor e o pior dia | `transactions` agrupadas por data |
 | Para onde foi o dinheiro? | **Despesas por categoria**, com subcategorias ao aprofundar | `transactions` + `categories` |
-| Estamos melhorando? | **Evolução de 6 a 12 meses** (receitas, despesas, resultado) | `transactions` |
+| Sobrou em quais meses? | **Balanço mensal** (`MonthlyBalance`): resultado de cada mês em barras divergentes, com média e quantos fecharam no azul | mesmo bloco `evolucao` |
+| Estamos melhorando? | **Evolução de 6 a 12 meses** (receitas, despesas) | `transactions` |
 | Quanto devemos no cartão? | **Faturas**: aberta atual, próximo vencimento, limite usado | `card_invoices`, `credit_card_details` |
 | O que vence em breve? | **Próximas contas e parcelas** (7 a 30 dias) | lançamentos `planned`, `recurring_rules`, `installment_groups` |
 | O que mudou? | **Últimos lançamentos** com quem lançou | `transactions` + `activity_log` |
@@ -28,7 +29,8 @@ A ordem é a ordem em que a pergunta aparece na cabeça de quem abre o app:
 2. **Curva do período** (`Cashflow`), o bloco de maior área: mostra a tendência,
    que nenhum número sozinho mostra. Começa em zero no primeiro dia do período —
    ela responde "o período está no azul?", não "quanto tenho na conta".
-3. **Para onde foi o dinheiro** e **evolução dos meses**, na mesma coluna.
+3. **Para onde foi o dinheiro** e, lado a lado, **balanço mensal** e **evolução
+   dos meses** — o balanço responde "sobrou?" e a evolução, "de onde veio?".
 4. **Coluna lateral**: saldo por conta, o que vence e os últimos lançamentos.
 
 ## Regras
@@ -62,7 +64,9 @@ curva do período em área (`CashflowChart`, **o único sobre ECharts**, com a c
 virando vermelha quando o período fecha no vermelho),
 evolução em colunas (`EvolutionChart`) e categorias em rosca com o total no
 centro (`CategoryDonut`), acima da lista com barras. Valor no eixo usa
-`formatMoneyCompact` ("R$ 2,4 mil"); o exato fica no tooltip. Ao criar um gráfico novo,
+`formatMoneyCompact` ("R$ 2,4 mil"); o exato fica no tooltip. O balanço mensal
+é a exceção: com seis barras divergentes, CSS lê melhor que gráfico e cada valor
+fica escrito ao lado, sem depender de passar o mouse. Ao criar um gráfico novo,
 carregar a skill `dataviz` e usar os tokens `chart-*` (escalas) e `finance-*`
 (receita, despesa, transferência) de `app/globals.css`. Os gráficos precisam
 funcionar em light e dark.
