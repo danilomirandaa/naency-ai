@@ -318,7 +318,7 @@ export function TransactionsTable({
         getRowKey={(item) => item.id}
         manual
         stretch
-        size="sm"
+        size="xs"
         isLoading={isLoading}
         isError={isError}
         errorMessage="Não foi possível carregar os lançamentos"
