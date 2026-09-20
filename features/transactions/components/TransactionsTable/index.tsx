@@ -222,7 +222,7 @@ export function TransactionsTable({
       sortable: true,
       cell: (item) => (
         <Badge>
-          <AccountAvatar type={item.account.type} institution={item.account.institution} size="sm" />
+          <AccountAvatar type={item.account.type} institution={item.account.institution} size="xs" />
           {item.kind === 'transfer' && item.transfer
             ? item.amountCents < 0
               ? `${item.account.name} → ${item.transfer.counterpartAccountName}`
@@ -238,7 +238,7 @@ export function TransactionsTable({
       cell: (item) =>
         item.category ? (
           <Badge title={item.category.parentName ? `${item.category.parentName} › ${item.category.name}` : undefined}>
-            <CategoryIcon icon={item.category.icon} color={item.category.color} size="sm" />
+            <CategoryIcon icon={item.category.icon} color={item.category.color} size="xs" />
             {item.category.name}
           </Badge>
         ) : item.kind === 'transfer' ? (

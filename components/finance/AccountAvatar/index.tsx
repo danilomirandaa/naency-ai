@@ -14,7 +14,7 @@ export const ACCOUNT_TYPE_ICONS: Record<AccountType, Icons> = {
 export type AccountAvatarProps = {
   type: AccountType;
   institution: { name: string; color: string } | null;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   className?: string;
 };
 
@@ -35,7 +35,11 @@ export function AccountAvatar({ type, institution, size = 'md', className }: Acc
       aria-hidden
       className={classMerge(
         'flex shrink-0 items-center justify-center bg-background-neutral-100 text-icon-neutral-rest',
-        size === 'sm' ? 'size-5 rounded-[5px] [&_svg]:size-3.5' : 'size-8 rounded-control-sm [&_svg]:size-4',
+        size === 'xs'
+          ? 'size-4 rounded-[4px] [&_svg]:size-2.5'
+          : size === 'sm'
+            ? 'size-5 rounded-[5px] [&_svg]:size-3.5'
+            : 'size-8 rounded-control-sm [&_svg]:size-4',
         className,
       )}
     >
