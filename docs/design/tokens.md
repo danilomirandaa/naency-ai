@@ -19,7 +19,12 @@ dark.
 | `button`     | `bg-`                | `bg-button-brand-primary-hover`        |
 
 Famílias: `neutral`, `brand-primary`, `brand-accent`, `status-critical`,
-`status-success`, `status-warning`, `finance`.
+`status-success`, `status-warning`, `status-info`, `finance`.
+
+`status-info` é o índigo do que **se repete** (recorrente, parcela). Ele existe
+porque verde já é receita e vermelho já é despesa ou atraso: repetição não é nem
+uma coisa nem outra, e pintar de verde faria "Recorrente" parecer entrada de
+dinheiro.
 Estados: `rest` → `hover` → `pressed` (e `disabled`).
 
 **`-strong`**: variante escura de `background-status-critical` e

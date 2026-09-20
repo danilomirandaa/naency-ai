@@ -149,6 +149,7 @@
   --color-background-status-critical-rest: var(--background-status-critical-rest);
   --color-background-status-critical-strong: var(--background-status-critical-strong);
   --color-background-status-success-strong: var(--background-status-success-strong);
+  --color-background-status-info-rest: var(--background-status-info-rest);
   --color-background-status-success-rest: var(--background-status-success-rest);
   --color-background-status-warning-rest: var(--background-status-warning-rest);
 
@@ -167,6 +168,7 @@
   --color-typography-status-critical-hover: var(--typography-status-critical-hover);
   --color-typography-status-critical-pressed: var(--typography-status-critical-pressed);
   --color-typography-status-success-rest: var(--typography-status-success-rest);
+  --color-typography-status-info-rest: var(--typography-status-info-rest);
   --color-typography-status-success-pressed: var(--typography-status-success-pressed);
   --color-typography-status-warning-rest: var(--typography-status-warning-rest);
 
@@ -175,6 +177,7 @@
   --color-border-neutral-hover: var(--border-neutral-hover);
   --color-border-neutral-disabled: var(--border-neutral-disabled);
   --color-border-status-critical-rest: var(--border-status-critical-rest);
+  --color-border-status-info-rest: var(--border-status-info-rest);
   --color-border-status-critical-hover: var(--border-status-critical-hover);
 
   --color-icon-neutral-subtle: var(--icon-neutral-subtle);
@@ -244,6 +247,8 @@
   --background-status-success-rest: oklch(0.6 0.1355 177.53);
   /* Escuro o bastante para texto branco por cima (contraste 4.7). */
   --background-status-success-strong: oklch(0.52 0.1355 177.53);
+  /* Índigo: o que se repete (recorrente, parcela) — nem receita, nem alerta. */
+  --background-status-info-rest: oklch(0.55 0.23 277);
   --background-status-warning-rest: oklch(0.8 0.16 86);
 
   --typography-neutral-primary: oklch(0.141 0.005 285.823);
@@ -261,6 +266,7 @@
   --typography-status-critical-hover: oklch(0.5 0.21 18);
   --typography-status-critical-pressed: oklch(0.46 0.19 18);
   --typography-status-success-rest: oklch(0.495 0.13 163);
+  --typography-status-info-rest: oklch(0.48 0.22 277);
   --typography-status-success-pressed: oklch(0.43 0.12 163);
   --typography-status-warning-rest: oklch(0.525 0.15 70);
 
@@ -269,6 +275,7 @@
   --border-neutral-hover: #95a4b9;
   --border-neutral-disabled: #e0e7ee;
   --border-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --border-status-info-rest: oklch(0.62 0.18 277);
   --border-status-critical-hover: oklch(0.55 0.2 23);
 
   --icon-neutral-subtle: oklch(0.705 0.015 286.067);
@@ -337,6 +344,7 @@
   --background-status-critical-strong: oklch(0.57 0.2069 23.39);
   --background-status-success-rest: oklch(0.6 0.1355 177.53);
   --background-status-success-strong: oklch(0.52 0.1355 177.53);
+  --background-status-info-rest: oklch(0.62 0.2 277);
   --background-status-warning-rest: oklch(0.84 0.16 84);
 
   --typography-neutral-primary: oklch(0.985 0 0);
@@ -354,6 +362,7 @@
   --typography-status-critical-hover: oklch(0.77 0.15 13);
   --typography-status-critical-pressed: oklch(0.68 0.17 13);
   --typography-status-success-rest: oklch(0.77 0.15 163);
+  --typography-status-info-rest: oklch(0.75 0.15 277);
   --typography-status-success-pressed: oklch(0.7 0.15 163);
   --typography-status-warning-rest: oklch(0.84 0.16 84);
 
@@ -362,6 +371,7 @@
   --border-neutral-hover: oklch(1 0 0 / 22%);
   --border-neutral-disabled: oklch(1 0 0 / 6%);
   --border-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --border-status-info-rest: oklch(0.58 0.16 277);
   --border-status-critical-hover: oklch(0.68 0.19 23);
 
   --icon-neutral-subtle: oklch(0.552 0.016 285.938);

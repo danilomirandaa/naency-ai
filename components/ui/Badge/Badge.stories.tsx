@@ -53,6 +53,10 @@ export const Labels: Story = {
         <Icon icon="recurring" aria-hidden />
         Recorrente
       </Badge>
+      <Badge variant="outline" tone="info">
+        <Icon icon="recurring" aria-hidden />
+        Recorrente
+      </Badge>
       <Badge>Parcela 2/10</Badge>
       <Badge>Boleto</Badge>
     </div>
@@ -64,7 +68,7 @@ export const Variants: Story = {
     <div className="flex flex-col gap-3">
       {(['solid', 'outline', 'neutral'] as const).map((variant) => (
         <div key={variant} className="flex items-center gap-3">
-          {(['critical', 'success', 'neutral'] as const).map((tone) => (
+          {(['critical', 'success', 'info', 'neutral'] as const).map((tone) => (
             <Badge key={tone} variant={variant} tone={tone}>
               {variant} · {tone}
             </Badge>

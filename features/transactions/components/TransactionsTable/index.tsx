@@ -262,22 +262,34 @@ export function TransactionsTable({
     {
       key: 'type',
       header: 'Tipo',
-      cell: (item) =>
-        item.recurring ? (
-          // Mesma tabela, mesma pílula: misturar dois formatos de selo polui a linha.
+      cell: (item) => {
+        // O que se repete fica em destaque enquanto não está resolvido; depois de
+        // pago acompanha o cinza da linha, como o resto.
+        const settled = transactionSituation(item.status, item.date, today) === 'paid';
+        const repeating = settled ? {} : ({ variant: 'outline', tone: 'info' } as const);
+        if (item.recurring) {
+          return (
+            <Badge {...repeating}>
+              <Icon icon="recurring" aria-hidden />
+              Recorrente
+            </Badge>
+          );
+        }
+        if (item.installment) {
+          return (
+            <Badge {...repeating}>
+              <Icon icon="calendar" aria-hidden />
+              Parcela {item.installment.number}/{item.installment.total}
+            </Badge>
+          );
+        }
+        return (
           <Badge>
-            <Icon icon="recurring" aria-hidden />
-            Recorrente
+            <Icon icon="receipt" aria-hidden />
+            À vista
           </Badge>
-        ) : item.installment ? (
-          <Badge>
-            Parcela {item.installment.number}/{item.installment.total}
-          </Badge>
-        ) : (
-          <Text size="sm" color="secondary">
-            Única
-          </Text>
-        ),
+        );
+      },
     },
     {
       key: 'paidAt',

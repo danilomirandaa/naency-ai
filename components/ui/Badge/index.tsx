@@ -2,7 +2,7 @@ import { classMerge } from '@/lib/utils';
 import type * as React from 'react';
 
 export type BadgeVariant = 'solid' | 'outline' | 'neutral';
-export type BadgeTone = 'critical' | 'success' | 'neutral';
+export type BadgeTone = 'critical' | 'success' | 'info' | 'neutral';
 
 /**
  * O peso visual acompanha a urgência: `solid` salta da linha, `outline` chama
@@ -14,6 +14,7 @@ const VARIANTS: Record<BadgeVariant, Record<BadgeTone, string>> = {
     // O vermelho sólido é o `-strong`: o `-rest` não tem contraste para texto branco.
     critical: 'bg-background-status-critical-strong text-typography-neutral-on-color',
     success: 'bg-background-status-success-strong text-typography-neutral-on-color',
+    info: 'bg-background-status-info-rest text-typography-neutral-on-color',
     neutral: 'bg-background-neutral-inverse text-typography-neutral-inverse',
   },
   outline: {
@@ -22,11 +23,13 @@ const VARIANTS: Record<BadgeVariant, Record<BadgeTone, string>> = {
     // Não há token de borda para sucesso: o próprio fundo com alpha faz o contorno.
     success:
       'bg-background-status-success-rest/8 text-typography-status-success-rest ring-1 ring-background-status-success-rest/40 ring-inset',
+    info: 'bg-background-status-info-rest/8 text-typography-status-info-rest ring-1 ring-border-status-info-rest ring-inset',
     neutral: 'text-typography-neutral-secondary ring-1 ring-border-neutral-rest ring-inset',
   },
   neutral: {
     critical: 'bg-background-neutral-100 text-typography-neutral-secondary ring-1 ring-border-neutral-subtle ring-inset',
     success: 'bg-background-neutral-100 text-typography-neutral-secondary ring-1 ring-border-neutral-subtle ring-inset',
+    info: 'bg-background-neutral-100 text-typography-neutral-secondary ring-1 ring-border-neutral-subtle ring-inset',
     neutral: 'bg-background-neutral-100 text-typography-neutral-secondary ring-1 ring-border-neutral-subtle ring-inset',
   },
 };
