@@ -34,12 +34,13 @@ describe('transactionSituation', () => {
 
   it('rótulo segue o tipo', () => {
     expect(situationLabel('pending', 'expense')).toBe('A pagar');
-    expect(situationLabel('paid', 'expense')).toBe('Paga');
+    expect(situationLabel('paid', 'expense')).toBe('Pago');
     expect(situationLabel('pending', 'income')).toBe('A receber');
-    expect(situationLabel('paid', 'income')).toBe('Recebida');
-    expect(situationLabel('pending', 'transfer')).toBe('Prevista');
-    expect(situationLabel('paid', 'transfer')).toBe('Efetivada');
-    expect(situationLabel('overdue', 'income')).toBe('Atrasada');
+    expect(situationLabel('paid', 'income')).toBe('Recebido');
+    expect(situationLabel('pending', 'transfer')).toBe('Previsto');
+    expect(situationLabel('paid', 'transfer')).toBe('Efetivado');
+    // Em atraso não muda com o tipo: o que importa é que venceu.
+    expect(situationLabel('overdue', 'income')).toBe('Em atraso');
   });
 });
 

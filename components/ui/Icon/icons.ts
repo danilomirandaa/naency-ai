@@ -64,6 +64,7 @@ import { IconPen } from '@devigner-ui/icons/Pen';
 import { IconPieChart2 } from '@devigner-ui/icons/PieChart2';
 import { IconQuestionCircle } from '@devigner-ui/icons/QuestionCircle';
 import { IconReceiptText } from '@devigner-ui/icons/ReceiptText';
+import { IconReceipt } from '@devigner-ui/icons/Receipt';
 import { IconRepeat } from '@devigner-ui/icons/Repeat';
 import { IconSafeSquare } from '@devigner-ui/icons/SafeSquare';
 import { IconScissors } from '@devigner-ui/icons/Scissors';
@@ -152,6 +153,7 @@ export const icons = {
   expense: IconArrowRightUp,
   transfer: IconTransferHorizontal,
   recurring: IconRepeat,
+  receipt: IconReceipt,
   wallet: IconWallet,
   'credit-card': IconCard,
   invoice: IconBillList,

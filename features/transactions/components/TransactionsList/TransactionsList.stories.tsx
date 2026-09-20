@@ -42,7 +42,7 @@ export const Editor: Story = {
     await expect(canvas.getByText('Sem categoria · Carteira')).toBeInTheDocument();
     await expect(canvas.getByText('+R$ 8.500,00')).toBeInTheDocument();
     // Previsto com data passada aparece como atrasado.
-    await expect(canvas.getByText('Atrasada')).toBeInTheDocument();
+    await expect(canvas.getByText('Em atraso')).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole('button', { name: 'Marcar Conta de luz como efetivado' }));
     await expect(args.onStatusChange).toHaveBeenCalledWith(transactionsFixture[0], 'cleared');

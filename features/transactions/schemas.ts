@@ -1,4 +1,5 @@
 import { isIsoDate } from '@/lib/dates';
+import { RECURRENCE_FREQUENCIES, type RecurrenceFrequency } from '@/lib/recurrence';
 import { PAYMENT_METHODS, TRANSACTION_STATUSES } from '@/lib/transactions';
 import { z } from 'zod';
 
@@ -77,13 +78,28 @@ export type TransactionFormValues = {
   toAccountId: string;
   categoryId: string;
   installments: string;
+  repeat: string;
+  frequency: string;
 };
 
 export type TransactionFieldName = keyof TransactionFormValues;
 
+/**
+ * Como o lançamento se repete. `installments` e `recurring` mudam o que é
+ * criado: parcelas viram N lançamentos, e recorrente vira uma regra que gera os
+ * previstos (docs/domain.md).
+ */
+export const TRANSACTION_REPEATS = ['once', 'installments', 'recurring'] as const;
+export type TransactionRepeat = (typeof TRANSACTION_REPEATS)[number];
+
+export function isTransactionRepeat(value: string): value is TransactionRepeat {
+  return (TRANSACTION_REPEATS as readonly string[]).includes(value);
+}
+
 export type TransactionFormState =
   | { status: 'idle' }
-  | { status: 'saved'; transactionId: string }
+  // Recorrente não cria lançamento, cria regra: por isso o id é opcional.
+  | { status: 'saved'; transactionId: string | null }
   | {
       status: 'error';
       message: string;
@@ -92,6 +108,47 @@ export type TransactionFormState =
     };
 
 export const initialTransactionFormState: TransactionFormState = { status: 'idle' };
+
+export type RecurringFromTransaction = {
+  kind: 'expense' | 'income';
+  description: string;
+  amountCents: number;
+  accountId: string;
+  categoryId: string | null;
+  frequency: RecurrenceFrequency;
+  startDate: string;
+  endDate: null;
+};
+
+/**
+ * Converte o lançamento do formulário na regra de recorrência: os campos são os
+ * mesmos, e a data do lançamento vira a primeira ocorrência. Transferência não
+ * vira regra — a recorrência é de receita ou despesa (docs/domain.md).
+ */
+export function recurringFromTransaction(
+  data: TransactionInput,
+  frequency: string,
+): { success: true; data: RecurringFromTransaction } | { success: false; field: TransactionFieldName; message: string } {
+  if (data.kind === 'transfer') {
+    return { success: false, field: 'repeat', message: 'Transferência não pode ser recorrente.' };
+  }
+  if (!(RECURRENCE_FREQUENCIES as readonly string[]).includes(frequency)) {
+    return { success: false, field: 'frequency', message: 'Escolha a frequência.' };
+  }
+  return {
+    success: true,
+    data: {
+      kind: data.kind,
+      description: data.description,
+      amountCents: data.amountCents,
+      accountId: data.accountId,
+      categoryId: data.categoryId,
+      frequency: frequency as RecurrenceFrequency,
+      startDate: data.date,
+      endDate: null,
+    },
+  };
+}
 
 const FIELDS: TransactionFieldName[] = [
   'kind',
@@ -106,6 +163,8 @@ const FIELDS: TransactionFieldName[] = [
   'toAccountId',
   'categoryId',
   'installments',
+  'repeat',
+  'frequency',
 ];
 
 function text(formData: FormData, key: string) {
@@ -128,6 +187,8 @@ export function readTransactionForm(formData: FormData): TransactionFormValues {
     toAccountId: text(formData, 'toAccountId'),
     categoryId: text(formData, 'categoryId'),
     installments: text(formData, 'installments'),
+    repeat: text(formData, 'repeat'),
+    frequency: text(formData, 'frequency'),
   };
 }
 

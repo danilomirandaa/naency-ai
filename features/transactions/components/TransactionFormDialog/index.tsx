@@ -8,16 +8,20 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { DialogClose, makeResponsiveDialog } from '@/components/ui/Dialog';
 import { Field, Input } from '@/components/ui/Input';
 import { Panel } from '@/components/ui/Panel';
+import { Icon } from '@/components/ui/Icon';
 import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import { Tabs } from '@/components/ui/Tabs';
 import { Text } from '@/components/ui/Text';
+import { RECURRENCE_FREQUENCIES, RECURRENCE_FREQUENCY_LABELS } from '@/lib/recurrence';
 import {
   type TransactionFieldName,
   type TransactionFormState,
   type TransactionFormValues,
+  type TransactionRepeat,
   initialTransactionFormState,
+  isTransactionRepeat,
 } from '@/features/transactions/schemas';
 import type { TransactionItem } from '@/features/transactions/types';
 import {
@@ -27,6 +31,7 @@ import {
   TRANSACTION_KIND_LABELS,
   type TransactionKind,
 } from '@/lib/transactions';
+import { classMerge } from '@/lib/utils';
 import * as React from 'react';
 
 export type TransactionFormAction = (
@@ -97,6 +102,8 @@ function valuesFromTransaction(
       toAccountId: '',
       categoryId: '',
       installments: '1',
+      repeat: 'once',
+      frequency: 'monthly',
     };
   }
   const isIncomingLeg = transaction.kind === 'transfer' && transaction.amountCents > 0;
@@ -119,6 +126,9 @@ function valuesFromTransaction(
           : (transaction.transfer?.counterpartAccountId ?? ''),
     categoryId: transaction.category?.id ?? '',
     installments: '1',
+    // Editar mexe num lançamento que já existe; repetição só na criação.
+    repeat: 'once',
+    frequency: 'monthly',
   };
 }
 
@@ -146,7 +156,9 @@ function TransactionFormDialogContent({
 
   React.useEffect(() => {
     if (state.status === 'saved') {
-      onSaved?.(state.transactionId);
+      if (state.transactionId) {
+        onSaved?.(state.transactionId);
+      }
       onOpenChange(false);
     }
     // Só reage à mudança de estado da action.
@@ -215,11 +227,37 @@ function TransactionFormFields({
   const [accountId, setAccountId] = React.useState<string | null>(values.accountId || null);
   const [cleared, setCleared] = React.useState(values.status !== 'planned');
   const [installments, setInstallments] = React.useState(values.installments || '1');
+  const [repeat, setRepeat] = React.useState<TransactionRepeat>(
+    isTransactionRepeat(values.repeat) ? values.repeat : 'once',
+  );
+  const [frequency, setFrequency] = React.useState(values.frequency || 'monthly');
   const [paymentMethod, setPaymentMethod] = React.useState(values.paymentMethod);
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const canSplit = !isEdit && kind === 'expense' && selectedAccount?.type === 'credit_card';
-  const statusId = React.useId();
+  // Transferência não vira regra (a recorrência é de receita ou despesa) e
+  // editar mexe no que já existe: nos dois casos o seletor não aparece.
   const isTransfer = kind === 'transfer';
+  const canRepeat = !isEdit && !isTransfer;
+  const repeatOptions = [
+    { value: 'once' as const, label: 'À vista', icon: 'receipt' as const, iconClassName: 'text-icon-finance-expense' },
+    ...(canSplit
+      ? [
+          {
+            value: 'installments' as const,
+            label: 'Parcelada',
+            icon: 'calendar' as const,
+            iconClassName: 'text-icon-status-warning-rest',
+          },
+        ]
+      : []),
+    {
+      value: 'recurring' as const,
+      label: 'Recorrente',
+      icon: 'recurring' as const,
+      iconClassName: 'text-icon-brand-primary-rest',
+    },
+  ];
+  const statusId = React.useId();
 
   return (
     <form id={FORM_ID} action={formAction} className="flex flex-col gap-4" noValidate>
@@ -233,6 +271,11 @@ function TransactionFormFields({
             </Tabs.Tab>
           ))}
         </Tabs.List>
+        {/* Os campos do tipo ficam fora das abas, mas cada aba precisa do seu
+            painel: sem ele o `aria-controls` aponta para um id inexistente. */}
+        {TRANSACTION_KINDS.map((option) => (
+          <Tabs.Panel key={option} value={option} />
+        ))}
       </Tabs.Root>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -300,29 +343,68 @@ function TransactionFormFields({
         )}
       </div>
 
-      {canSplit && (
-        <Field
-          label="Parcelas"
-          error={fieldErrors.installments}
-          description={installments !== '1' ? 'Cada parcela entra na fatura do seu mês.' : undefined}
+      {canRepeat && (
+        <Tabs.Root
+          value={repeat}
+          onValueChange={(next) => isTransactionRepeat(next) && setRepeat(next)}
+          className="gap-3"
         >
-          {(control) => (
-            <Select.Root value={installments} onValueChange={setInstallments}>
-              <Select.Trigger {...control}>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content className="max-h-72">
-                {Array.from({ length: 24 }, (_, index) => String(index + 1)).map((count) => (
-                  <Select.Item key={count} value={count}>
-                    {count === '1' ? 'À vista' : `${count}x`}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
+          <Tabs.List aria-label="Como se repete" className="w-full">
+            {repeatOptions.map((option) => (
+              <Tabs.Tab key={option.value} value={option.value} className="flex-1">
+                <Icon icon={option.icon} aria-hidden className={classMerge('size-4', option.iconClassName)} />
+                {option.label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Tabs.Panel value="once" />
+          {canSplit && (
+            <Tabs.Panel value="installments">
+              <Field label="Parcelas" error={fieldErrors.installments} description="Cada parcela entra na fatura do seu mês.">
+                {(control) => (
+                  <Select.Root value={installments} onValueChange={setInstallments}>
+                    <Select.Trigger {...control}>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content className="max-h-72">
+                      {Array.from({ length: 23 }, (_, index) => String(index + 2)).map((count) => (
+                        <Select.Item key={count} value={count}>
+                          {count}x
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </Field>
+            </Tabs.Panel>
           )}
-        </Field>
+          <Tabs.Panel value="recurring">
+            <Field
+              label="Repete"
+              error={fieldErrors.frequency}
+              description="A data acima é a primeira; o Naency gera os próximos como previstos."
+            >
+              {(control) => (
+                <Select.Root value={frequency} onValueChange={setFrequency}>
+                  <Select.Trigger {...control}>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {RECURRENCE_FREQUENCIES.map((option) => (
+                      <Select.Item key={option} value={option}>
+                        {RECURRENCE_FREQUENCY_LABELS[option]}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            </Field>
+          </Tabs.Panel>
+        </Tabs.Root>
       )}
-      <input type="hidden" name="installments" value={canSplit ? installments : '1'} />
+      <input type="hidden" name="repeat" value={canRepeat ? repeat : 'once'} />
+      <input type="hidden" name="frequency" value={frequency} />
+      <input type="hidden" name="installments" value={repeat === 'installments' ? installments : '1'} />
 
       <div className="flex items-center justify-between gap-3 rounded-control border border-border-neutral-subtle px-3 py-2">
         <label htmlFor={statusId} className="flex flex-col">

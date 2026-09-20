@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseTransactionForm } from './schemas';
+import { parseTransactionForm, recurringFromTransaction } from './schemas';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -81,6 +81,65 @@ describe('parseTransactionForm', () => {
     expect(parseTransactionForm(form({ kind: 'x' }))).toMatchObject({
       status: 'error',
       fieldErrors: { kind: 'Escolha o tipo do lançamento.' },
+    });
+  });
+});
+
+describe('recurringFromTransaction', () => {
+  const expense = {
+    kind: 'expense',
+    amountCents: 130_000,
+    date: '2026-10-05',
+    description: 'Aluguel',
+    status: 'planned',
+    paymentMethod: null,
+    paidAt: null,
+    notes: null,
+    accountId: '0000000a-0000-4000-8000-000000000001',
+    categoryId: '0000000b-0000-4000-8000-000000000001',
+    installments: 1,
+  } as const;
+
+  it('a data do lançamento vira a primeira ocorrência', () => {
+    expect(recurringFromTransaction(expense, 'monthly')).toEqual({
+      success: true,
+      data: {
+        kind: 'expense',
+        description: 'Aluguel',
+        amountCents: 130_000,
+        accountId: expense.accountId,
+        categoryId: expense.categoryId,
+        frequency: 'monthly',
+        startDate: '2026-10-05',
+        endDate: null,
+      },
+    });
+  });
+
+  it('sem frequência válida, aponta o campo', () => {
+    expect(recurringFromTransaction(expense, '')).toEqual({
+      success: false,
+      field: 'frequency',
+      message: 'Escolha a frequência.',
+    });
+  });
+
+  it('transferência não vira regra', () => {
+    const transfer = {
+      kind: 'transfer',
+      amountCents: 100_000,
+      date: '2026-10-05',
+      description: 'Reserva',
+      status: 'cleared',
+      paymentMethod: null,
+      paidAt: null,
+      notes: null,
+      accountId: expense.accountId,
+      toAccountId: '0000000a-0000-4000-8000-000000000002',
+    } as const;
+    expect(recurringFromTransaction(transfer, 'monthly')).toMatchObject({
+      success: false,
+      field: 'repeat',
     });
   });
 });

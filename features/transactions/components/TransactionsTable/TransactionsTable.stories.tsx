@@ -67,18 +67,18 @@ export const Editor: Story = {
 
     const row = (description: string) => within(rows.find((item) => within(item).queryAllByText(description).length > 0) as HTMLElement);
     // Situação derivada de hoje: vencida é atrasada; futura, a pagar; efetivada, paga/recebida.
-    await expect(row('Conta de luz').getByText('Atrasada')).toBeInTheDocument();
+    await expect(row('Conta de luz').getByText('Em atraso')).toBeInTheDocument();
     // Hora do extrato embaixo da data: é ela que ordena o dia.
     await expect(row('Conta de luz').getByText('04:57')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('A pagar')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('Recorrente')).toBeInTheDocument();
     await expect(row('Escola Catherine').getByText('Boleto')).toBeInTheDocument();
-    await expect(row('Supermercado').getByText('Paga')).toBeInTheDocument();
+    await expect(row('Supermercado').getByText('Pago')).toBeInTheDocument();
     await expect(row('Supermercado').getByText('Débito')).toBeInTheDocument();
     // Data e "pago em" no mesmo dia.
     await expect(row('Supermercado').getAllByText('15/09/2026')).toHaveLength(2);
     await expect(row('TV (2/10)').getByText('Parcela 2/10')).toBeInTheDocument();
-    await expect(row('Salário').getByText('Recebida')).toBeInTheDocument();
+    await expect(row('Salário').getByText('Recebido')).toBeInTheDocument();
     await expect(row('Salário').getByText('+R$ 8.500,00')).toBeInTheDocument();
     await expect(row('Reserva do mês').getByText('Nubank → Reserva de emergência')).toBeInTheDocument();
     await expect(row('Padaria').getByText('Sem categoria')).toBeInTheDocument();

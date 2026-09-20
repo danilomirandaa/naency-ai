@@ -8,8 +8,15 @@ import {
   setTransactionStatus,
   updateTransaction,
 } from '@/server/dal/transactions';
+import { createRecurringRule } from '@/server/dal/recurring';
 import { revalidatePath } from 'next/cache';
-import { type TransactionFormState, parseTransactionForm, readTransactionForm } from './schemas';
+import {
+  type TransactionFormState,
+  type TransactionInput,
+  parseTransactionForm,
+  readTransactionForm,
+  recurringFromTransaction,
+} from './schemas';
 
 function failure(formData: FormData, error: unknown): TransactionFormState {
   const values = readTransactionForm(formData);
@@ -41,6 +48,10 @@ export async function createTransactionAction(
   if (!('success' in parsed)) {
     return parsed;
   }
+  // "Recorrente" não cria lançamento: cria a regra que gera os previstos.
+  if (formData.get('repeat') === 'recurring') {
+    return createRuleFromTransaction(workspaceId, formData, parsed.data);
+  }
   try {
     const { id } = await createTransaction(workspaceId, parsed.data);
     // Layout: a sidebar e a página de contas mostram saldos.
@@ -49,6 +60,33 @@ export async function createTransactionAction(
   } catch (error) {
     return failure(formData, error);
   }
+}
+
+/**
+ * O formulário de lançamento também cria recorrência. Os campos são os mesmos,
+ * só mudam a frequência e o fato de a data virar a primeira ocorrência.
+ */
+async function createRuleFromTransaction(
+  workspaceId: string,
+  formData: FormData,
+  data: TransactionInput,
+): Promise<TransactionFormState> {
+  const rule = recurringFromTransaction(data, String(formData.get('frequency') ?? ''));
+  if (!rule.success) {
+    return {
+      status: 'error',
+      message: rule.message,
+      fieldErrors: { [rule.field]: rule.message },
+      values: readTransactionForm(formData),
+    };
+  }
+  try {
+    await createRecurringRule(workspaceId, rule.data);
+  } catch (error) {
+    return failure(formData, error);
+  }
+  revalidatePath('/', 'layout');
+  return { status: 'saved', transactionId: null };
 }
 
 export async function updateTransactionAction(

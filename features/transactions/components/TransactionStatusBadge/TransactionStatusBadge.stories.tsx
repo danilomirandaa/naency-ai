@@ -27,13 +27,13 @@ export const AllSituations: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getAllByText('Atrasada')).toHaveLength(3);
+    await expect(canvas.getAllByText('Em atraso')).toHaveLength(3);
     // Vence hoje ainda não está atrasada.
     await expect(canvas.getByText('A pagar')).toBeInTheDocument();
-    await expect(canvas.getByText('Paga')).toBeInTheDocument();
+    await expect(canvas.getByText('Pago')).toBeInTheDocument();
     await expect(canvas.getByText('A receber')).toBeInTheDocument();
-    await expect(canvas.getByText('Recebida')).toBeInTheDocument();
-    await expect(canvas.getByText('Prevista')).toBeInTheDocument();
-    await expect(canvas.getByText('Efetivada')).toBeInTheDocument();
+    await expect(canvas.getByText('Recebido')).toBeInTheDocument();
+    await expect(canvas.getByText('Previsto')).toBeInTheDocument();
+    await expect(canvas.getByText('Efetivado')).toBeInTheDocument();
   },
 };

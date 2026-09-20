@@ -38,15 +38,18 @@ export function transactionSituation(status: TransactionStatus, date: string, to
   return date < today ? 'overdue' : 'pending';
 }
 
-/** Rótulo da situação no tipo do lançamento: "A pagar" em despesa, "Recebida" em receita. */
+/**
+ * Rótulo da situação no tipo do lançamento: "A pagar" em despesa, "Recebido" em
+ * receita. No masculino porque concorda com "lançamento".
+ */
 export function situationLabel(situation: TransactionSituation, kind: TransactionKind) {
   if (situation === 'overdue') {
-    return 'Atrasada';
+    return 'Em atraso';
   }
   const labels: Record<TransactionKind, [pending: string, paid: string]> = {
-    expense: ['A pagar', 'Paga'],
-    income: ['A receber', 'Recebida'],
-    transfer: ['Prevista', 'Efetivada'],
+    expense: ['A pagar', 'Pago'],
+    income: ['A receber', 'Recebido'],
+    transfer: ['Previsto', 'Efetivado'],
   };
   return labels[kind][situation === 'pending' ? 0 : 1];
 }

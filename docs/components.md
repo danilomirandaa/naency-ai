@@ -49,13 +49,18 @@ para `components/finance/`.
    `BudgetDialog`) ou no container que recebe `onDelete` (ex.:
    `TransactionsManager`). A story prova que nada acontece antes de confirmar.
    Arquivar não é exclusão (volta com um clique) e dispensa o modal.
-9. **Rótulo em tabela é `Badge`; em linha de lista é `Panel.RowBadge`.** O
+9. **Escolha entre poucas opções que mudam a tela é `Tabs`**, não um select nem
+   um controle novo: o formulário de lançamento usa as mesmas abas para o tipo
+   (despesa/receita/transferência) e para a repetição (à vista/parcelada/
+   recorrente). Aba sem `Tabs.Panel` deixa o `aria-controls` apontando para um id
+   que não existe e a a11y acusa — renderize o painel, mesmo vazio.
+10. **Rótulo em tabela é `Badge`; em linha de lista é `Panel.RowBadge`.** O
    `Badge` é a pílula arredondada (situação do lançamento, conta, categoria,
    forma de pagamento); o `RowBadge` é o selo pequeno e quadrado das linhas de
    lista, como "Possível duplicado" na importação. Numa mesma tabela não se
    misturam os dois. Selo sólido usa o token `-strong` do tom
    ([tokens](./design/tokens.md)), que é o único com contraste para texto branco.
-10. **Toda ação assíncrona termina com aviso.** Nada que demora (importar,
+11. **Toda ação assíncrona termina com aviso.** Nada que demora (importar,
    sugerir categorias, salvar em lote) acaba em silêncio: quem dispara recebe
    um toast (`useToast()`), e o que continua pendente aparece no sino do header.
    Ver [avisos](#avisos-toast-e-sino).

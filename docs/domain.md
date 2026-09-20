@@ -198,6 +198,10 @@ Regras:
   limitam ao fim do mês. Ocorrências anteriores à criação da regra não são geradas.
   Excluir uma ocorrência não faz ela voltar. Editar ou pausar a regra refaz só os
   previstos futuros; os efetivados ficam. Confirmar o pagamento os torna `cleared`.
+  A regra nasce no formulário de lançamento (abas **À vista · Parcelada ·
+  Recorrente**) ou em `/transacoes/recorrentes`. Pelo formulário, a data do
+  lançamento vira a primeira ocorrência e **nenhum lançamento é criado na hora**:
+  quem cria é a regra. Transferência não vira regra.
 - **`planned`** não entra no saldo atual; entra na projeção.
 - **Listagem**: sem filtro de conta, a transferência aparece uma vez (pela perna de
   saída); filtrando por conta, aparece a perna daquela conta.

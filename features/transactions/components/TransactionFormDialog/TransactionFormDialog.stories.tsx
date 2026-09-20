@@ -13,7 +13,11 @@ const [nubank, reserva, carteira] = accountsFixture.map((account) => account.id)
 async function fakeSave(_state: TransactionFormState, formData: FormData): Promise<TransactionFormState> {
   await new Promise((resolve) => setTimeout(resolve, 50));
   const parsed = parseTransactionForm(formData);
-  return 'success' in parsed ? { status: 'saved', transactionId: 'novo' } : parsed;
+  if (!('success' in parsed)) {
+    return parsed;
+  }
+  // Como a action real: recorrente cria regra, não lançamento, e volta sem id.
+  return { status: 'saved', transactionId: formData.get('repeat') === 'recurring' ? null : 'novo' };
 }
 
 const meta: Meta<typeof TransactionFormDialog> = {
@@ -82,8 +86,48 @@ export const CreateExpense: Story = {
       accountId: nubank,
       categoryId: categoryFixtureId('Alimentação/Padaria e café'),
       notes: '',
+      repeat: 'once',
+      frequency: 'monthly',
       installments: '1',
     });
+  },
+};
+
+export const CreateRecurring: Story = {
+  args: { defaultAccountId: nubank },
+  play: async ({ canvasElement, args }) => {
+    const dialog = await openDialog(canvasElement, 'Novo lançamento');
+    await userEvent.type(dialog.getByLabelText('Valor'), '130000');
+    await userEvent.type(dialog.getByLabelText('Descrição'), 'Aluguel');
+    await userEvent.click(dialog.getByRole('tab', { name: /Recorrente/ }));
+    // A frequência só aparece depois de escolher recorrente.
+    await expect(dialog.getByLabelText('Repete')).toBeInTheDocument();
+    await choose(dialog, 'Repete', 'Todo mês');
+    await userEvent.click(dialog.getByRole('button', { name: 'Lançar' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    // Recorrência não gera lançamento: nada de onSaved com id.
+    await expect(args.onSaved).not.toHaveBeenCalled();
+    await expect(lastFormData(args.action)).toMatchObject({
+      repeat: 'recurring',
+      frequency: 'monthly',
+      description: 'Aluguel',
+      installments: '1',
+    });
+  },
+};
+
+/** Estado do formulário com a recorrência escolhida (não envia). */
+export const RepeatOptions: Story = {
+  args: { defaultAccountId: nubank },
+  play: async ({ canvasElement }) => {
+    const dialog = await openDialog(canvasElement, 'Novo lançamento');
+    const repeat = dialog.getByRole('tablist', { name: 'Como se repete' });
+    // Sem cartão selecionado, "Parcelada" não entra: parcela é de fatura.
+    await expect(within(repeat).getAllByRole('tab')).toHaveLength(2);
+    await userEvent.click(within(repeat).getByRole('tab', { name: /Recorrente/ }));
+    await expect(dialog.getByLabelText('Repete')).toBeInTheDocument();
+    await expect(dialog.getByText('A data acima é a primeira; o Naency gera os próximos como previstos.')).toBeInTheDocument();
   },
 };
 
