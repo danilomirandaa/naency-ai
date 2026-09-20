@@ -47,7 +47,7 @@ export function Badge({ variant = 'neutral', tone = 'neutral', className, ...pro
   return (
     <span
       className={classMerge(
-        'inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 font-medium text-[11px] leading-4 [&_svg]:size-3 [&_svg]:shrink-0',
+        'inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2 py-0.5 font-medium text-[11px] leading-4 [&_svg]:size-3 [&_svg]:shrink-0',
         VARIANTS[variant][tone],
         className,
       )}

@@ -33,7 +33,9 @@ export function TransactionStatusBadge({ kind, status, date, today, className }:
   const situation = transactionSituation(status, date, today);
   return (
     <Badge {...STYLES[situation]} className={className}>
-      {situation === 'paid' && <Icon icon="check-double" aria-hidden />}
+      {/* O duplo check fica vermelho como no app antigo: é a marca de "baixado",
+          não um aviso — o texto e a pílula seguem neutros. */}
+      {situation === 'paid' && <Icon icon="check-double" aria-hidden className="text-icon-status-critical-rest" />}
       {situationLabel(situation, kind)}
     </Badge>
   );
