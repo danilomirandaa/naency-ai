@@ -147,6 +147,8 @@
   --color-background-brand-primary-rest: var(--background-brand-primary-rest);
   --color-background-brand-primary-hover: var(--background-brand-primary-hover);
   --color-background-status-critical-rest: var(--background-status-critical-rest);
+  --color-background-status-critical-strong: var(--background-status-critical-strong);
+  --color-background-status-success-strong: var(--background-status-success-strong);
   --color-background-status-success-rest: var(--background-status-success-rest);
   --color-background-status-warning-rest: var(--background-status-warning-rest);
 
@@ -237,7 +239,11 @@
   --background-brand-primary-rest: oklch(0.854 0.129 174.692);
   --background-brand-primary-hover: oklch(0.8 0.13 174.7);
   --background-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  /* Escuro o bastante para texto branco por cima (contraste 4.6). */
+  --background-status-critical-strong: oklch(0.57 0.2069 23.39);
   --background-status-success-rest: oklch(0.6 0.1355 177.53);
+  /* Escuro o bastante para texto branco por cima (contraste 4.7). */
+  --background-status-success-strong: oklch(0.52 0.1355 177.53);
   --background-status-warning-rest: oklch(0.8 0.16 86);
 
   --typography-neutral-primary: oklch(0.141 0.005 285.823);
@@ -328,7 +334,9 @@
   --background-brand-primary-rest: oklch(0.8034 0.129 174.69);
   --background-brand-primary-hover: oklch(0.75 0.129 174.69);
   --background-status-critical-rest: oklch(0.6189 0.2069 23.39);
+  --background-status-critical-strong: oklch(0.57 0.2069 23.39);
   --background-status-success-rest: oklch(0.6 0.1355 177.53);
+  --background-status-success-strong: oklch(0.52 0.1355 177.53);
   --background-status-warning-rest: oklch(0.84 0.16 84);
 
   --typography-neutral-primary: oklch(0.985 0 0);

@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Icon } from '@/components/ui/Icon';
+import { Badge } from '@/components/ui/Badge';
 import { Panel } from '@/components/ui/Panel';
 import type { PanelDataTableColumn, PanelDataTableSort } from '@/components/ui/Panel/types';
 import { Text } from '@/components/ui/Text';
@@ -19,6 +20,7 @@ import { TransactionStatusBadge } from '@/features/transactions/components/Trans
 import { TRANSACTION_SORT_KEYS, type TransactionSort, type TransactionSortKey } from '@/features/transactions/filters';
 import type { TransactionItem } from '@/features/transactions/types';
 import { formatIsoDate } from '@/lib/dates';
+import { classMerge } from '@/lib/utils';
 import { PAYMENT_METHOD_LABELS, transactionSituation } from '@/lib/transactions';
 
 export type TransactionsTableProps = {
@@ -137,9 +139,20 @@ export function TransactionsTable({
       key: 'date',
       header: 'Data',
       sortable: true,
-      cell: (item) => (
-        <div className="flex flex-col whitespace-nowrap">
-          <Text size="sm" className="tabular-nums">
+      cell: (item) => {
+        const situation = transactionSituation(item.status, item.date, today);
+        return (
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          <Icon
+            icon={situation === 'overdue' ? 'alert-circle' : 'calendar'}
+            aria-hidden
+            className={classMerge(
+              'size-4 shrink-0',
+              situation === 'paid' ? 'text-icon-neutral-rest' : 'text-icon-status-critical-rest',
+            )}
+          />
+          <div className="flex flex-col">
+          <Text size="sm" className={classMerge('tabular-nums', situation === 'paid' && 'text-inherit')}>
             {formatIsoDate(item.date)}
           </Text>
           {item.occurredTime && (
@@ -147,8 +160,10 @@ export function TransactionsTable({
               {item.occurredTime.slice(0, 5)}
             </Text>
           )}
+          </div>
         </div>
-      ),
+        );
+      },
     },
     {
       key: 'situation',
@@ -167,7 +182,11 @@ export function TransactionsTable({
           showPlusSign={item.kind === 'income'}
           size="sm"
           weight="medium"
-          className="tabular-nums"
+          // Pago herda o cinza da linha; o resto mantém a cor do tipo.
+          className={classMerge(
+            'tabular-nums',
+            transactionSituation(item.status, item.date, today) === 'paid' && 'text-inherit',
+          )}
         />
       ),
     },
@@ -178,7 +197,15 @@ export function TransactionsTable({
       minWidth: 220,
       cell: (item) => (
         <div className="flex max-w-80 min-w-0 flex-col">
-          <Text size="sm" className="truncate" title={item.description}>
+          {/* Maiúsculas só na exibição: o dado guarda o nome como veio. */}
+          <Text
+            size="sm"
+            className={classMerge(
+              'truncate uppercase',
+              transactionSituation(item.status, item.date, today) === 'paid' && 'text-inherit',
+            )}
+            title={item.description}
+          >
             {item.description}
           </Text>
           {item.notes && (
@@ -194,16 +221,14 @@ export function TransactionsTable({
       header: 'Conta',
       sortable: true,
       cell: (item) => (
-        <div className="flex items-center gap-2 whitespace-nowrap">
+        <Badge>
           <AccountAvatar type={item.account.type} institution={item.account.institution} size="sm" />
-          <Text size="sm">
-            {item.kind === 'transfer' && item.transfer
-              ? item.amountCents < 0
-                ? `${item.account.name} → ${item.transfer.counterpartAccountName}`
-                : `${item.transfer.counterpartAccountName} → ${item.account.name}`
-              : item.account.name}
-          </Text>
-        </div>
+          {item.kind === 'transfer' && item.transfer
+            ? item.amountCents < 0
+              ? `${item.account.name} → ${item.transfer.counterpartAccountName}`
+              : `${item.transfer.counterpartAccountName} → ${item.account.name}`
+            : item.account.name}
+        </Badge>
       ),
     },
     {
@@ -212,13 +237,10 @@ export function TransactionsTable({
       sortable: true,
       cell: (item) =>
         item.category ? (
-          <div
-            className="flex items-center gap-2 whitespace-nowrap"
-            title={item.category.parentName ? `${item.category.parentName} › ${item.category.name}` : undefined}
-          >
+          <Badge title={item.category.parentName ? `${item.category.parentName} › ${item.category.name}` : undefined}>
             <CategoryIcon icon={item.category.icon} color={item.category.color} size="sm" />
-            <Text size="sm">{item.category.name}</Text>
-          </div>
+            {item.category.name}
+          </Badge>
         ) : item.kind === 'transfer' ? (
           <Muted />
         ) : (
@@ -232,9 +254,7 @@ export function TransactionsTable({
       header: 'Forma de pagamento',
       cell: (item) =>
         item.paymentMethod ? (
-          <Text size="sm" className="whitespace-nowrap">
-            {PAYMENT_METHOD_LABELS[item.paymentMethod]}
-          </Text>
+          <Badge>{PAYMENT_METHOD_LABELS[item.paymentMethod]}</Badge>
         ) : (
           <Muted />
         ),
@@ -244,14 +264,15 @@ export function TransactionsTable({
       header: 'Tipo',
       cell: (item) =>
         item.recurring ? (
-          <Panel.RowBadge color="blue" className="gap-1 whitespace-nowrap">
-            <Icon icon="recurring" className="size-3" />
+          // Mesma tabela, mesma pílula: misturar dois formatos de selo polui a linha.
+          <Badge>
+            <Icon icon="recurring" aria-hidden />
             Recorrente
-          </Panel.RowBadge>
+          </Badge>
         ) : item.installment ? (
-          <Panel.RowBadge color="gray" className="whitespace-nowrap">
+          <Badge>
             Parcela {item.installment.number}/{item.installment.total}
-          </Panel.RowBadge>
+          </Badge>
         ) : (
           <Text size="sm" color="secondary">
             Única
@@ -313,11 +334,14 @@ export function TransactionsTable({
             onSortChange({ key: next.key, dir: next.dir });
           }
         }}
-        rowClassName={(item) =>
-          transactionSituation(item.status, item.date, today) === 'overdue'
-            ? '[&>td:first-child]:shadow-[inset_3px_0_0_var(--color-icon-status-critical-rest)]'
-            : undefined
-        }
+        rowClassName={(item) => {
+          const situation = transactionSituation(item.status, item.date, today);
+          if (situation === 'overdue') {
+            return '[&>td:first-child]:shadow-[inset_3px_0_0_var(--color-icon-status-critical-rest)]';
+          }
+          // Pago já está resolvido: atenua para o que precisa de ação saltar.
+          return situation === 'paid' ? 'text-typography-neutral-secondary' : undefined;
+        }}
         {...(total > pageSize
           ? {
               pageSize,

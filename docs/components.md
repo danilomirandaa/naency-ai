@@ -49,7 +49,13 @@ para `components/finance/`.
    `BudgetDialog`) ou no container que recebe `onDelete` (ex.:
    `TransactionsManager`). A story prova que nada acontece antes de confirmar.
    Arquivar não é exclusão (volta com um clique) e dispensa o modal.
-9. **Toda ação assíncrona termina com aviso.** Nada que demora (importar,
+9. **Rótulo em tabela é `Badge`; em linha de lista é `Panel.RowBadge`.** O
+   `Badge` é a pílula arredondada (situação do lançamento, conta, categoria,
+   forma de pagamento); o `RowBadge` é o selo pequeno e quadrado das linhas de
+   lista, como "Possível duplicado" na importação. Numa mesma tabela não se
+   misturam os dois. Selo sólido usa o token `-strong` do tom
+   ([tokens](./design/tokens.md)), que é o único com contraste para texto branco.
+10. **Toda ação assíncrona termina com aviso.** Nada que demora (importar,
    sugerir categorias, salvar em lote) acaba em silêncio: quem dispara recebe
    um toast (`useToast()`), e o que continua pendente aparece no sino do header.
    Ver [avisos](#avisos-toast-e-sino).
@@ -66,6 +72,7 @@ components/ui/Button, Select, Popover,     portados do shadcn/ui com os tokens d
   Calendar, Spinner                       ícone como filho com data-icon, carregando = disabled + Spinner)
 components/ui/DatePicker/                 data "AAAA-MM-DD" com Calendar em Popover, exibida em pt-BR
 components/ui/Toast/                      avisos temporários (Radix Toast): ToastProvider + useToast()
+components/ui/Badge/                      pílula de rótulo (situação, conta, categoria); não confundir com Panel.RowBadge
 components/finance/<Nome>/                peças de domínio reutilizáveis
 components/finance/StatCard/              card de indicador (rótulo, valor, variação), em StatCard.Group
 components/evilcharts/{ui,charts}/        gráficos do EvilCharts (Recharts), instalados pelo registry; ver "Gráficos"

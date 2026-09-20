@@ -24,6 +24,7 @@ import { IconCard } from '@devigner-ui/icons/Card';
 import { IconCartLarge } from '@devigner-ui/icons/CartLarge';
 import { IconCaseMinimalistic } from '@devigner-ui/icons/CaseMinimalistic';
 import { IconCheck } from '@devigner-ui/icons/Check';
+import { IconCheckRead } from '@devigner-ui/icons/CheckRead';
 import { IconChevronDown } from '@devigner-ui/icons/ChevronDown';
 import { IconChevronLeft } from '@devigner-ui/icons/ChevronLeft';
 import { IconChevronRight } from '@devigner-ui/icons/ChevronRight';
@@ -107,6 +108,7 @@ export const icons = {
   copy: IconCopy,
   close: IconClose,
   check: IconCheck,
+  'check-double': IconCheckRead,
   search: IconMagnifer,
   return: IconUndoLeft,
   settings: IconSettings,

@@ -22,6 +22,12 @@ Famílias: `neutral`, `brand-primary`, `brand-accent`, `status-critical`,
 `status-success`, `status-warning`, `finance`.
 Estados: `rest` → `hover` → `pressed` (e `disabled`).
 
+**`-strong`**: variante escura de `background-status-critical` e
+`background-status-success`, para quando há **texto branco por cima** (o selo
+sólido do `Badge`). O `-rest` é claro demais: branco sobre ele dá contraste 3.9,
+abaixo do mínimo de 4.5 que a a11y das stories cobra. Cor de fundo com texto
+claro sempre usa `-strong`.
+
 ## Superfícies
 
 | Token                        | Papel                                          |
