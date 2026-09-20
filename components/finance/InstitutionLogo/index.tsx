@@ -18,7 +18,7 @@ export function institutionInitials(name: string) {
 
 const sizeClassName = {
   /** Cabe dentro de um `Badge` sem esticar a pílula. */
-  xs: 'size-4 rounded-[4px] text-[7px]',
+  xs: 'size-3.5 rounded-[4px] text-[6px]',
   sm: 'size-5 rounded-[5px] text-[8px]',
   md: 'size-8 rounded-control-sm text-[11px]',
 } as const;

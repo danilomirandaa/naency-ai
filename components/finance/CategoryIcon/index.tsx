@@ -5,7 +5,7 @@ import { classMerge } from '@/lib/utils';
 
 const sizeClassName = {
   /** Cabe dentro de um `Badge` sem esticar a pílula. */
-  xs: 'size-4 rounded-[4px] [&_svg]:size-2.5',
+  xs: 'size-3.5 rounded-[4px] [&_svg]:size-2.5',
   sm: 'size-5 rounded-[5px] [&_svg]:size-3',
   md: 'size-8 rounded-control-sm [&_svg]:size-4',
 } as const;
