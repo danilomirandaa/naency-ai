@@ -212,6 +212,13 @@ nenhum espaço o layout redireciona para `/comecar`, onde a pessoa cria o primei
 | IDs | UUID |
 | Idioma | Código e banco em inglês; interface em pt-BR |
 
+## Ambiente
+
+**Node 22 ou mais novo** (`.nvmrc` e `engines` do `package.json`). O
+`@supabase/supabase-js` deprecou o Node 20 e avisa em toda execução; a CI fixa a
+versão pelo `.nvmrc` com `actions/setup-node`, para não depender do Node que vem
+na imagem do Playwright. Com nvm: `nvm use` na raiz do projeto.
+
 ## Variáveis de ambiente
 
 Ficam em `.env.local` (fora do git) e, em produção, nas variáveis da Vercel.
